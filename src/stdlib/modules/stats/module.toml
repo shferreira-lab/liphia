@@ -1,0 +1,5 @@
+[module]
+name        = "stats"
+version     = "1.0.0"
+description = "Statistics and data analysis"
+native      = true

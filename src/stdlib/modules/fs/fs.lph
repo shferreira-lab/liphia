@@ -1,0 +1,30 @@
+# stdlib/lph/fs.lph
+# File system utilities — implemented natively in Rust (stdlib/native/src/fs.rs).
+
+# ── Available functions ───────────────────────────────────────────────────────
+#
+# read_file(path: str) -> str
+#   Reads the entire file at path and returns its contents as a str.
+#   Raises a runtime error if the file cannot be opened.
+#
+# write_file(path: str, content: str) -> bool
+#   Writes content to the file at path, creating it if it does not exist.
+#   Overwrites existing content. Returns true on success.
+#
+# append_file(path: str, content: str) -> bool
+#   Appends content to the file at path, creating it if it does not exist.
+#   Returns true on success.
+#
+# file_exists(path: str) -> bool
+#   Returns true if the file at path exists.
+#
+# ── Example ───────────────────────────────────────────────────────────────────
+#
+#   import "fs.lph"
+#
+#   write_file("log.txt", "first line\n")
+#   append_file("log.txt", "second line\n")
+#
+#   if file_exists("log.txt"):
+#       var content: str = read_file("log.txt")
+#       print(content)

@@ -1,0 +1,38 @@
+# stdlib/lph/ai.lph
+# AI and machine learning primitives.
+# Status: STUB — functions are registered but not yet implemented.
+# Calling any function from this module will raise a runtime error.
+#
+#
+# ── Activation functions ──────────────────────────────────────────────────────
+#
+# sigmoid(x: float) -> float
+#   Returns 1 / (1 + e^(-x)). Output is between 0 and 1.
+#
+# relu(x: float) -> float
+#   Returns max(0, x). Used in neural network hidden layers.
+#
+# softmax(v: list) -> list
+#   Normalizes a list of floats to a probability distribution (sums to 1).
+#
+# argmax(v: list) -> int
+#   Returns the index of the maximum value in a list.
+#
+# ── Linear algebra ────────────────────────────────────────────────────────────
+#
+# dot(a: list, b: list) -> float
+#   Vector dot product. Both lists must have the same length.
+#
+# norm(v: list) -> float
+#   L2 (Euclidean) norm of a vector.
+#
+# matrix_new(rows: int, cols: int, fill: float) -> list
+#   Creates a flat list of (rows * cols) floats all set to fill.
+#   Access element [r][c] as: matrix[r * cols + c]
+#
+# matrix_mul(a: list, b: list, rows: int, inner: int, cols: int) -> list
+#   Matrix multiplication of (rows x inner) by (inner x cols).
+#   Returns a flat list of (rows * cols) floats.
+#
+# matrix_add(a: list, b: list) -> list
+#   Element-wise addition of two equal-length lists.

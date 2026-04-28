@@ -1,0 +1,28 @@
+# stdlib/lph/http.lph
+# HTTP server and client.
+# Status: functions implemented where noted.
+#
+# ── Server functions ──────────────────────────────────────────────────────────
+
+# http_listen(port: int) -> bool
+# http_accept() -> bool
+# http_method() -> str
+# http_path() -> str
+# http_query() -> str
+# http_body() -> str
+# http_header(name: str) -> str
+# http_respond(status: int, body: str) -> bool
+# http_respond_json(status: int, body: str) -> bool
+
+# ── Client functions ──────────────────────────────────────────────────────────
+
+# http_get(url: str) -> str
+# http_post(url: str, body: str) -> str
+# http_put(url: str, body: str) -> str
+# http_patch(url: str, body: str) -> str
+# http_delete(url: str) -> str
+# http_status() -> int
+
+# ── Planned functions ─────────────────────────────────────────────────────────
+
+# (no specific planned functions listed; callbacks or extensions can be added later)
