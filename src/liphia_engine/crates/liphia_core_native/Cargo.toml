@@ -1,0 +1,7 @@
+[package]
+name = "liphia_core_native"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+liphia_virtual_machine = { path = "../liphia_virtual_machine" }

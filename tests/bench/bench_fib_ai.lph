@@ -1,0 +1,44 @@
+# -------------------------
+# Fibonacci recursivo
+# -------------------------
+fn fib_rec(n: int) -> int:
+    if n <= 1: return n
+    return fib_rec(n-1) + fib_rec(n-2)
+
+# -------------------------
+# Fibonacci iterativo
+# -------------------------
+fn fib_iter(n: int) -> int:
+    var a: int = 0
+    var b: int = 1
+    for i in range(n):
+        var temp = a
+        a = b
+        b = temp + b
+    return a
+
+# -------------------------
+# AI operations
+# -------------------------
+var v1: list = [1.0,2.0,3.0,4.0,5.0]
+var v2: list = [5.0,4.0,3.0,2.0,1.0]
+
+var start = time_ms()
+var r1 = fib_rec(25)
+var t1 = time_ms() - start
+
+start = time_ms()
+var r2 = fib_iter(35)
+var t2 = time_ms() - start
+
+start = time_ms()
+var dot_val = dot(v1, v2)
+var norm_val = norm(v1)
+var sm = softmax(v1)
+var t3 = time_ms() - start
+
+print("fib_rec(25) =", r1, " | tempo =", t1, "ms")
+print("fib_iter(35) =", r2, " | tempo =", t2, "ms")
+print("dot(v1,v2) =", dot_val)
+print("norm(v1) =", norm_val)
+print("softmax(v1) =", sm, " | tempo =", t3, "ms")

@@ -1,0 +1,10 @@
+[package]
+name = "liphia_cli"
+version = "0.9.0"
+edition = "2021"
+
+[dependencies]
+liphia_compiler = { path = "../liphia_compiler" }
+liphia_virtual_machine = { path = "../liphia_virtual_machine" }
+liphia_core_native   = { path = "../liphia_core_native" }    
+

@@ -1,0 +1,58 @@
+# Third-Party Licenses
+
+This file lists the third-party software used by the Liphia engine
+and their respective licenses.
+
+---
+
+## Rust Standard Library and Toolchain
+
+The Liphia engine (`liphia_compiler`, `liphia_virtual_machine`,
+`liphia_cli`) is implemented in Rust and compiled using the Rust
+toolchain.
+
+- **Project:** The Rust Programming Language
+- **Website:** https://www.rust-lang.org
+- **Repository:** https://github.com/rust-lang/rust
+- **License:** MIT OR Apache-2.0 (dual license)
+
+The Rust standard library is statically linked into the Liphia
+engine binary. Its use is governed by the MIT and Apache 2.0
+licenses, copies of which are available at:
+
+  - https://github.com/rust-lang/rust/blob/master/LICENSE-MIT
+  - https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE
+
+---
+
+## Standard Library Crates (Rust)
+
+The following modules from the Rust standard library are used
+directly in the Liphia engine source code:
+
+| Module            | Usage                                      |
+|-------------------|--------------------------------------------|
+| `std::collections::HashMap` | Global variable storage in the VM  |
+| `std::collections::HashSet` | Import cycle detection in the CLI  |
+| `std::fs`         | Source file reading                        |
+| `std::path`       | File path resolution                       |
+| `std::io`         | stdin/stdout for `input` and `print`       |
+| `std::rc::Rc`     | Reference-counted string values in the VM  |
+
+All of the above are part of the Rust standard library and are
+covered by the Rust license stated above.
+
+---
+
+## No Additional Runtime Dependencies
+
+The Liphia engine has **no external crate dependencies** beyond
+the Rust standard library. The `Cargo.toml` files contain no
+entries in `[dependencies]`.
+
+This means the compiled binary is fully self-contained and does
+not bundle any third-party crates subject to separate licensing.
+
+---
+
+*This file will be updated as new dependencies are introduced.*

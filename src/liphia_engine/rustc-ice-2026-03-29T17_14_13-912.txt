@@ -1,0 +1,1154 @@
+delayed bug: no resolution for an import
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtCsiMrFIzQW6Mx_9rustc_hir3hir16InlineAsmOperandNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtCsjKw0UP1ks5D_5alloc3vec3VecB1o_EE0QSB1o_ECsh5WhmCZqszF_18rus
+   8: rustc_ast_lowering::lower_to_hir
+   9: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  10: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  11: rustc_ast_lowering::lower_to_hir
+  12: rustc_ast_lowering::lower_to_hir
+  13: rustc_query_impl::plumbing::try_mark_green
+  14: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  15: rustc_query_impl::execution::expect_job
+  16: <rustc_interface::passes::LintStoreExpandImpl as rustc_expand::base::LintStoreExpand>::pre_expansion_lint
+  17: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  18: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  19: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  20: <rustc_middle::ty::context::TyCtxt>::parent_hir_id
+  21: rustc_middle::hir::map::hir_crate_items
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: no resolution for an import
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtCsiMrFIzQW6Mx_9rustc_hir3hir16InlineAsmOperandNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtCsjKw0UP1ks5D_5alloc3vec3VecB1o_EE0QSB1o_ECsh5WhmCZqszF_18rus
+   8: rustc_ast_lowering::lower_to_hir
+   9: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  10: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  11: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  12: rustc_ast_lowering::lower_to_hir
+  13: rustc_ast_lowering::lower_to_hir
+  14: rustc_query_impl::plumbing::try_mark_green
+  15: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  16: rustc_query_impl::execution::expect_job
+  17: <rustc_interface::passes::LintStoreExpandImpl as rustc_expand::base::LintStoreExpand>::pre_expansion_lint
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: <rustc_middle::ty::context::TyCtxt>::parent_hir_id
+  22: rustc_middle::hir::map::hir_crate_items
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: rustc_interface::passes::analysis
+  27: rustc_query_impl::plumbing::try_mark_green
+  28: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  29: rustc_query_impl::plumbing::try_mark_green
+  30: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  31: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  32: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  33: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  34: BaseThreadInitThunk
+  35: RtlUserThreadStart
+
+delayed bug: no resolution for an import
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtCsiMrFIzQW6Mx_9rustc_hir3hir16InlineAsmOperandNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtCsjKw0UP1ks5D_5alloc3vec3VecB1o_EE0QSB1o_ECsh5WhmCZqszF_18rus
+   8: rustc_ast_lowering::lower_to_hir
+   9: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  10: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  11: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  12: rustc_ast_lowering::lower_to_hir
+  13: rustc_ast_lowering::lower_to_hir
+  14: rustc_query_impl::plumbing::try_mark_green
+  15: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  16: rustc_query_impl::execution::expect_job
+  17: <rustc_interface::passes::LintStoreExpandImpl as rustc_expand::base::LintStoreExpand>::pre_expansion_lint
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: <rustc_middle::ty::context::TyCtxt>::parent_hir_id
+  22: rustc_middle::hir::map::hir_crate_items
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: rustc_interface::passes::analysis
+  27: rustc_query_impl::plumbing::try_mark_green
+  28: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  29: rustc_query_impl::plumbing::try_mark_green
+  30: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  31: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  32: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  33: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  34: BaseThreadInitThunk
+  35: RtlUserThreadStart
+
+delayed bug: no resolution for an import
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtCsiMrFIzQW6Mx_9rustc_hir3hir16InlineAsmOperandNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtCsjKw0UP1ks5D_5alloc3vec3VecB1o_EE0QSB1o_ECsh5WhmCZqszF_18rus
+   8: rustc_ast_lowering::lower_to_hir
+   9: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  10: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  11: rustc_ast_lowering::lower_to_hir
+  12: rustc_ast_lowering::lower_to_hir
+  13: rustc_query_impl::plumbing::try_mark_green
+  14: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  15: rustc_query_impl::execution::expect_job
+  16: <rustc_interface::passes::LintStoreExpandImpl as rustc_expand::base::LintStoreExpand>::pre_expansion_lint
+  17: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  18: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  19: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  20: <rustc_middle::ty::context::TyCtxt>::parent_hir_id
+  21: rustc_middle::hir::map::hir_crate_items
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: no resolution for an import
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtCsiMrFIzQW6Mx_9rustc_hir3hir16InlineAsmOperandNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtCsjKw0UP1ks5D_5alloc3vec3VecB1o_EE0QSB1o_ECsh5WhmCZqszF_18rus
+   8: rustc_ast_lowering::lower_to_hir
+   9: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  10: <rustc_ast_lowering::LoweringContext>::lower_generic_param
+  11: rustc_ast_lowering::lower_to_hir
+  12: rustc_ast_lowering::lower_to_hir
+  13: rustc_query_impl::plumbing::try_mark_green
+  14: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  15: rustc_query_impl::execution::expect_job
+  16: <rustc_interface::passes::LintStoreExpandImpl as rustc_expand::base::LintStoreExpand>::pre_expansion_lint
+  17: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  18: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  19: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  20: <rustc_middle::ty::context::TyCtxt>::parent_hir_id
+  21: rustc_middle::hir::map::hir_crate_items
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: path with `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_data_structures::vec_cache::SlotIndex>::initialize_bucket::<rustc_middle::query::erase::ErasedData<[u8; 12]>>
+   8: <dyn rustc_hir_analysis::hir_ty_lowering::HirTyLowerer>::lower_ty
+   9: rustc_hir_analysis::check::check::check_abi
+  10: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  11: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  12: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  13: <rustc_hir_analysis::autoderef::Autoderef>::new
+  14: rustc_query_impl::plumbing::try_mark_green
+  15: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  16: rustc_query_impl::execution::expect_job
+  17: <rustc_hir_analysis::autoderef::Autoderef>::new
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: rustc_hir_analysis::check::check::check_abi
+  22: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  23: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  24: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  25: rustc_hir_analysis::hir_ty_lowering::generics::check_generic_arg_count_for_call
+  26: rustc_hir_analysis::check::check::check_abi
+  27: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  28: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  29: rustc_query_impl::plumbing::try_mark_green
+  30: rustc_hir_analysis::check::check::check_abi
+  31: rustc_query_impl::plumbing::try_mark_green
+  32: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  33: rustc_query_impl::plumbing::try_mark_green
+  34: rustc_hir_analysis::check_crate
+  35: rustc_interface::passes::analysis
+  36: rustc_query_impl::plumbing::try_mark_green
+  37: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  38: rustc_query_impl::plumbing::try_mark_green
+  39: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  40: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  41: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  42: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  43: BaseThreadInitThunk
+  44: RtlUserThreadStart
+
+delayed bug: path with `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_data_structures::vec_cache::SlotIndex>::initialize_bucket::<rustc_middle::query::erase::ErasedData<[u8; 12]>>
+   8: <dyn rustc_hir_analysis::hir_ty_lowering::HirTyLowerer>::lower_ty
+   9: rustc_hir_analysis::check::check::check_abi
+  10: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  11: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  12: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  13: <rustc_hir_analysis::autoderef::Autoderef>::new
+  14: rustc_query_impl::plumbing::try_mark_green
+  15: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  16: rustc_query_impl::execution::expect_job
+  17: <rustc_hir_analysis::autoderef::Autoderef>::new
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: rustc_hir_analysis::check::check::check_abi
+  22: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  23: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  24: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  25: rustc_hir_analysis::hir_ty_lowering::generics::check_generic_arg_count_for_call
+  26: rustc_hir_analysis::check::check::check_abi
+  27: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  28: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  29: rustc_query_impl::plumbing::try_mark_green
+  30: rustc_hir_analysis::check::check::check_abi
+  31: rustc_query_impl::plumbing::try_mark_green
+  32: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  33: rustc_query_impl::plumbing::try_mark_green
+  34: rustc_hir_analysis::check_crate
+  35: rustc_interface::passes::analysis
+  36: rustc_query_impl::plumbing::try_mark_green
+  37: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  38: rustc_query_impl::plumbing::try_mark_green
+  39: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  40: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  41: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  42: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  43: BaseThreadInitThunk
+  44: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: core::slice::sort::unstable::ipnsort::<(rustc_span::def_id::DefPathHash, usize), <(rustc_span::def_id::DefPathHash, usize) as core::cmp::PartialOrd>::lt>
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::intrinsicck::check_transmutes
+  18: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  19: rustc_hir_typeck::typeck
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  22: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  23: rustc_hir_analysis::check_crate
+  24: rustc_interface::passes::analysis
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  27: rustc_query_impl::plumbing::try_mark_green
+  28: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  29: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  30: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  31: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  32: BaseThreadInitThunk
+  33: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: core::slice::sort::unstable::ipnsort::<(rustc_span::def_id::DefPathHash, usize), <(rustc_span::def_id::DefPathHash, usize) as core::cmp::PartialOrd>::lt>
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::intrinsicck::check_transmutes
+  15: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  16: rustc_hir_typeck::typeck
+  17: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  18: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  19: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  20: rustc_hir_analysis::check_crate
+  21: rustc_interface::passes::analysis
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  26: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  27: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  28: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  29: BaseThreadInitThunk
+  30: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::typeck
+  19: rustc_hir_typeck::typeck
+  20: rustc_hir_typeck::typeck
+  21: rustc_hir_typeck::typeck
+  22: rustc_hir_typeck::typeck
+  23: rustc_hir_typeck::typeck
+  24: rustc_hir_typeck::typeck
+  25: core::slice::sort::unstable::ipnsort::<(rustc_span::def_id::DefPathHash, usize), <(rustc_span::def_id::DefPathHash, usize) as core::cmp::PartialOrd>::lt>
+  26: rustc_hir_typeck::typeck
+  27: rustc_hir_typeck::typeck
+  28: rustc_hir_typeck::typeck
+  29: rustc_hir_typeck::intrinsicck::check_transmutes
+  30: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  31: rustc_hir_typeck::typeck
+  32: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  33: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  34: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  35: rustc_hir_analysis::check_crate
+  36: rustc_interface::passes::analysis
+  37: rustc_query_impl::plumbing::try_mark_green
+  38: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  39: rustc_query_impl::plumbing::try_mark_green
+  40: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  41: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  42: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  43: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  44: BaseThreadInitThunk
+  45: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::typeck
+  19: rustc_hir_typeck::typeck
+  20: rustc_hir_typeck::typeck
+  21: rustc_hir_typeck::typeck
+  22: core::slice::sort::unstable::ipnsort::<(rustc_span::def_id::DefPathHash, usize), <(rustc_span::def_id::DefPathHash, usize) as core::cmp::PartialOrd>::lt>
+  23: rustc_hir_typeck::typeck
+  24: rustc_hir_typeck::typeck
+  25: rustc_hir_typeck::typeck
+  26: rustc_hir_typeck::intrinsicck::check_transmutes
+  27: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  28: rustc_hir_typeck::typeck
+  29: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  30: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  31: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  32: rustc_hir_analysis::check_crate
+  33: rustc_interface::passes::analysis
+  34: rustc_query_impl::plumbing::try_mark_green
+  35: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  36: rustc_query_impl::plumbing::try_mark_green
+  37: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  38: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  39: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  40: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  41: BaseThreadInitThunk
+  42: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::typeck
+  19: rustc_hir_typeck::typeck
+  20: rustc_hir_typeck::typeck
+  21: rustc_hir_typeck::typeck
+  22: rustc_hir_typeck::intrinsicck::check_transmutes
+  23: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  24: rustc_hir_typeck::typeck
+  25: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  26: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  27: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  28: rustc_hir_analysis::check_crate
+  29: rustc_interface::passes::analysis
+  30: rustc_query_impl::plumbing::try_mark_green
+  31: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  32: rustc_query_impl::plumbing::try_mark_green
+  33: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  34: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  35: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  36: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  37: BaseThreadInitThunk
+  38: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::typeck
+  19: rustc_hir_typeck::intrinsicck::check_transmutes
+  20: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  21: rustc_hir_typeck::typeck
+  22: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  23: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  24: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  25: rustc_hir_analysis::check_crate
+  26: rustc_interface::passes::analysis
+  27: rustc_query_impl::plumbing::try_mark_green
+  28: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  29: rustc_query_impl::plumbing::try_mark_green
+  30: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  31: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  32: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  33: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  34: BaseThreadInitThunk
+  35: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::intrinsicck::check_transmutes
+  19: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  20: rustc_hir_typeck::typeck
+  21: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  22: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  23: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  24: rustc_hir_analysis::check_crate
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::intrinsicck::check_transmutes
+  16: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  17: rustc_hir_typeck::typeck
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: rustc_hir_analysis::check_crate
+  22: rustc_interface::passes::analysis
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  27: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  28: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  29: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  30: BaseThreadInitThunk
+  31: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::intrinsicck::check_transmutes
+  19: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  20: rustc_hir_typeck::typeck
+  21: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  22: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  23: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  24: rustc_hir_analysis::check_crate
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::intrinsicck::check_transmutes
+  16: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  17: rustc_hir_typeck::typeck
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: rustc_hir_analysis::check_crate
+  22: rustc_interface::passes::analysis
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  27: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  28: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  29: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  30: BaseThreadInitThunk
+  31: RtlUserThreadStart
+
+delayed bug: `Res::Err` but no error emitted
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: RINvCsaWQaDFKYC6e_11rustc_arena7outlineNCINvMs6_B2_NtB2_13DroplessArena15alloc_from_iterTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty9predicate6ClauseNtNtCs3d3xbwNC1pa_10rustc_span13span_encoding4SpanEINtNtNtNtCsen5IPNC8uxq_4core4iter8adapters10filter_map9FilterM
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::typeck
+  16: rustc_hir_typeck::typeck
+  17: rustc_hir_typeck::typeck
+  18: rustc_hir_typeck::intrinsicck::check_transmutes
+  19: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  20: rustc_hir_typeck::typeck
+  21: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  22: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  23: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  24: rustc_hir_analysis::check_crate
+  25: rustc_interface::passes::analysis
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  28: rustc_query_impl::plumbing::try_mark_green
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  31: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  32: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  33: BaseThreadInitThunk
+  34: RtlUserThreadStart
+
+delayed bug: 
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: rustc_hir_typeck::typeck
+   8: rustc_hir_typeck::typeck
+   9: rustc_hir_typeck::typeck
+  10: rustc_hir_typeck::typeck
+  11: rustc_hir_typeck::typeck
+  12: rustc_hir_typeck::typeck
+  13: rustc_hir_typeck::typeck
+  14: rustc_hir_typeck::typeck
+  15: rustc_hir_typeck::intrinsicck::check_transmutes
+  16: <hashbrown::raw::RawTable<usize>>::reserve_rehash::<indexmap::inner::get_hash<(rustc_middle::ty::predicate::Predicate, rustc_middle::traits::ObligationCause), ()>::{closure#0}>
+  17: rustc_hir_typeck::typeck
+  18: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  19: RINvMs6_NtCs6LliL68up2P_9hashbrown3rawINtB6_8RawTableTTNtNtNtCs5oYLXTY0UO8_12rustc_middle2ty8instance8InstanceNtNtNtBX_3mir4mono14CollectionModeETINtNtNtBX_5query5erase10ErasedDataAhj20_ENtNtNtBX_9dep_graph5graph12DepNodeIndexEEE14reserve_rehashNCINvNtCs5b
+  20: rustc_query_impl::dep_kind_vtables::make_dep_kind_vtables
+  21: rustc_hir_analysis::check_crate
+  22: rustc_interface::passes::analysis
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  27: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  28: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  29: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  30: BaseThreadInitThunk
+  31: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  10: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  11: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  12: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  13: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  14: rustc_privacy::check_mod_privacy
+  15: rustc_query_impl::plumbing::try_mark_green
+  16: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  17: rustc_query_impl::plumbing::try_mark_green
+  18: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  19: rustc_data_structures::sync::parallel::par_fns
+  20: rustc_interface::passes::analysis
+  21: rustc_query_impl::plumbing::try_mark_green
+  22: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  25: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  26: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  27: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  28: BaseThreadInitThunk
+  29: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_local
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  10: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  11: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  12: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  13: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  14: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  15: rustc_privacy::check_mod_privacy
+  16: rustc_query_impl::plumbing::try_mark_green
+  17: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  18: rustc_query_impl::plumbing::try_mark_green
+  19: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  20: rustc_data_structures::sync::parallel::par_fns
+  21: rustc_interface::passes::analysis
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  26: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  27: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  28: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  29: BaseThreadInitThunk
+  30: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_local
+  10: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  11: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  12: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  13: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  14: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  15: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  16: rustc_privacy::check_mod_privacy
+  17: rustc_query_impl::plumbing::try_mark_green
+  18: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  19: rustc_query_impl::plumbing::try_mark_green
+  20: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  21: rustc_data_structures::sync::parallel::par_fns
+  22: rustc_interface::passes::analysis
+  23: rustc_query_impl::plumbing::try_mark_green
+  24: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  25: rustc_query_impl::plumbing::try_mark_green
+  26: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  27: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  28: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  29: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  30: BaseThreadInitThunk
+  31: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  10: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_local
+  11: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  12: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  13: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  14: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  15: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  16: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  17: rustc_privacy::check_mod_privacy
+  18: rustc_query_impl::plumbing::try_mark_green
+  19: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  20: rustc_query_impl::plumbing::try_mark_green
+  21: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  22: rustc_data_structures::sync::parallel::par_fns
+  23: rustc_interface::passes::analysis
+  24: rustc_query_impl::plumbing::try_mark_green
+  25: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  26: rustc_query_impl::plumbing::try_mark_green
+  27: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  28: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  29: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  30: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  31: BaseThreadInitThunk
+  32: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_local
+  10: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  11: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  12: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  13: rustc_privacy::check_mod_privacy
+  14: rustc_query_impl::plumbing::try_mark_green
+  15: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  16: rustc_query_impl::plumbing::try_mark_green
+  17: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  18: rustc_data_structures::sync::parallel::par_fns
+  19: rustc_interface::passes::analysis
+  20: rustc_query_impl::plumbing::try_mark_green
+  21: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  22: rustc_query_impl::plumbing::try_mark_green
+  23: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  24: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  25: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  26: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  27: BaseThreadInitThunk
+  28: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: rustc_privacy::check_mod_privacy
+  10: rustc_query_impl::plumbing::try_mark_green
+  11: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  12: rustc_query_impl::plumbing::try_mark_green
+  13: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  14: rustc_data_structures::sync::parallel::par_fns
+  15: rustc_interface::passes::analysis
+  16: rustc_query_impl::plumbing::try_mark_green
+  17: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  18: rustc_query_impl::plumbing::try_mark_green
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  20: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  21: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  22: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  23: BaseThreadInitThunk
+  24: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  10: rustc_privacy::check_mod_privacy
+  11: rustc_query_impl::plumbing::try_mark_green
+  12: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  13: rustc_query_impl::plumbing::try_mark_green
+  14: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  15: rustc_data_structures::sync::parallel::par_fns
+  16: rustc_interface::passes::analysis
+  17: rustc_query_impl::plumbing::try_mark_green
+  18: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  19: rustc_query_impl::plumbing::try_mark_green
+  20: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  21: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  22: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  23: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  24: BaseThreadInitThunk
+  25: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: rustc_privacy::check_mod_privacy
+  10: rustc_query_impl::plumbing::try_mark_green
+  11: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  12: rustc_query_impl::plumbing::try_mark_green
+  13: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  14: rustc_data_structures::sync::parallel::par_fns
+  15: rustc_interface::passes::analysis
+  16: rustc_query_impl::plumbing::try_mark_green
+  17: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  18: rustc_query_impl::plumbing::try_mark_green
+  19: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  20: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  21: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  22: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  23: BaseThreadInitThunk
+  24: RtlUserThreadStart
+
+delayed bug: no type-dependent def for method call
+   0: std::backtrace_rs::backtrace::win64::trace
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\win64.rs:85
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::capture
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\backtrace.rs:296
+   4: <rustc_errors::DiagCtxtHandle>::has_errors_excluding_lint_errors
+   5: <rustc_errors::DiagCtxtHandle>::emit_diagnostic
+   6: <rustc_span::ErrorGuaranteed as rustc_errors::diagnostic::EmissionGuarantee>::emit_producing_guarantee
+   7: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   8: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+   9: <rustc_privacy::TypePrivacyVisitor as rustc_hir::intravisit::Visitor>::visit_expr
+  10: rustc_privacy::check_mod_privacy
+  11: rustc_query_impl::plumbing::try_mark_green
+  12: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  13: rustc_query_impl::plumbing::try_mark_green
+  14: <jiff::fmt::strtime::Display as core::fmt::Display>::fmt
+  15: rustc_data_structures::sync::parallel::par_fns
+  16: rustc_interface::passes::analysis
+  17: rustc_query_impl::plumbing::try_mark_green
+  18: <<rustc_ty_utils::opaque_types::OpaqueTypeCollector>::collect_taits_declared_in_body::TaitInBodyFinder as rustc_hir::intravisit::Visitor>::visit_nested_item
+  19: rustc_query_impl::plumbing::try_mark_green
+  20: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  21: RINvNtNtCsbZ9oForYXV4_3std3sys9backtrace28___rust_begin_short_backtraceNCNCINvNtCs8FJ11R0J9US_15rustc_interface4util26run_in_thread_with_globalsNCINvB1e_31run_in_thread_pool_with_globalsNCINvNtB1g_9interface12run_compileruNCNvCsbpHt9DV8boB_17rustc_driver_i
+  22: std::sys::backtrace::__rust_begin_short_backtrace::<std::thread::lifecycle::spawn_unchecked<ctrlc::set_handler_inner<rustc_driver_impl::install_ctrlc_handler::{closure#0}>::{closure#0}, ()>::{closure#1}::{closure#0}::{closure#0}, ()>
+  23: std::sys::thread::windows::impl$0::new::thread_start
+             at /rustc/b90dc1e597db0bbc0cab0eccb39747b1a9d7e607/library\std\src\sys\thread\windows.rs:58
+  24: BaseThreadInitThunk
+  25: RtlUserThreadStart
+
+
+
+rustc version: 1.96.0-nightly (b90dc1e59 2026-03-04)
+platform: x86_64-pc-windows-msvc

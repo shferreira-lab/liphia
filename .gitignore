@@ -1,0 +1,56 @@
+# Rust / Cargo
+target/
+Cargo.lock
+
+# Compilados e binários
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.o
+*.pdb
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Makefile gerados
+Makefile
+*.mk
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+*.tmp
+*.temp
+
+# Variáveis de ambiente
+.env
+.env.local
+
+# pasta interna para comunicações
+/notas
+/examples_me
+
+
+
+
+# python
+
+.venv/
