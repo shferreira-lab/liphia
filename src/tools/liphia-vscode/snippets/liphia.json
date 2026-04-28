@@ -1,0 +1,164 @@
+{
+  "Print": {
+    "prefix": "print",
+    "body": ["print(${1})"],
+    "description": "Print to terminal"
+  },
+  "Input": {
+    "prefix": "input",
+    "body": ["${1:name}: ${2:str} = input(\"${3:Enter}: \")"],
+    "description": "Read user input"
+  },
+  "Integer variable": {
+    "prefix": "int",
+    "body": ["${1:name}: int = ${2:0}"],
+    "description": "Declare integer variable"
+  },
+  "Float variable": {
+    "prefix": "float",
+    "body": ["${1:name}: float = ${2:0.0}"],
+    "description": "Declare float variable"
+  },
+  "String variable": {
+    "prefix": "str",
+    "body": ["${1:name}: str = \"${2:value}\""],
+    "description": "Declare string variable"
+  },
+  "Boolean variable": {
+    "prefix": "bool",
+    "body": ["${1:name}: bool = ${2:true}"],
+    "description": "Declare boolean variable"
+  },
+  "True": {
+    "prefix": "true",
+    "body": ["true"],
+    "description": "Boolean true"
+  },
+  "False": {
+    "prefix": "false",
+    "body": ["false"],
+    "description": "Boolean false"
+  },
+  "If": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2:# code}"
+    ],
+    "description": "If statement"
+  },
+  "If with else": {
+    "prefix": "if_else",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2:# code}",
+      "else:",
+      "    ${3:# code}"
+    ],
+    "description": "If/else statement"
+  },
+  "If with elif and else": {
+    "prefix": "if_elif_else",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2:# code}",
+      "elif ${3:condition}:",
+      "    ${4:# code}",
+      "else:",
+      "    ${5:# code}"
+    ],
+    "description": "If/elif/else statement"
+  },
+  "Elif": {
+    "prefix": "elif",
+    "body": [
+      "elif ${1:condition}:",
+      "    ${2:# code}"
+    ],
+    "description": "Elif branch"
+  },
+  "Else": {
+    "prefix": "else",
+    "body": [
+      "else:",
+      "    ${1:# code}"
+    ],
+    "description": "Else branch"
+  },
+  "While": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition}:",
+      "    ${2:# code}"
+    ],
+    "description": "While loop"
+  },
+  "While with break": {
+    "prefix": "while_break",
+    "body": [
+      "while ${1:condition}:",
+      "    ${2:# code}",
+      "    if ${3:exit_condition}:",
+      "        break"
+    ],
+    "description": "While loop with break"
+  },
+  "For": {
+    "prefix": "for",
+    "body": [
+      "for ${1:i} from ${2:0} to ${3:10}:",
+      "    ${4:# code}"
+    ],
+    "description": "For loop (exclusive)"
+  },
+  "For with step": {
+    "prefix": "for_step",
+    "body": [
+      "for ${1:i} from ${2:0} to ${3:10} step ${4:2}:",
+      "    ${5:# code}"
+    ],
+    "description": "For loop with step"
+  },
+  "Break": {
+    "prefix": "break",
+    "body": ["break"],
+    "description": "Break out of loop"
+  },
+  "Continue": {
+    "prefix": "continue",
+    "body": ["continue"],
+    "description": "Continue to next iteration"
+  },
+  "Function": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:name}(${2:params}) -> ${3:void}:",
+      "    ${4:# code}",
+      "    return ${5:value}"
+    ],
+    "description": "Declare function with return"
+  },
+  "Void function": {
+    "prefix": "fn_void",
+    "body": [
+      "fn ${1:name}(${2:params}) -> void:",
+      "    ${3:# code}"
+    ],
+    "description": "Declare void function"
+  },
+  "Return": {
+    "prefix": "return",
+    "body": ["return ${1:value}"],
+    "description": "Return value"
+  },
+  "Import": {
+    "prefix": "import",
+    "body": ["import \"${1:module}\""],
+    "description": "Import module"
+  },
+  "Line comment": {
+    "prefix": "//",
+    "body": ["# ${1:comment}"],
+    "description": "Line comment"
+  }
+}

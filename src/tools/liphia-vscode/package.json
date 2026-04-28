@@ -1,0 +1,42 @@
+{
+  "name": "liphia",
+  "displayName": "Liphia Language",
+  "description": "Syntax highlighting for the Liphia programming language (.lph)",
+  "version": "0.0.1",
+  "publisher": "liphia",
+  "license": "MIT - Apache 2.0",
+  "icon": "icone.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shferreira-lab/liphia-vscode"
+  },
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "liphia",
+        "aliases": ["Liphia", "liphia"],
+        "extensions": [".lph"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icone.png",
+          "dark": "./icone.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "liphia",
+        "scopeName": "source.liphia",
+        "path": "./syntaxes/liphia.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "liphia",
+        "path": "./snippets/liphia.json"
+      }
+    ]
+  }
+}

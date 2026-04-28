@@ -1,0 +1,100 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "source.liphia",
+  "name": "Liphia",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#keywords_loop" },
+    { "include": "#types" },
+    { "include": "#booleans" },
+    { "include": "#builtin_functions" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.liphia",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.liphia",
+          "begin": "\"",
+          "end": "\""
+        },
+        {
+          "name": "string.quoted.single.liphia",
+          "begin": "'",
+          "end": "'"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.liphia",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.liphia",
+          "match": "\\b(if|elif|else|fn|return|import)\\b"
+        }
+      ]
+    },
+    "keywords_loop": {
+      "patterns": [
+        {
+          "name": "keyword.control.loop.liphia",
+          "match": "\\b(while|for|break|continue|from|to|step)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.liphia",
+          "match": "\\b(int|float|str|bool|void)\\b"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.liphia",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "builtin_functions": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.liphia",
+          "match": "\\b(print|input)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.liphia",
+          "match": "(==|!=|>=|<=|>|<|\\+|\\-|\\*|\\/|=|->)"
+        },
+        {
+          "name": "keyword.operator.logical.liphia",
+          "match": "\\b(and|or|not)\\b"
+        }
+      ]
+    }
+  }
+}

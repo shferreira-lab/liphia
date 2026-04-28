@@ -1,0 +1,11 @@
+
+{
+  "iconDefinitions": {
+    "liphia-file": {
+      "iconPath": "../icone.png"
+    }
+  },
+  "fileExtensions": {
+    "lph": "liphia-file"
+  }
+}
