@@ -11,7 +11,7 @@ pub fn cache_path(source_path: &Path) -> PathBuf {
     let stem = source_path.file_stem().unwrap_or_default().to_string_lossy();
     dir.join("liphia_cache").join(format!("{}.lbc", stem))
 }
-
+ 
 pub fn source_hash(source: &str) -> u64 {
     let mut hash: u64 = 0xcbf29ce484222325;
     for byte in source.bytes() {
