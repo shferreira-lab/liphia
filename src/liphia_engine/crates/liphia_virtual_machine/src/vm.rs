@@ -254,7 +254,10 @@ impl VM {
                     let mut args = Vec::with_capacity(count);
                     for _ in 0..count { args.push(task.pop("Print")?); }
                     args.reverse();
-                    for arg in &args { print!("{}", arg); }
+                    for (i, arg) in args.iter().enumerate() {
+                        if i > 0 { print!(" "); }
+                        print!("{}", arg);
+                    }
                     println!();
                 }
 

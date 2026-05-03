@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 liphia_virtual_machine = { path = "../../liphia_engine/crates/liphia_virtual_machine" }
+rusqlite = { version = "0.31", features = ["bundled"] }

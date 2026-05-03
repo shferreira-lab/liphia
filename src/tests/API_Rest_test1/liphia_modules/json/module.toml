@@ -1,0 +1,5 @@
+[module]
+name        = "json"
+version     = "1.0.0"
+description = "JSON encode and decode"
+native      = true

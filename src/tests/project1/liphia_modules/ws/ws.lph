@@ -1,0 +1,32 @@
+# stdlib/lph/ws.lph
+# WebSocket server.
+# Status: functions implemented where noted.
+#
+# ── Functions ────────────────────────────────────────────────────────────────
+
+# ws_listen(port: int) -> bool
+#   Starts a WebSocket server on the given port. Already functional.
+
+# ws_accept() -> int
+#   Returns the next client handle (0 if none). Already functional.
+
+# ws_clients() -> list[int]
+#   Returns a list of connected client handles. Already functional.
+
+# ws_send(handle: int, msg: str) -> bool
+#   Sends a text message to a specific client. Already functional.
+
+# ws_recv(handle: int) -> str
+#   Reads the next message from a client ("" if none). Already functional.
+
+# ws_broadcast(msg: str) -> bool
+#   Sends a message to all connected clients. Already functional.
+
+# ws_close(handle: int) -> bool
+#   Closes a WebSocket connection. Already functional.
+
+# ── Planned functions ─────────────────────────────────────────────────────────
+#
+# ws_on_connect(fn_name: str) -> bool
+# ws_on_message(fn_name: str) -> bool
+# ws_on_disconnect(fn_name: str) -> bool

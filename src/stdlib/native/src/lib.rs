@@ -9,26 +9,28 @@
 //   liphia_stdlib_native::register_all(&mut vm);
 //   vm.run(opcodes)?;
 
-
-pub mod math;
-pub mod stats;
-pub mod fs;
-pub mod net;
-pub mod http;
-pub mod ws;
 pub mod ai;
+pub mod db;
+pub mod fs;
+pub mod http;
+pub mod json;
+pub mod math;
+pub mod net;
+pub mod stats;
+pub mod ws;
 
 use liphia_virtual_machine::vm::VM;
 
 /// Registers all standard library modules into the VM.
 /// Call this once before `vm.run()`.
-/// Stub modules register their functions but return errors if called.
 pub fn register_all(vm: &mut VM) {
-    math::register(vm);
-    stats::register(vm);
-    fs::register(vm);
-    net::register(vm);
-    http::register(vm);
-    ws::register(vm);
     ai::register(vm);
+    db::register(vm);
+    fs::register(vm);
+    http::register(vm);
+    json::register(vm);
+    math::register(vm);
+    net::register(vm);
+    stats::register(vm);
+    ws::register(vm);
 }

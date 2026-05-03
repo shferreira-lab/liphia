@@ -1,12 +1,8 @@
 // liphia_cli/src/installer.rs
 //
 // Package manager for Liphia.
-//
-// Commands:
-//   liphia init               — create liphia.toml
-//   liphia install            — install all deps from liphia.toml
-//   liphia install http ws    — install specific modules
-//   liphia install --list     — list available modules
+
+
 
 use std::collections::HashMap;
 use std::fs;
@@ -21,7 +17,7 @@ const MODULES_DIR: &str = "liphia_modules";
 const MANIFEST:    &str = "liphia.toml";
 
 const KNOWN_MODULES: &[&str] = &[
-    "http", "ws", "net", "fs", "math", "json", "ai", "stats",
+    "http", "db", "ws", "net", "fs", "math", "json", "ai", "stats",
 ];
 
 // ── liphia init ───────────────────────────────────────────────────────────────
@@ -42,11 +38,10 @@ version = "0.1.0"
 
 [dependencies]
 # liphia install <module> adds entries here automatically
-# http = "latest"
-# ws   = "latest"
 "#,
         project_name
     );
+
     fs::write(MANIFEST, content).unwrap_or_else(|e| {
         eprintln!("[liphia] failed to create liphia.toml: {}", e);
         process::exit(1);
@@ -82,7 +77,7 @@ pub fn install_modules(modules: &[&str]) {
     }
 }
 
-// ── liphia install (no args → read liphia.toml) ───────────────────────────────
+// ── liphia install (sem args → lê liphia.toml) ───────────────────────────────
 pub fn install_from_manifest() {
     let content = fs::read_to_string(MANIFEST).unwrap_or_else(|_| {
         eprintln!("[liphia] liphia.toml not found. Run 'liphia init' first.");
@@ -106,7 +101,7 @@ pub fn install_from_manifest() {
     }
 }
 
-// ── Core: install one module ──────────────────────────────────────────────────
+// ── instala um módulo ─────────────────────────────────────────────────────────
 fn do_install(name: &str) -> bool {
     print!("  installing '{}'... ", name);
     io::stdout().flush().unwrap();
@@ -118,6 +113,7 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
+    // destino: <cwd>/liphia_modules/<name>/<name>.lph
     let dest_dir  = PathBuf::from(MODULES_DIR).join(name);
     let dest_file = dest_dir.join(format!("{}.lph", name));
 
@@ -132,27 +128,27 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
-    // Download <name>.lph
-    let lph_url = format!("{}/{}/{}.lph", REGISTRY_RAW, name, name);
-    match http_get(&lph_url) {
+    // baixa <name>.lph do GitHub
+    let url = format!("{}/{}/{}.lph", REGISTRY_RAW, name, name);
+    match http_get(&url) {
         Ok(body) => {
             if let Err(e) = fs::write(&dest_file, &body) {
                 println!("FAILED");
                 eprintln!("    could not write {}: {}", dest_file.display(), e);
-                let _ = fs::remove_dir(&dest_dir);
+                let _ = fs::remove_dir_all(&dest_dir);
                 return false;
             }
         }
         Err(e) => {
             println!("FAILED");
             eprintln!("    download error: {}", e);
-            eprintln!("    url: {}", lph_url);
-            let _ = fs::remove_dir(&dest_dir);
+            eprintln!("    url tried: {}", url);
+            let _ = fs::remove_dir_all(&dest_dir);
             return false;
         }
     }
 
-    // Download module.toml (optional)
+    // baixa module.toml (opcional)
     let toml_url = format!("{}/{}/module.toml", REGISTRY_RAW, name);
     if let Ok(body) = http_get(&toml_url) {
         let _ = fs::write(dest_dir.join("module.toml"), body);
@@ -163,42 +159,40 @@ fn do_install(name: &str) -> bool {
     true
 }
 
-// ── HTTP GET via curl / wget (no extra dependencies) ─────────────────────────
+// ── HTTP GET via curl ─────────────────────────────────────────────────────────
 fn http_get(url: &str) -> Result<String, String> {
-    // Try curl first (available on macOS, Linux, Windows 10+)
     let curl = std::process::Command::new("curl")
         .args(["-fsSL", "--max-time", "15", url])
         .output();
 
     match curl {
         Ok(out) if out.status.success() => {
-            return String::from_utf8(out.stdout)
-                .map_err(|e| format!("invalid utf-8: {}", e));
+            String::from_utf8(out.stdout)
+                .map_err(|e| format!("invalid utf-8: {}", e))
         }
         Ok(out) => {
             let stderr = String::from_utf8_lossy(&out.stderr);
-            return Err(format!("curl error ({}): {}", out.status, stderr.trim()));
+            Err(format!("curl error ({}): {}", out.status, stderr.trim()))
         }
-        Err(_) => {} // curl not found — fall through to wget
-    }
-
-    // Try wget
-    let wget = std::process::Command::new("wget")
-        .args(["-qO-", "--timeout=15", url])
-        .output();
-
-    match wget {
-        Ok(out) if out.status.success() => {
-            String::from_utf8(out.stdout).map_err(|e| format!("invalid utf-8: {}", e))
+        Err(_) => {
+            // tenta wget como fallback
+            let wget = std::process::Command::new("wget")
+                .args(["-qO-", "--timeout=15", url])
+                .output();
+            match wget {
+                Ok(out) if out.status.success() => {
+                    String::from_utf8(out.stdout)
+                        .map_err(|e| format!("invalid utf-8: {}", e))
+                }
+                Ok(out) => {
+                    let stderr = String::from_utf8_lossy(&out.stderr);
+                    Err(format!("wget error: {}", stderr.trim()))
+                }
+                Err(_) => Err(
+                    "curl not found. Install from: https://curl.se/download.html".to_string()
+                ),
+            }
         }
-        Ok(out) => {
-            let stderr = String::from_utf8_lossy(&out.stderr);
-            Err(format!("wget error: {}", stderr.trim()))
-        }
-        Err(_) => Err(
-            "curl or wget not found.\n    \
-             install curl: https://curl.se/download.html".to_string()
-        ),
     }
 }
 

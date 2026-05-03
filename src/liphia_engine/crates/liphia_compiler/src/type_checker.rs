@@ -142,6 +142,33 @@ impl TypeChecker {
         tc.declare_fn("json_get",    vec![Type::Str, Type::Str],       Type::Str);
         tc.declare_fn("json_has",    vec![Type::Str, Type::Str],       Type::Bool);
 
+
+        // ── db / sqlite ───────────────────────────────────────────────────────────────
+tc.declare_fn("db_open",        vec![Type::Str],                                    Type::Int);
+tc.declare_fn("db_open_memory", vec![],                                             Type::Int);
+tc.declare_fn("db_close",       vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("db_exec",        vec![Type::Int, Type::Str],                         Type::Int);
+tc.declare_fn("db_query",       vec![Type::Int, Type::Str],                         Type::List);
+tc.declare_fn("db_query_rows",  vec![Type::Int, Type::Str],                         Type::List);
+tc.declare_fn("db_last_id",     vec![Type::Int],                                    Type::Int);
+tc.declare_fn("db_begin",       vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("db_commit",      vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("db_rollback",    vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("db_error",       vec![Type::Int],                                    Type::Str);
+tc.declare_fn("db_tables",      vec![Type::Int],                                    Type::List);
+tc.declare_fn("db_columns",     vec![Type::Int, Type::Str],                         Type::List);
+// ── db / postgresql ───────────────────────────────────────────────────────────
+tc.declare_fn("pg_connect",     vec![Type::Str, Type::Int, Type::Str, Type::Str, Type::Str], Type::Int);
+tc.declare_fn("pg_exec",        vec![Type::Int, Type::Str],                         Type::Int);
+tc.declare_fn("pg_query",       vec![Type::Int, Type::Str],                         Type::List);
+tc.declare_fn("pg_query_rows",  vec![Type::Int, Type::Str],                         Type::List);
+tc.declare_fn("pg_last_id",     vec![Type::Int],                                    Type::Int);
+tc.declare_fn("pg_begin",       vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("pg_commit",      vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("pg_rollback",    vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("pg_close",       vec![Type::Int],                                    Type::Bool);
+tc.declare_fn("pg_error",       vec![Type::Int],                                    Type::Str);
+
         tc
     }
 

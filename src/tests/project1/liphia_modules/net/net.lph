@@ -1,0 +1,20 @@
+# stdlib/lph/net.lph
+# TCP/UDP networking utilities.
+# Status: functions implemented.
+#
+# ── Functions ────────────────────────────────────────────────────────────────
+
+# tcp_connect(host: str, port: int) -> int
+#   Opens a TCP connection. Returns a handle for send/recv/close. Already functional.
+
+# tcp_send(handle: int, data: str) -> bool
+#   Sends data over an open TCP connection. Already functional.
+
+# tcp_recv(handle: int) -> str
+#   Reads available data from an open TCP connection. Already functional.
+
+# tcp_close(handle: int) -> bool
+#   Closes a TCP connection. Already functional.
+
+# udp_send(host: str, port: int, data: str) -> bool
+#   Sends a UDP datagram. Already functional.

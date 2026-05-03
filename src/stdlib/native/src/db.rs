@@ -40,7 +40,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use rusqlite::{Connection as SqliteConnection, params_from_iter, types::ValueRef};
+use rusqlite::{Connection as SqliteConnection, types::ValueRef};
 
 use liphia_virtual_machine::value::Value;
 use liphia_virtual_machine::vm::{VmError, VmResult, VM};
