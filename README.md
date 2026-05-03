@@ -1,21 +1,20 @@
 # Liphia (.lph)
 
-> A general-purpose programming language with Python-style indentation syntax,
-> strong static typing, and a bytecode virtual machine written in Rust.
-  Created by Sergio H. Ferreira — started in late 2025.
+> A statically typed, indentation-based programming language powered by a Rust bytecode VM.
+> Created by Sergio H. Ferreira — started in late 2025.
 
 [![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
 
-Liphia is a general-purpose language with indentation-delimited syntax
-(similar to Python), explicit static typing, and a bytecode compiler
-and virtual machine both written in Rust.
+Liphia is a general-purpose programming language with indentation-based syntax
+(similar to Python), explicit static typing, and a bytecode compiler and virtual machine
+implemented entirely in Rust.
 
-Liphia has its own compiler, bytecode format, and VM — no external runtime,
-no interpreter dependency, no GC overhead.
-The compiled binary is fully self-contained.
+Liphia ships with its own compiler, bytecode format, and runtime VM — no external runtime,
+no interpreter dependency, and no garbage collector overhead.
+Compiled programs are fully self-contained.
 
 > **Notice:** The project is under active development. Full documentation,
 > stable releases, and the standard library will be published when the
