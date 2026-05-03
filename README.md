@@ -46,25 +46,28 @@ The compiled binary is fully self-contained.
 ```
 liphia/
 │
-├── examples/ # example .lph programs
+│
+├── docs/ # documentation
+│
 │
 ├── licenses/ # licenses
 │
-│
-└── liphia_engine/
-│    └── crates/
-│         ├── liphia_cli/ # CLI runner + REPL shell
-│         ├── liphia_compiler/ # lexer, parser, AST, bytecode compiler
-│         ├── liphia_core_native/ # Core string and value utilities.
-│         └── liphia_virtual_machine/ # bytecode VM
-│
-├── stdlib/ # Liphia standard library
-│    ├── lph/ # .lph modules (import from "...")
-│    └── native/ # Rust native stdlib bindings
-│
-├── tests/ # benchmarks/tests
-│
-├── tools/
+├── src/
+│   │
+│   ├── liphia_engine/
+│   │   └── crates/
+│   │      ├── liphia_cli/ # CLI runner + REPL shell
+│   │      ├── liphia_compiler/ # lexer, parser, AST, bytecode compiler
+│   │      ├── liphia_core_native/ # Core string and value utilities.
+│   │      └── liphia_virtual_machine/ # bytecode VM
+│   │
+│   ├── stdlib/ # Liphia standard library
+│   │     ├── modules/ # .lph modules (import from "...")
+│   │     └── native/ # Rust native stdlib bindings
+│   │
+│   ├── tests/ # benchmarks/tests
+│   │
+│   └── tools/
 │      └── liphia-vscode/ # Extension for VS Code
 │
 ├── CHANGELOG.md

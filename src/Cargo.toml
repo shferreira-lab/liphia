@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "liphia_engine/crates/liphia_compiler",
+    "liphia_engine/crates/liphia_virtual_machine",
+    "liphia_engine/crates/liphia_cli",
+    "liphia_engine/crates/liphia_core_native",
+    "stdlib/native",
+]
+resolver = "2"

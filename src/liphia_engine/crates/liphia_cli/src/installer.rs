@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::process;
 
 const REGISTRY_RAW: &str =
-    "https://raw.githubusercontent.com/liphia-lang/stdlib/main/modules";
+    "https://raw.githubusercontent.com/shferreira-lab/liphia/main/src/stdlib/modules";
 
 const MODULES_DIR: &str = "liphia_modules";
 const MANIFEST:    &str = "liphia.toml";

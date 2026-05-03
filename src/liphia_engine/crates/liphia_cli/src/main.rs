@@ -4,6 +4,7 @@ mod installer;
 mod repl;
 
 use liphia_core_native;
+use liphia_stdlib_native; 
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -83,17 +84,21 @@ fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Option<PathBu
     //    Running from liphia_engine/crates/ → ../../.. reaches liphia/
     let cwd = std::env::current_dir().unwrap_or_default();
     let dev_candidates = [
-        // liphia-stdlib next to liphia_engine/
-        cwd.join("../../../liphia-stdlib/lph").join(&filename),
-        cwd.join("../../../liphia-stdlib/modules").join(name).join(&filename),
-        // one level up variations
-        cwd.join("../../liphia-stdlib/lph").join(&filename),
-        cwd.join("../../liphia-stdlib/modules").join(name).join(&filename),
-        // flat stdlib/ folder
-        cwd.join("../../stdlib/lph").join(&filename),
-        cwd.join("../../stdlib").join(&filename),
-        cwd.join("../stdlib/lph").join(&filename),
-        cwd.join("stdlib/lph").join(&filename),
+    cwd.join("stdlib/modules").join(name).join(&filename),
+    cwd.join("../src/stdlib/modules").join(name).join(&filename),
+    // subindo de crates/liphia_cli até src/
+    cwd.join("../../stdlib/modules").join(name).join(&filename),
+    cwd.join("../../../stdlib/modules").join(name).join(&filename),
+    cwd.join("../../../../stdlib/modules").join(name).join(&filename),
+    // liphia_modules/ instalados via liphia install
+    cwd.join("liphia_modules").join(name).join(&filename),
+    // candidatos antigos mantidos
+    cwd.join("../../../liphia-stdlib/lph").join(&filename),
+    cwd.join("../../liphia-stdlib/lph").join(&filename),
+    cwd.join("../../stdlib/lph").join(&filename),
+    cwd.join("../../stdlib").join(&filename),
+    cwd.join("../stdlib/lph").join(&filename),
+    cwd.join("stdlib/lph").join(&filename),
     ];
     for c in &dev_candidates {
         if c.exists() { return Some(c.clone()); }
@@ -254,6 +259,7 @@ fn main() {
 
     let mut vm = VM::new();
     liphia_core_native::register(&mut vm);
+    liphia_stdlib_native::register_all(&mut vm);
 
     if let Err(e) = vm.run(opcodes) {
         eprintln!("\n{}\n", e);

@@ -3,6 +3,7 @@ members = [
     "crates/liphia_compiler",
     "crates/liphia_virtual_machine",
     "crates/liphia_cli",
-    "crates/liphia_core_native"
+    "crates/liphia_core_native",
+    "../stdlib/native",
 ]
 resolver = "2"

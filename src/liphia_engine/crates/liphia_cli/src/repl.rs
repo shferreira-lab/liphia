@@ -7,10 +7,14 @@ use liphia_compiler::lexer::Lexer;
 use liphia_compiler::parser::Parser;
 use liphia_compiler::bytecode::generate_bytecode;
 use liphia_compiler::type_checker::TypeChecker;
+use liphia_core_native; 
+use liphia_stdlib_native; 
 
-/// Shell interativo LPH estilo Python
+/// Shell LPH like Python
 pub fn start() {
     let mut vm = VM::new();
+    liphia_core_native::register(&mut vm);
+    liphia_stdlib_native::register_all(&mut vm);
 
     let mut buffer = String::new();
     let mut indent_level = 0;
@@ -31,7 +35,7 @@ pub fn start() {
 
         let trimmed = line.trim_end();
 
-        // Comandos especiais do REPL
+        // Special commands of REPL
         match trimmed {
             "exit" | "quit" => {
                 println!("Exiting REPL.");
