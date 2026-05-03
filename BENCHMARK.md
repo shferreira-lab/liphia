@@ -15,3 +15,14 @@
 | Python 3      | 158.88    | best of 3 (external)       |
 
 > **Observation:** Liphia’s VM performs extremely well, significantly faster than Node.js, Java, and Python for these tasks.
+
+
+
+
+May 05, 2026    - Liphia 0.9 with stdlib, lastest updates. 
+Language    Time_ms    Note                 
+---------    -------- ----                 
+Liphia (VM)     91,69 best of 3 (external)
+Node.js (V8)   125,72 best of 3 (external)
+Java (JVM)     235,15 best of  3 (external)
+Python 3       405,76 best of  3 (external)

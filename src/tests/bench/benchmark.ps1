@@ -36,8 +36,8 @@ function Rodar-MelhorDe3 {
 # LIPHiA
 # ===================================================================
 Write-Host "Rodando Liphia..." -ForegroundColor Yellow
-$liphia_cli = "C:\Dev\liphia\liphia_engine\target\release\liphia_cli.exe"
-
+$liphia_cli = "C:\Dev\liphia\src\target\release\liphia_cli.exe"
+liphia\src\target\release
 if (Test-Path $liphia_cli) {
     $r = Rodar-MelhorDe3 "Liphia" { & $liphia_cli bench_fib_ai.lph }
     Write-Host "  $($r.Saida -join ' | ')"
