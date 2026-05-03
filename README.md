@@ -2,6 +2,7 @@
 
 > A general-purpose programming language with Python-style indentation syntax,
 > strong static typing, and a bytecode virtual machine written in Rust.
+  Created by Sergio H. Ferreira — started in late 2025.
 
 [![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
