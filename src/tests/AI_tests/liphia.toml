@@ -1,0 +1,7 @@
+[package]
+name    = "AI_tests"
+version = "0.1.0"
+
+[dependencies]
+ai = "latest"
+# liphia install <module> adds entries here automatically

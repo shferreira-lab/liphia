@@ -1,0 +1,218 @@
+# test_ai_full.lph
+#
+# Full test suite for the ai stdlib module — Engine 0.9.0
+#
+# Tests all function groups:
+#   - Activation functions
+#   - Vector operations
+#   - Matrix operations
+#   - Data preprocessing
+#   - Loss functions
+#   - Random
+#   - Gradients and optimization
+#   - Classification metrics
+#   - Distance functions
+#
+# Run:
+#   liphia test_ai_full.lph
+
+import from "ai"
+
+print("=== Liphia AI stdlib — full test ===")
+print("")
+
+# ── Activation functions ──────────────────────────────────────────────────────
+
+print("── Activations ──")
+print("sigmoid(0)        =", sigmoid(0.0))
+print("sigmoid(2)        =", sigmoid(2.0))
+print("relu(-3)          =", relu(-3.0))
+print("relu(4)           =", relu(4.0))
+print("leaky_relu(-4, 0.01) =", leaky_relu(-4.0, 0.01))
+print("tanh_act(1)       =", tanh_act(1.0))
+print("elu(-1, 1.0)      =", elu(-1.0, 1.0))
+print("gelu(1)           =", gelu(1.0))
+print("swish(1)          =", swish(1.0))
+print("")
+
+# ── Vector operations ─────────────────────────────────────────────────────────
+
+print("── Vectors ──")
+var a: list = [1.0, 2.0, 3.0]
+var b: list = [4.0, 5.0, 6.0]
+
+print("dot([1,2,3],[4,5,6])  =", dot(a, b))
+print("norm([1,2,3])         =", norm(a))
+print("vec_add               =", vec_add(a, b))
+print("vec_sub               =", vec_sub(b, a))
+print("vec_mul               =", vec_mul(a, b))
+print("vec_scale(*2)         =", vec_scale(a, 2.0))
+print("vec_sum               =", vec_sum(a))
+print("")
+
+# ── Softmax and argmax ────────────────────────────────────────────────────────
+
+print("── Softmax / Argmax ──")
+var logits: list = [1.0, 2.0, 3.0, 4.0]
+var probs = softmax(logits)
+print("softmax([1,2,3,4]) =", probs)
+print("argmax(probs)      =", argmax(probs))
+print("")
+
+# ── Matrix operations ─────────────────────────────────────────────────────────
+
+print("── Matrix ──")
+# 2x3 matrix A
+var A: list = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+# 3x2 matrix B
+var B: list = [7.0, 8.0, 9.0, 10.0, 11.0, 12.0]
+# result: 2x2
+var C = matrix_mul(A, B, 2, 3, 2)
+print("matrix_mul(2x3, 3x2) = 2x2:", C)
+
+var T = transpose(A, 2, 3)
+print("transpose(2x3)       = 3x2:", T)
+
+var Z = matrix_new(2, 3, 0.0)
+var ones = matrix_new(2, 3, 1.0)
+var added = matrix_add(Z, ones)
+print("matrix_add(zeros, ones):", added)
+print("")
+
+# ── Data preprocessing ────────────────────────────────────────────────────────
+
+print("── Preprocessing ──")
+var data: list = [2.0, 4.0, 6.0, 8.0, 10.0]
+print("data            =", data)
+print("normalize       =", normalize(data))
+print("standardize     =", standardize(data))
+print("clip([2..10], 4, 8) =", clip(data, 4.0, 8.0))
+print("linspace(0,1,5) =", linspace(0.0, 1.0, 5))
+print("arange(0,1,0.25)=", arange(0.0, 1.0, 0.25))
+print("")
+
+# ── Loss functions ────────────────────────────────────────────────────────────
+
+print("── Loss functions ──")
+var pred:   list = [0.9, 0.2, 0.8, 0.1]
+var target: list = [1.0, 0.0, 1.0, 0.0]
+print("pred   =", pred)
+print("target =", target)
+print("mse    =", mse(pred, target))
+print("mae    =", mae(pred, target))
+print("binary_cross_entropy =", binary_cross_entropy(pred, target))
+
+var pred_multi:   list = [0.7, 0.2, 0.1]
+var target_multi: list = [1.0, 0.0, 0.0]
+print("cross_entropy (multiclass) =", cross_entropy(pred_multi, target_multi))
+print("")
+
+# ── Random ────────────────────────────────────────────────────────────────────
+
+print("── Random ──")
+seed(42)
+var weights = rand_normal(6, 0.0, 0.1)
+print("rand_normal(6, 0, 0.1)  =", weights)
+
+var uniform = rand_uniform(4, -1.0, 1.0)
+print("rand_uniform(4, -1, 1)  =", uniform)
+
+print("rand_int(0, 100)        =", rand_int(0, 100))
+print("rand_int(0, 100)        =", rand_int(0, 100))
+
+var v_shuf: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+print("shuffle([1..5])         =", shuffle(v_shuf))
+print("")
+
+# ── Gradients and optimization ────────────────────────────────────────────────
+
+print("── Optimization ──")
+
+# SGD update
+var w: list = [0.5, -0.3, 0.8, 0.1]
+var g: list = [0.1, -0.2, 0.05, 0.3]
+var lr = 0.01
+
+var w_sgd = sgd_update(w, g, lr)
+print("weights before SGD:", w)
+print("gradients         :", g)
+print("weights after  SGD:", w_sgd)
+print("")
+
+# Gradient clipping
+var big_grads: list = [10.0, -20.0, 15.0, -5.0]
+var clipped = gradient_clip(big_grads, 1.0)
+print("grads before clip (norm ~26):", big_grads)
+print("grads after  clip (max_norm=1):", clipped)
+print("norm after clip:", norm(clipped))
+print("")
+
+# Adam update — one step
+seed(99)
+var w_adam: list  = [0.5, -0.3, 0.8, 0.1]
+var g_adam: list  = [0.1, -0.2, 0.05, 0.3]
+var m_adam: list  = [0.0, 0.0, 0.0, 0.0]
+var v_adam: list  = [0.0, 0.0, 0.0, 0.0]
+var step          = 1.0
+var adam_lr       = 0.001
+var beta1         = 0.9
+var beta2         = 0.999
+var eps           = 0.00000001
+
+# update moment vectors first
+m_adam = vec_add(vec_scale(m_adam, beta1), vec_scale(g_adam, 1.0 - beta1))
+v_adam = vec_add(vec_scale(v_adam, beta2), vec_scale(vec_mul(g_adam, g_adam), 1.0 - beta2))
+
+var w_adam_new = adam_update(w_adam, g_adam, m_adam, v_adam, step, adam_lr, beta1, beta2, eps)
+print("weights before Adam:", w_adam)
+print("weights after  Adam:", w_adam_new)
+print("")
+
+# ── Classification metrics ────────────────────────────────────────────────────
+
+print("── Classification metrics ──")
+var pred_cls:   list = [0.9, 0.2, 0.8, 0.1, 0.7, 0.3, 0.6, 0.4]
+var target_cls: list = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0]
+print("pred   =", pred_cls)
+print("target =", target_cls)
+print("accuracy  =", accuracy(pred_cls, target_cls))
+print("precision =", precision(pred_cls, target_cls))
+print("recall    =", recall(pred_cls, target_cls))
+print("f1_score  =", f1_score(pred_cls, target_cls))
+print("")
+
+# perfect predictions
+var perf_pred:   list = [1.0, 0.0, 1.0, 0.0]
+var perf_target: list = [1.0, 0.0, 1.0, 0.0]
+print("perfect predictions:")
+print("accuracy  =", accuracy(perf_pred, perf_target))
+print("f1_score  =", f1_score(perf_pred, perf_target))
+print("")
+
+# ── Distance functions ────────────────────────────────────────────────────────
+
+print("── Distances ──")
+var u: list = [1.0, 0.0, 0.0]
+var v: list = [0.0, 1.0, 0.0]
+var w2: list = [1.0, 0.0, 0.0]
+
+print("u = [1,0,0]  v = [0,1,0]  w = [1,0,0]")
+print("cosine_similarity(u, v) =", cosine_similarity(u, v))
+print("cosine_similarity(u, w) =", cosine_similarity(u, w2))
+print("euclidean_dist(u, v)    =", euclidean_dist(u, v))
+print("euclidean_dist(u, w)    =", euclidean_dist(u, w2))
+print("manhattan_dist(u, v)    =", manhattan_dist(u, v))
+print("")
+
+# embedding similarity example
+var doc1: list = [0.8, 0.2, 0.5, 0.1]
+var doc2: list = [0.7, 0.3, 0.4, 0.2]
+var doc3: list = [0.1, 0.9, 0.0, 0.8]
+print("embedding similarity:")
+print("cosine(doc1, doc2) =", cosine_similarity(doc1, doc2))
+print("cosine(doc1, doc3) =", cosine_similarity(doc1, doc3))
+print("euclidean(doc1, doc2) =", euclidean_dist(doc1, doc2))
+print("euclidean(doc1, doc3) =", euclidean_dist(doc1, doc3))
+print("")
+
+print("=== all tests complete ===")

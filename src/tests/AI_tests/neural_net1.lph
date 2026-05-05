@@ -1,0 +1,210 @@
+# neural_net.lph
+#
+# Two-layer neural network trained on XOR — Liphia Engine 0.9.0
+#
+# Architecture:
+#   Input:   2 neurons  (x1, x2)
+#   Hidden:  4 neurons  (sigmoid activation)
+#   Output:  1 neuron   (sigmoid activation)
+#
+# Training:
+#   Algorithm : Backpropagation + SGD
+#   Loss      : Binary Cross Entropy
+#   Epochs    : 5000
+#   LR        : 0.5
+#
+# XOR truth table (what the network learns):
+#   [0, 0] -> 0
+#   [0, 1] -> 1
+#   [1, 0] -> 1
+#   [1, 1] -> 0
+#
+# Run:
+#   liphia neural_net.lph
+
+import from "ai"
+
+print("=== Neural Network — XOR — Liphia 0.9.0 ===")
+print("")
+
+# ── Hyperparameters ───────────────────────────────────────────────────────────
+
+const EPOCHS   = 5000
+const LR       = 0.5
+const H        = 4      # hidden neurons
+const INPUT    = 2
+const OUTPUT   = 1
+
+# ── Initialize weights (Xavier uniform: sqrt(6 / (fan_in + fan_out))) ─────────
+
+seed(42)
+
+# W1: INPUT x H = 2x4 = 8 weights   (flat row-major)
+# W2: H x OUTPUT = 4x1 = 4 weights
+# b1: H = 4 biases
+# b2: OUTPUT = 1 bias
+
+var scale1 = 1.0   # ~sqrt(6/(2+4)) ~ 1.0
+var scale2 = 0.86  # ~sqrt(6/(4+1)) ~ 1.1 -> use 0.86 ~ sqrt(6/8)
+
+var W1 = rand_uniform(8, -1.0, 1.0)
+var W2 = rand_uniform(4, -0.86, 0.86)
+var b1 = rand_uniform(4, -0.1, 0.1)
+var b2 = rand_uniform(1, -0.1, 0.1)
+
+# ── Training data — XOR ───────────────────────────────────────────────────────
+#
+# Each sample is a pair stored separately:
+#   X_samples[i] = [x1, x2]  (2 inputs)
+#   Y_samples[i] = [y]        (1 output)
+
+var x00: list = [0.0, 0.0]
+var x01: list = [0.0, 1.0]
+var x10: list = [1.0, 0.0]
+var x11: list = [1.0, 1.0]
+
+var y00: list = [0.0]
+var y01: list = [1.0]
+var y10: list = [1.0]
+var y11: list = [0.0]
+
+# ── Forward pass ──────────────────────────────────────────────────────────────
+#
+# z1 = W1 * x + b1     (H x 1 = matrix_mul(W1[HxI], x[Ix1], H, I, 1) + b1)
+# a1 = sigmoid(z1)      element-wise
+# z2 = W2 * a1 + b2    (scalar = dot(W2, a1) + b2[0])
+# a2 = sigmoid(z2)      scalar output
+
+fn forward_h(x: list) -> list:
+    var z1 = matrix_mul(W1, x, H, INPUT, 1)
+    z1 = vec_add(z1, b1)
+    var a1 = z1
+    var i = 0
+    while i < H:
+        a1[i] = sigmoid(z1[i])
+        i = i + 1
+    return a1
+
+fn forward_out(a1: list) -> float:
+    var z2 = dot(W2, a1)
+    z2 = z2 + b2[0]
+    return sigmoid(z2)
+
+# ── Backward pass (manual backprop) ──────────────────────────────────────────
+#
+# dL/da2  = a2 - y                         (BCE derivative)
+# dL/dz2  = dL/da2 * a2*(1-a2)            (sigmoid derivative)
+# dL/dW2  = dL/dz2 * a1                   (outer product, here a vector)
+# dL/db2  = dL/dz2
+# dL/da1  = dL/dz2 * W2                   (vector)
+# dL/dz1  = dL/da1 * a1*(1-a1)            (element-wise sigmoid deriv)
+# dL/dW1  = outer(dL/dz1, x)              (H x I matrix, stored flat)
+# dL/db1  = dL/dz1
+
+fn train_step(x: list, y_true: float) -> float:
+    # ── forward ──
+    var a1  = forward_h(x)
+    var a2  = forward_out(a1)
+
+    # ── output layer delta ──
+    var d2  = a2 - y_true          # dL/dz2 combined (sigmoid BCE simplifies nicely)
+
+    # ── gradients W2, b2 ──
+    var dW2 = vec_scale(a1, d2)
+    var db2 = d2
+
+    # ── hidden layer delta ──
+    var da1  = vec_scale(W2, d2)
+    var dz1  = da1
+    var i = 0
+    while i < H:
+        dz1[i] = da1[i] * a1[i] * (1.0 - a1[i])
+        i = i + 1
+
+    # ── gradients W1 (outer product dz1 x x, stored flat row-major) ──
+    var dW1 = matrix_new(H, INPUT, 0.0)
+    i = 0
+    while i < H:
+        var j = 0
+        while j < INPUT:
+            dW1[i * INPUT + j] = dz1[i] * x[j]
+            j = j + 1
+        i = i + 1
+
+    # ── SGD update ──
+    W1 = sgd_update(W1, dW1, LR)
+    W2 = sgd_update(W2, dW2, LR)
+    b1 = sgd_update(b1, dz1, LR)
+    b2[0] = b2[0] - LR * db2
+
+    # ── loss (MSE for display) ──
+    var diff = a2 - y_true
+    return diff * diff
+
+# ── Training loop ─────────────────────────────────────────────────────────────
+
+print("Training on XOR for", EPOCHS, "epochs...")
+print("")
+
+var epoch = 0
+while epoch < EPOCHS:
+    var loss = 0.0
+    loss = loss + train_step(x00, 0.0)
+    loss = loss + train_step(x01, 1.0)
+    loss = loss + train_step(x10, 1.0)
+    loss = loss + train_step(x11, 0.0)
+    loss = loss / 4.0
+
+    if epoch == 0:
+        print("epoch    1 | loss =", loss)
+    elif epoch == 499:
+        print("epoch  500 | loss =", loss)
+    elif epoch == 999:
+        print("epoch 1000 | loss =", loss)
+    elif epoch == 1999:
+        print("epoch 2000 | loss =", loss)
+    elif epoch == 2999:
+        print("epoch 3000 | loss =", loss)
+    elif epoch == 3999:
+        print("epoch 4000 | loss =", loss)
+    elif epoch == 4999:
+        print("epoch 5000 | loss =", loss)
+
+    epoch = epoch + 1
+
+# ── Evaluation ────────────────────────────────────────────────────────────────
+
+print("")
+print("── Final predictions ──")
+
+var p00 = forward_out(forward_h(x00))
+var p01 = forward_out(forward_h(x01))
+var p10 = forward_out(forward_h(x10))
+var p11 = forward_out(forward_h(x11))
+
+print("[0,0] -> expected 0 | predicted", p00)
+print("[0,1] -> expected 1 | predicted", p01)
+print("[1,0] -> expected 1 | predicted", p10)
+print("[1,1] -> expected 0 | predicted", p11)
+
+print("")
+print("── Accuracy ──")
+
+var pred_list:   list = [p00, p01, p10, p11]
+var target_list: list = [0.0, 1.0, 1.0, 0.0]
+
+var acc = accuracy(pred_list, target_list)
+var bce = binary_cross_entropy(pred_list, target_list)
+
+print("accuracy             =", acc)
+print("binary_cross_entropy =", bce)
+
+print("")
+print("── Learned weights ──")
+print("W1 (2x4):", W1)
+print("b1 (4)  :", b1)
+print("W2 (4x1):", W2)
+print("b2 (1)  :", b2)
+
+print("")
+print("=== training complete ===")
