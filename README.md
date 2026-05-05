@@ -63,7 +63,7 @@ liphia/
 │   │   └── crates/
 │   │       ├── liphia_cli/        # CLI runner + REPL shell
 │   │       ├── liphia_compiler/   # lexer, parser, AST, bytecode compiler
-│   │       ├── liphia_core_native/# core string and value utilities
+│   │       ├── liphia_core_native/# core string, list and value utilities
 │   │       └── liphia_virtual_machine/ # bytecode VM
 │   │
 │   ├── stdlib/
@@ -177,8 +177,7 @@ liphia install ai
 liphia install math fs json
 ```
 
-Downloads the module from the Liphia registry and saves it to
-`liphia_modules/` in the current directory — similar to `npm install`.
+Downloads the module from the Liphia registry into `liphia_modules/` — similar to `npm install`.
 
 **Install all dependencies from `liphia.toml`:**
 
@@ -192,7 +191,7 @@ liphia install
 liphia install --list
 ```
 
-Available modules: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`.
+Available modules: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`.
 
 Once installed, import in your `.lph` file:
 
@@ -216,16 +215,15 @@ print("Hello, world!")
 
 ### Primitive types
 
-| Type      | Description                              |
-|-----------|------------------------------------------|
-| `int`     | 64-bit integer                           |
-| `float`   | 64-bit floating-point                    |
-| `str`     | UTF-8 string                             |
-| `bool`    | Boolean: `true` or `false`               |
-| `list`    | Dynamic list                             |
-| `void`    | Return type for functions with no value  |
-| `null`    | Null literal                             |
-| `T?`      | Optional type (e.g. `int?`, `str?`)      |
+| Type    | Description                             |
+|---------|-----------------------------------------|
+| `int`   | 64-bit integer                          |
+| `float` | 64-bit floating-point                   |
+| `str`   | UTF-8 string                            |
+| `bool`  | Boolean: `true` or `false`              |
+| `list`  | Dynamic list                            |
+| `void`  | Return type for functions with no value |
+| `null`  | Null literal                            |
 
 ---
 
@@ -256,7 +254,6 @@ age: int = 20
 height: float = 1.80
 username: str = "Alice"
 active: bool = true
-nothing: null = null
 
 var score = 100
 const MAX: int = 999
@@ -291,12 +288,12 @@ print("Double:", n * 2)
 
 **Arithmetic:**
 
-| Operator | Operation      |
-|----------|----------------|
+| Operator | Operation                            |
+|----------|--------------------------------------|
 | `+`      | Addition (also string concatenation) |
-| `-`      | Subtraction    |
-| `*`      | Multiplication |
-| `/`      | Division       |
+| `-`      | Subtraction                          |
+| `*`      | Multiplication                       |
+| `/`      | Division                             |
 
 **Comparison:**
 
@@ -400,12 +397,13 @@ fn add(a: int, b: int) -> int:
 fn greet(name: str) -> void:
     print("Hello,", name)
 
-fn is_even(n: int) -> bool:
-    return n / 2 * 2 == n
+fn factorial(n: int) -> int:
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
 
-result: int = add(10, 5)
-print("10 + 5 =", result)
-greet("Alice")
+print(add(10, 5))
+print(factorial(10))
 ```
 
 ---
@@ -413,17 +411,12 @@ greet("Alice")
 ### Lists
 
 ```lph
-values: list = [1, 2, 3, 4, 5]
-words: list = ["apple", "banana", "cherry"]
+var values: list = [1, 2, 3, 4, 5]
 
 print(values[0])    # 1
 print(values[-1])   # 5
 
-# modify
 values[0] = 99
-print(values[0])    # 99
-
-# append and pop
 append(values, 6)
 var last = pop(values)
 print("length:", len(values))
@@ -440,7 +433,7 @@ enum Direction:
     East
     West
 
-var d: Direction = Direction.North
+var d = Direction.North
 
 if d == Direction.North:
     print("Going north")
@@ -454,13 +447,9 @@ Functions can be declared `async` and awaited inside other async functions.
 The VM runs tasks cooperatively in a single-threaded event loop.
 
 ```lph
-async fn fetch_data(url: str) -> str:
-    var result: str = await http_get(url)
+async fn fetch(url: str) -> str:
+    var result = await http_get(url)
     return result
-
-async fn main_loop() -> void:
-    var data: str = await fetch_data("http://example.com")
-    print("received:", len(data), "bytes")
 ```
 
 **Spawn** launches a task concurrently (fire-and-forget):
@@ -477,21 +466,9 @@ spawn worker(2)
 
 ### File imports
 
-Relative import (resolved from the current file's directory):
-
 ```lph
 import "utils.lph"
 import "./helpers/math_utils.lph"
-```
-
-Absolute import:
-
-```lph
-# Windows
-import "C:/Dev/myproject/utils.lph"
-
-# Linux / macOS
-import "/home/user/myproject/utils.lph"
 ```
 
 Import cycles are detected and skipped automatically.
@@ -514,65 +491,44 @@ print(pow(2.0, 10.0))
 print(pi())
 ```
 
-Multiple modules:
-
-```lph
-import from "math"
-import from "ai"
-import from "json"
-```
-
 ---
 
 ## Core native functions
 
 These functions are always available — no import required.
 
-**String:**
+**String and value:**
 
-| Function                        | Returns | Description                        |
-|---------------------------------|---------|------------------------------------|
-| `len(s)`                        | `int`   | Length of string or list           |
-| `to_str(value)`                 | `str`   | Convert any value to string        |
-| `to_int(value)`                 | `int`   | Parse string or float to int       |
-| `to_float(value)`               | `float` | Parse string or int to float       |
-| `trim(s)`                       | `str`   | Remove leading/trailing whitespace |
-| `upper(s)`                      | `str`   | Convert to uppercase               |
-| `lower(s)`                      | `str`   | Convert to lowercase               |
-| `contains(s, sub)`              | `bool`  | True if `s` contains `sub`         |
-| `starts_with(s, prefix)`        | `bool`  | True if `s` starts with `prefix`   |
-| `ends_with(s, suffix)`          | `bool`  | True if `s` ends with `suffix`     |
-| `replace(s, from, to)`          | `str`   | Replace all occurrences            |
-| `split(s, sep)`                 | `list`  | Split string by separator          |
+| Function                   | Returns | Description                        |
+|----------------------------|---------|------------------------------------|
+| `len(s)`                   | `int`   | Length of string or list           |
+| `to_str(value)`            | `str`   | Convert any value to string        |
+| `to_int(value)`            | `int`   | Parse string or float to int       |
+| `to_float(value)`          | `float` | Parse string or int to float       |
+| `trim(s)`                  | `str`   | Remove leading/trailing whitespace |
+| `upper(s)`                 | `str`   | Convert to uppercase               |
+| `lower(s)`                 | `str`   | Convert to lowercase               |
+| `contains(s, sub)`         | `bool`  | True if `s` contains `sub`         |
+| `starts_with(s, prefix)`   | `bool`  | True if `s` starts with `prefix`   |
+| `ends_with(s, suffix)`     | `bool`  | True if `s` ends with `suffix`     |
+| `replace(s, from, to)`     | `str`   | Replace all occurrences            |
+| `split(s, sep)`            | `list`  | Split string by separator          |
 
 **List:**
 
-| Function          | Returns | Description              |
-|-------------------|---------|--------------------------|
-| `len(list)`       | `int`   | Number of elements       |
-| `append(list, v)` | `void`  | Add element to end       |
-| `pop(list)`       | `any`   | Remove and return last   |
-
-**Example:**
-
-```lph
-var s: str = "  Hello, World!  "
-print(trim(s))                        # Hello, World!
-print(upper(s))                       # HELLO, WORLD!
-print(contains(s, "World"))           # true
-print(replace(s, "World", "Liphia"))  # Hello, Liphia!
-
-var parts: list = split("a,b,c", ",")
-print(parts[0])   # a
-print(len(parts)) # 3
-```
+| Function          | Returns | Description                    |
+|-------------------|---------|--------------------------------|
+| `len(list)`       | `int`   | Number of elements             |
+| `append(list, v)` | `null`  | Add element to end (in-place)  |
+| `pop(list)`       | `any`   | Remove and return last element |
+| `keys(list)`      | `list`  | Returns list of indices [0..n] |
 
 ---
 
 ## Standard library
 
-Install modules with `liphia install <name>`. All functions from stdlib
-modules are native — implemented in Rust and compiled into the CLI binary.
+Install modules with `liphia install <name>`.
+All stdlib functions are native — implemented in Rust and compiled into the CLI binary.
 
 ### `ai` — machine learning primitives
 
@@ -583,33 +539,60 @@ liphia install ai
 ```lph
 import from "ai"
 
-# activation functions
-print("sigmoid(0) =", sigmoid(0.0))     # 0.5
-print("relu(-3) =", relu(-3.0))         # 0
-print("relu(5) =", relu(5.0))           # 5
+# activations
+print(sigmoid(0.0))           # 0.5
+print(relu(-3.0))             # 0
+print(leaky_relu(-3.0, 0.01)) # -0.03
+print(gelu(1.0))              # 0.841...
 
-# vector operations
-var v1: list = [1.0, 2.0, 3.0]
-var v2: list = [4.0, 5.0, 6.0]
-print("dot =", dot(v1, v2))             # 32
-print("norm =", norm(v1))               # 3.741...
+# vectors
+var a: list = [1.0, 2.0, 3.0]
+var b: list = [4.0, 5.0, 6.0]
+print(dot(a, b))              # 32
+print(norm(a))                # 3.741...
+print(vec_add(a, b))          # [5, 7, 9]
 
-# softmax + argmax
-var probs: list = softmax([1.0, 2.0, 3.0])
-print("argmax =", argmax(probs))        # 2
+# preprocessing
+print(normalize([2.0, 4.0, 6.0, 8.0]))   # [0, 0.33, 0.66, 1]
+print(standardize([2.0, 4.0, 6.0, 8.0])) # zero mean, unit variance
+
+# loss functions
+var pred:   list = [0.9, 0.1, 0.8]
+var target: list = [1.0, 0.0, 1.0]
+print(mse(pred, target))
+print(binary_cross_entropy(pred, target))
+
+# classification metrics
+print(accuracy(pred, target))
+print(f1_score(pred, target))
+
+# distances
+var u: list = [1.0, 0.0, 0.0]
+var v: list = [0.0, 1.0, 0.0]
+print(cosine_similarity(u, v))  # 0
+print(euclidean_dist(u, v))     # 1.414...
+
+# random
+seed(42)
+var weights = rand_normal(8, 0.0, 0.1)
+print(weights)
+
+# optimization
+var w: list = [0.5, -0.3, 0.8]
+var g: list = [0.1, -0.2, 0.05]
+w = sgd_update(w, g, 0.01)
 ```
 
-| Function                                   | Returns | Description                           |
-|--------------------------------------------|---------|---------------------------------------|
-| `sigmoid(x)`                               | `float` | 1 / (1 + e^(-x))                      |
-| `relu(x)`                                  | `float` | max(0, x)                             |
-| `softmax(v)`                               | `list`  | Probability distribution from list    |
-| `argmax(v)`                                | `int`   | Index of maximum value                |
-| `dot(a, b)`                                | `float` | Vector dot product                    |
-| `norm(v)`                                  | `float` | L2 (Euclidean) norm                   |
-| `matrix_new(rows, cols, fill)`             | `list`  | Flat matrix filled with value         |
-| `matrix_mul(a, b, rows, inner, cols)`      | `list`  | Matrix multiplication                 |
-| `matrix_add(a, b)`                         | `list`  | Element-wise addition                 |
+Full function list: `sigmoid`, `relu`, `leaky_relu`, `tanh_act`, `elu`, `gelu`, `swish`,
+`dot`, `norm`, `vec_add`, `vec_sub`, `vec_mul`, `vec_scale`, `vec_sum`,
+`softmax`, `argmax`,
+`matrix_new`, `matrix_mul`, `matrix_add`, `transpose`,
+`normalize`, `standardize`, `clip`, `linspace`, `arange`,
+`mse`, `mae`, `cross_entropy`, `binary_cross_entropy`,
+`seed`, `rand_uniform`, `rand_normal`, `rand_int`, `shuffle`,
+`gradient_clip`, `sgd_update`, `adam_update`,
+`accuracy`, `precision`, `recall`, `f1_score`,
+`cosine_similarity`, `euclidean_dist`, `manhattan_dist`.
 
 ### `math` — mathematical functions
 
@@ -620,15 +603,11 @@ liphia install math
 ```lph
 import from "math"
 
-print(sqrt(16.0))          # 4
-print(pow(2.0, 8.0))       # 256
-print(abs(-7.5))            # 7.5
-print(floor(3.9))           # 3
-print(ceil(3.1))            # 4
-print(round(3.5))           # 4
-print(pi())                 # 3.14159...
-print(sin(0.0))             # 0
-print(log(1.0))             # 0
+print(sqrt(16.0))    # 4
+print(pow(2.0, 8.0)) # 256
+print(pi())          # 3.14159...
+print(sin(0.0))      # 0
+print(log(1.0))      # 0
 ```
 
 ### `stats` — statistical functions
@@ -640,11 +619,10 @@ liphia install stats
 ```lph
 import from "stats"
 
-var data: list = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
-print("mean =", mean(data))
-print("stdev =", stdev(data))
-print("median =", median(data))
-print("sum =", sum(data))
+var data: list = [2.0, 4.0, 4.0, 5.0, 7.0, 9.0]
+print(mean(data))
+print(stdev(data))
+print(median(data))
 ```
 
 ### `fs` — file system
@@ -657,9 +635,8 @@ liphia install fs
 import from "fs"
 
 write_file("hello.txt", "Hello from Liphia!")
-var content: str = read_file("hello.txt")
+var content = read_file("hello.txt")
 print(content)
-print("exists:", file_exists("hello.txt"))
 ```
 
 ### `json` — JSON encoding and decoding
@@ -671,9 +648,36 @@ liphia install json
 ```lph
 import from "json"
 
-var raw: str = "{\"name\": \"Alice\", \"age\": 30}"
-print(json_get(raw, "name"))    # Alice
-print(json_has(raw, "email"))   # false
+var raw = "{\"name\": \"Alice\", \"age\": 30}"
+print(json_get(raw, "name"))   # Alice
+print(json_has(raw, "email"))  # false
+```
+
+### `db` — SQLite and PostgreSQL
+
+```bash
+liphia install db
+```
+
+```lph
+import from "db"
+
+# SQLite — embedded, no installation required
+var conn: int = db_open("data.sqlite")
+var sql = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
+db_exec(conn, sql)
+db_exec(conn, "INSERT INTO users (name) VALUES ('Alice')")
+var rows = db_query_rows(conn, "SELECT * FROM users")
+print("rows:", len(rows))
+var last_id = db_last_id(conn)
+print("last id:", last_id)
+db_close(conn)
+
+# PostgreSQL — pure TCP wire protocol
+var pg = pg_connect("127.0.0.1", 5432, "postgres", "secret", "mydb")
+pg_exec(pg, "INSERT INTO products (name) VALUES ('Widget')")
+var products = pg_query_rows(pg, "SELECT * FROM products")
+pg_close(pg)
 ```
 
 ### `http` — HTTP server and client
@@ -686,32 +690,20 @@ liphia install http
 import from "http"
 
 # client
-var body: str = http_get("http://example.com")
+var body = http_get("http://example.com")
 print("status:", http_status())
 
-# server (async)
-http_listen(8080)
-async fn handle() -> void:
-    var req = await http_accept()
-    http_respond(200, "Hello from Liphia!")
+# server
+http_listen(3000)
+async fn server_loop() -> void:
+    while true:
+        var got: bool = await http_accept()
+        if got:
+            var method = http_method()
+            var path = http_path()
+            http_respond_json(200, "{\"status\": \"ok\"}")
 
-spawn handle()
-```
-
-### `net` — TCP/UDP sockets
-
-```bash
-liphia install net
-```
-
-```lph
-import from "net"
-
-var conn: int = tcp_connect("127.0.0.1", 9000)
-tcp_send(conn, "ping")
-var reply: str = tcp_recv(conn)
-print(reply)
-tcp_close(conn)
+spawn server_loop()
 ```
 
 ### `ws` — WebSockets
@@ -730,6 +722,22 @@ async fn accept_loop() -> void:
     ws_broadcast("New client connected")
 ```
 
+### `net` — TCP/UDP sockets
+
+```bash
+liphia install net
+```
+
+```lph
+import from "net"
+
+var conn: int = tcp_connect("127.0.0.1", 9000)
+tcp_send(conn, "ping")
+var reply = tcp_recv(conn)
+print(reply)
+tcp_close(conn)
+```
+
 ---
 
 ## Full example
@@ -740,7 +748,6 @@ import from "ai"
 
 print("=== Liphia Demo ===")
 
-# functions
 fn add(a: int, b: int) -> int:
     return a + b
 
@@ -749,28 +756,28 @@ fn factorial(n: int) -> int:
         return 1
     return n * factorial(n - 1)
 
-# arithmetic
 var x: int = add(10, 5)
 print("10 + 5 =", x)
 print("10! =", factorial(10))
 
-# lists
 var values: list = [1, 2, 3, 4, 5]
 print("first =", values[0])
-print("last =", values[-1])
+print("last  =", values[-1])
 append(values, 6)
 print("length =", len(values))
 
-# math stdlib
 print("sqrt(144) =", sqrt(144.0))
 print("pi =", pi())
 
-# ai stdlib
 var v: list = [1.0, 2.0, 3.0]
 print("norm([1,2,3]) =", norm(v))
-print("sigmoid(1) =", sigmoid(1.0))
+print("sigmoid(1)    =", sigmoid(1.0))
 
-# string operations
+seed(42)
+var w = rand_normal(4, 0.0, 0.1)
+w = sgd_update(w, rand_normal(4, 0.0, 0.01), 0.001)
+print("trained weights:", w)
+
 var msg: str = "  hello, liphia!  "
 print(trim(upper(msg)))
 
@@ -784,31 +791,33 @@ print("Done.")
 ### ✅ Engine 0.9.0 — current
 
 - [x] Indentation blocks (Indent / Dedent)
-- [x] Typed variables, `var`, `const`
+- [x] Typed variables (`name: type = value`), `var`, `const`
 - [x] Conditionals (`if`, `elif`, `else`)
 - [x] Loops (`while`, `for from/to/step`, `break`, `continue`)
 - [x] Functions (`fn`, `return`, recursion)
-- [x] Async functions and `await`
+- [x] Async functions (`async fn`, `await`)
 - [x] Concurrency via `spawn` (cooperative event-loop VM)
 - [x] Bytecode compiler + VM execution
 - [x] REPL / interactive shell (`--repl`)
 - [x] File import system (`import "file.lph"`)
 - [x] Stdlib import system (`import from "module"`)
 - [x] Package manager (`liphia init`, `liphia install`, `liphia install --list`)
-- [x] Lists and indexing (`x[0]`, `x[-1]`, `append`, `pop`)
+- [x] Lists and indexing (`x[0]`, `x[-1]`, `append`, `pop`, `keys`)
 - [x] Enums and variant matching
-- [x] Optional types (`T?`)
-- [x] Structured error messages with line/column (lexer + parser + VM)
+- [x] Structured error messages with line/column and error codes
 - [x] Bytecode cache (`.lbc`)
-- [x] Core native functions (string, list, type conversion) — always available
-- [x] Standard library: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`
-- [x] VS Code extension (syntax highlighting)
+- [x] Core native functions — string, list, type conversion (always available)
+- [x] Standard library: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`
+- [x] `db` module: SQLite (bundled, zero dependencies) + PostgreSQL (pure TCP wire protocol)
+- [x] `ai` module: activations, vectors, matrices, preprocessing, loss functions, random, optimization (SGD, Adam), classification metrics, distances
+- [x] VS Code extension v0.0.2 (syntax highlighting + snippets)
 
 ### 🎯 Engine 1.0 — Stable release *(planned)*
 
 - [ ] Maps / dictionaries
 - [ ] Real module system with selective exports (`import { fn } from "module"`)
-- [ ] Better diagnostics with source context and suggestions
+- [ ] Better diagnostics with source context and inline suggestions
+- [ ] Null safety / optional types (`T?`)
 - [ ] Stable stdlib API with full documentation
 - [ ] GitHub Actions — automated binary releases for Windows, Linux, macOS
 
