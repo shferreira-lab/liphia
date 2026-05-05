@@ -14,6 +14,7 @@ struct Scope {
     enums: HashMap<String, EnumDef>,
     fns:   HashMap<String, (Vec<Type>, Type)>,
 }
+
 impl Scope {
     fn new() -> Self {
         Self { vars: HashMap::new(), enums: HashMap::new(), fns: HashMap::new() }
@@ -23,8 +24,8 @@ impl Scope {
 pub struct TypeChecker {
     scopes:              Vec<Scope>,
     current_return_type: Option<Type>,
-    in_async_fn:         bool,           // ← NEW
-    async_fn_names:      HashSet<String>, // ← NEW: which fns are async
+    in_async_fn:         bool,
+    async_fn_names:      HashSet<String>,
 }
 
 impl TypeChecker {
@@ -37,42 +38,44 @@ impl TypeChecker {
         };
         tc.push_scope();
 
-        // ── Builtins ─────────────────────────────────────────────────────
-        tc.declare_fn("input",       vec![Type::Str],                                       Type::Str);
+        let any = || Type::Named("any".into());
 
-        // ── core ─────────────────────────────────────────────────────────
-        tc.declare_fn("len",         vec![Type::Named("any".into())],                       Type::Int);
-        tc.declare_fn("to_int",      vec![Type::Named("any".into())],                       Type::Int);
-        tc.declare_fn("to_float",    vec![Type::Named("any".into())],                       Type::Float);
-        tc.declare_fn("to_str",      vec![Type::Named("any".into())],                       Type::Str);
-        tc.declare_fn("trim",        vec![Type::Str],                                       Type::Str);
-        tc.declare_fn("contains",    vec![Type::Str, Type::Str],                            Type::Bool);
-        tc.declare_fn("starts_with", vec![Type::Str, Type::Str],                            Type::Bool);
-        tc.declare_fn("ends_with",   vec![Type::Str, Type::Str],                            Type::Bool);
-        tc.declare_fn("split",       vec![Type::Str, Type::Str],                            Type::List);
-        tc.declare_fn("upper",       vec![Type::Str],                                       Type::Str);
-        tc.declare_fn("lower",       vec![Type::Str],                                       Type::Str);
-        tc.declare_fn("replace",     vec![Type::Str, Type::Str, Type::Str],                 Type::Str);
-        tc.declare_fn("append",      vec![Type::List, Type::Named("any".into())],           Type::Void);
-        tc.declare_fn("pop",         vec![Type::List],                                      Type::Named("any".into()));
-        tc.declare_fn("keys",        vec![Type::List],                                      Type::List);
+        // ── builtins ──────────────────────────────────────────────────────
+        tc.declare_fn("input", vec![Type::Str], Type::Str);
 
-        // ── math ─────────────────────────────────────────────────────────
-        tc.declare_fn("sqrt",   vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("pow",    vec![Type::Named("any".into()), Type::Named("any".into())], Type::Float);
-        tc.declare_fn("abs",    vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("floor",  vec![Type::Named("any".into())],                            Type::Int);
-        tc.declare_fn("ceil",   vec![Type::Named("any".into())],                            Type::Int);
-        tc.declare_fn("round",  vec![Type::Named("any".into())],                            Type::Int);
-        tc.declare_fn("min",    vec![Type::Named("any".into()), Type::Named("any".into())], Type::Float);
-        tc.declare_fn("max",    vec![Type::Named("any".into()), Type::Named("any".into())], Type::Float);
-        tc.declare_fn("pi",     vec![],                                                     Type::Float);
-        tc.declare_fn("e",      vec![],                                                     Type::Float);
-        tc.declare_fn("log",    vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("log10",  vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("sin",    vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("cos",    vec![Type::Named("any".into())],                            Type::Float);
-        tc.declare_fn("tan",    vec![Type::Named("any".into())],                            Type::Float);
+        // ── core native ───────────────────────────────────────────────────
+        tc.declare_fn("len",         vec![any()],                         Type::Int);
+        tc.declare_fn("to_int",      vec![any()],                         Type::Int);
+        tc.declare_fn("to_float",    vec![any()],                         Type::Float);
+        tc.declare_fn("to_str",      vec![any()],                         Type::Str);
+        tc.declare_fn("trim",        vec![Type::Str],                     Type::Str);
+        tc.declare_fn("upper",       vec![Type::Str],                     Type::Str);
+        tc.declare_fn("lower",       vec![Type::Str],                     Type::Str);
+        tc.declare_fn("contains",    vec![Type::Str, Type::Str],          Type::Bool);
+        tc.declare_fn("starts_with", vec![Type::Str, Type::Str],          Type::Bool);
+        tc.declare_fn("ends_with",   vec![Type::Str, Type::Str],          Type::Bool);
+        tc.declare_fn("replace",     vec![Type::Str, Type::Str, Type::Str], Type::Str);
+        tc.declare_fn("split",       vec![Type::Str, Type::Str],          Type::List);
+        tc.declare_fn("append",      vec![Type::List, any()],             Type::Void);
+        tc.declare_fn("pop",         vec![Type::List],                    any());
+        tc.declare_fn("keys",        vec![Type::List],                    Type::List);
+
+        // ── math ──────────────────────────────────────────────────────────
+        tc.declare_fn("sqrt",   vec![any()],          Type::Float);
+        tc.declare_fn("pow",    vec![any(), any()],   Type::Float);
+        tc.declare_fn("abs",    vec![any()],          Type::Float);
+        tc.declare_fn("floor",  vec![any()],          Type::Int);
+        tc.declare_fn("ceil",   vec![any()],          Type::Int);
+        tc.declare_fn("round",  vec![any()],          Type::Int);
+        tc.declare_fn("min",    vec![any(), any()],   Type::Float);
+        tc.declare_fn("max",    vec![any(), any()],   Type::Float);
+        tc.declare_fn("pi",     vec![],               Type::Float);
+        tc.declare_fn("e",      vec![],               Type::Float);
+        tc.declare_fn("log",    vec![any()],          Type::Float);
+        tc.declare_fn("log10",  vec![any()],          Type::Float);
+        tc.declare_fn("sin",    vec![any()],          Type::Float);
+        tc.declare_fn("cos",    vec![any()],          Type::Float);
+        tc.declare_fn("tan",    vec![any()],          Type::Float);
 
         // ── stats ─────────────────────────────────────────────────────────
         tc.declare_fn("sum",      vec![Type::List], Type::Float);
@@ -90,84 +93,140 @@ impl TypeChecker {
         tc.declare_fn("append_file", vec![Type::Str, Type::Str], Type::Bool);
         tc.declare_fn("file_exists", vec![Type::Str],            Type::Bool);
 
-        // ── ai ────────────────────────────────────────────────────────────
-        tc.declare_fn("sigmoid",    vec![Type::Named("any".into())],                                                                           Type::Float);
-        tc.declare_fn("relu",       vec![Type::Named("any".into())],                                                                           Type::Float);
-        tc.declare_fn("softmax",    vec![Type::List],                                                                                          Type::List);
-        tc.declare_fn("argmax",     vec![Type::List],                                                                                          Type::Int);
-        tc.declare_fn("dot",        vec![Type::List, Type::List],                                                                              Type::Float);
-        tc.declare_fn("norm",       vec![Type::List],                                                                                          Type::Float);
-        tc.declare_fn("matrix_new", vec![Type::Named("any".into()), Type::Named("any".into()), Type::Named("any".into())],                    Type::List);
-        tc.declare_fn("matrix_mul", vec![Type::List, Type::List, Type::Named("any".into()), Type::Named("any".into()), Type::Named("any".into())], Type::List);
-        tc.declare_fn("matrix_add", vec![Type::List, Type::List],                                                                             Type::List);
+        // ── ai — activation functions ─────────────────────────────────────
+        tc.declare_fn("sigmoid",    vec![any()],          Type::Float);
+        tc.declare_fn("relu",       vec![any()],          Type::Float);
+        tc.declare_fn("leaky_relu", vec![any(), any()],   Type::Float);
+        tc.declare_fn("tanh_act",   vec![any()],          Type::Float);
+        tc.declare_fn("elu",        vec![any(), any()],   Type::Float);
+        tc.declare_fn("gelu",       vec![any()],          Type::Float);
+        tc.declare_fn("swish",      vec![any()],          Type::Float);
+
+        // ── ai — vector operations ────────────────────────────────────────
+        tc.declare_fn("dot",       vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("norm",      vec![Type::List],             Type::Float);
+        tc.declare_fn("vec_add",   vec![Type::List, Type::List], Type::List);
+        tc.declare_fn("vec_sub",   vec![Type::List, Type::List], Type::List);
+        tc.declare_fn("vec_mul",   vec![Type::List, Type::List], Type::List);
+        tc.declare_fn("vec_scale", vec![Type::List, any()],      Type::List);
+        tc.declare_fn("vec_sum",   vec![Type::List],             Type::Float);
+
+        // ── ai — classification ───────────────────────────────────────────
+        tc.declare_fn("softmax", vec![Type::List], Type::List);
+        tc.declare_fn("argmax",  vec![Type::List], Type::Int);
+
+        // ── ai — matrix operations ────────────────────────────────────────
+        tc.declare_fn("matrix_new", vec![any(), any(), any()],                    Type::List);
+        tc.declare_fn("matrix_mul", vec![Type::List, Type::List, any(), any(), any()], Type::List);
+        tc.declare_fn("matrix_add", vec![Type::List, Type::List],                 Type::List);
+        tc.declare_fn("transpose",  vec![Type::List, any(), any()],               Type::List);
+
+        // ── ai — data preprocessing ───────────────────────────────────────
+        tc.declare_fn("normalize",   vec![Type::List],           Type::List);
+        tc.declare_fn("standardize", vec![Type::List],           Type::List);
+        tc.declare_fn("clip",        vec![Type::List, any(), any()], Type::List);
+        tc.declare_fn("linspace",    vec![any(), any(), any()],  Type::List);
+        tc.declare_fn("arange",      vec![any(), any(), any()],  Type::List);
+
+        // ── ai — loss functions ───────────────────────────────────────────
+        tc.declare_fn("mse",                  vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("mae",                  vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("cross_entropy",        vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("binary_cross_entropy", vec![Type::List, Type::List], Type::Float);
+
+        // ── ai — random ───────────────────────────────────────────────────
+        tc.declare_fn("seed",         vec![any()],              Type::Null);
+        tc.declare_fn("rand_uniform", vec![any(), any(), any()], Type::List);
+        tc.declare_fn("rand_normal",  vec![any(), any(), any()], Type::List);
+        tc.declare_fn("rand_int",     vec![any(), any()],       Type::Int);
+        tc.declare_fn("shuffle",      vec![Type::List],         Type::List);
+
+        // ── ai — gradients and optimization ──────────────────────────────
+        tc.declare_fn("gradient_clip", vec![Type::List, any()],          Type::List);
+        tc.declare_fn("sgd_update",    vec![Type::List, Type::List, any()], Type::List);
+        tc.declare_fn("adam_update",   vec![
+            Type::List, Type::List, Type::List, Type::List,
+            any(), any(), any(), any(), any(),
+        ], Type::List);
+
+        // ── ai — classification metrics ───────────────────────────────────
+        tc.declare_fn("accuracy",  vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("precision", vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("recall",    vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("f1_score",  vec![Type::List, Type::List], Type::Float);
+
+        // ── ai — distance functions ───────────────────────────────────────
+        tc.declare_fn("cosine_similarity", vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("euclidean_dist",    vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("manhattan_dist",    vec![Type::List, Type::List], Type::Float);
 
         // ── net ───────────────────────────────────────────────────────────
-        tc.declare_fn("tcp_connect", vec![Type::Str, Type::Int],             Type::Int);
-        tc.declare_fn("tcp_send",    vec![Type::Int, Type::Str],             Type::Bool);
-        tc.declare_fn("tcp_recv",    vec![Type::Int],                        Type::Str);
-        tc.declare_fn("tcp_close",   vec![Type::Int],                        Type::Bool);
-        tc.declare_fn("udp_send",    vec![Type::Str, Type::Int, Type::Str],  Type::Bool);
+        tc.declare_fn("tcp_connect", vec![Type::Str, Type::Int],            Type::Int);
+        tc.declare_fn("tcp_send",    vec![Type::Int, Type::Str],            Type::Bool);
+        tc.declare_fn("tcp_recv",    vec![Type::Int],                       Type::Str);
+        tc.declare_fn("tcp_close",   vec![Type::Int],                       Type::Bool);
+        tc.declare_fn("udp_send",    vec![Type::Str, Type::Int, Type::Str], Type::Bool);
 
         // ── http server ───────────────────────────────────────────────────
-        tc.declare_fn("http_listen",       vec![Type::Int],             Type::Bool);
-        tc.declare_fn("http_accept",       vec![],                      Type::Bool);  // await-able
-        tc.declare_fn("http_method",       vec![],                      Type::Str);
-        tc.declare_fn("http_path",         vec![],                      Type::Str);
-        tc.declare_fn("http_query",        vec![],                      Type::Str);
-        tc.declare_fn("http_body",         vec![],                      Type::Str);
-        tc.declare_fn("http_header",       vec![Type::Str],             Type::Str);
-        tc.declare_fn("http_respond",      vec![Type::Int, Type::Str],  Type::Bool);
-        tc.declare_fn("http_respond_json", vec![Type::Int, Type::Str],  Type::Bool);
+        tc.declare_fn("http_listen",       vec![Type::Int],            Type::Bool);
+        tc.declare_fn("http_accept",       vec![],                     Type::Bool);
+        tc.declare_fn("http_method",       vec![],                     Type::Str);
+        tc.declare_fn("http_path",         vec![],                     Type::Str);
+        tc.declare_fn("http_query",        vec![],                     Type::Str);
+        tc.declare_fn("http_body",         vec![],                     Type::Str);
+        tc.declare_fn("http_header",       vec![Type::Str],            Type::Str);
+        tc.declare_fn("http_respond",      vec![Type::Int, Type::Str], Type::Bool);
+        tc.declare_fn("http_respond_json", vec![Type::Int, Type::Str], Type::Bool);
 
         // ── http client ───────────────────────────────────────────────────
-        tc.declare_fn("http_get",    vec![Type::Str],             Type::Str);
-        tc.declare_fn("http_post",   vec![Type::Str, Type::Str],  Type::Str);
-        tc.declare_fn("http_put",    vec![Type::Str, Type::Str],  Type::Str);
-        tc.declare_fn("http_patch",  vec![Type::Str, Type::Str],  Type::Str);
-        tc.declare_fn("http_delete", vec![Type::Str],             Type::Str);
-        tc.declare_fn("http_status", vec![],                      Type::Int);
+        tc.declare_fn("http_get",    vec![Type::Str],            Type::Str);
+        tc.declare_fn("http_post",   vec![Type::Str, Type::Str], Type::Str);
+        tc.declare_fn("http_put",    vec![Type::Str, Type::Str], Type::Str);
+        tc.declare_fn("http_patch",  vec![Type::Str, Type::Str], Type::Str);
+        tc.declare_fn("http_delete", vec![Type::Str],            Type::Str);
+        tc.declare_fn("http_status", vec![],                     Type::Int);
 
         // ── ws ────────────────────────────────────────────────────────────
-        tc.declare_fn("ws_listen",    vec![Type::Int],             Type::Bool);
-        tc.declare_fn("ws_accept",    vec![],                      Type::Int);   // await-able
-        tc.declare_fn("ws_clients",   vec![],                      Type::List);
-        tc.declare_fn("ws_send",      vec![Type::Int, Type::Str],  Type::Bool);
-        tc.declare_fn("ws_recv",      vec![Type::Int],             Type::Str);
-        tc.declare_fn("ws_broadcast", vec![Type::Str],             Type::Bool);
-        tc.declare_fn("ws_close",     vec![Type::Int],             Type::Bool);
+        tc.declare_fn("ws_listen",    vec![Type::Int],            Type::Bool);
+        tc.declare_fn("ws_accept",    vec![],                     Type::Int);
+        tc.declare_fn("ws_clients",   vec![],                     Type::List);
+        tc.declare_fn("ws_send",      vec![Type::Int, Type::Str], Type::Bool);
+        tc.declare_fn("ws_recv",      vec![Type::Int],            Type::Str);
+        tc.declare_fn("ws_broadcast", vec![Type::Str],            Type::Bool);
+        tc.declare_fn("ws_close",     vec![Type::Int],            Type::Bool);
 
         // ── json ──────────────────────────────────────────────────────────
-        tc.declare_fn("json_encode", vec![Type::Named("any".into())],  Type::Str);
-        tc.declare_fn("json_decode", vec![Type::Str],                  Type::List);
-        tc.declare_fn("json_get",    vec![Type::Str, Type::Str],       Type::Str);
-        tc.declare_fn("json_has",    vec![Type::Str, Type::Str],       Type::Bool);
+        tc.declare_fn("json_encode", vec![any()],                Type::Str);
+        tc.declare_fn("json_decode", vec![Type::Str],            Type::List);
+        tc.declare_fn("json_get",    vec![Type::Str, Type::Str], Type::Str);
+        tc.declare_fn("json_has",    vec![Type::Str, Type::Str], Type::Bool);
 
+        // ── db — sqlite ───────────────────────────────────────────────────
+        tc.declare_fn("db_open",        vec![Type::Str],            Type::Int);
+        tc.declare_fn("db_open_memory", vec![],                     Type::Int);
+        tc.declare_fn("db_close",       vec![Type::Int],            Type::Bool);
+        tc.declare_fn("db_exec",        vec![Type::Int, Type::Str], Type::Int);
+        tc.declare_fn("db_query",       vec![Type::Int, Type::Str], Type::List);
+        tc.declare_fn("db_query_rows",  vec![Type::Int, Type::Str], Type::List);
+        tc.declare_fn("db_last_id",     vec![Type::Int],            Type::Int);
+        tc.declare_fn("db_begin",       vec![Type::Int],            Type::Bool);
+        tc.declare_fn("db_commit",      vec![Type::Int],            Type::Bool);
+        tc.declare_fn("db_rollback",    vec![Type::Int],            Type::Bool);
+        tc.declare_fn("db_error",       vec![Type::Int],            Type::Str);
+        tc.declare_fn("db_tables",      vec![Type::Int],            Type::List);
+        tc.declare_fn("db_columns",     vec![Type::Int, Type::Str], Type::List);
 
-        // ── db / sqlite ───────────────────────────────────────────────────────────────
-tc.declare_fn("db_open",        vec![Type::Str],                                    Type::Int);
-tc.declare_fn("db_open_memory", vec![],                                             Type::Int);
-tc.declare_fn("db_close",       vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("db_exec",        vec![Type::Int, Type::Str],                         Type::Int);
-tc.declare_fn("db_query",       vec![Type::Int, Type::Str],                         Type::List);
-tc.declare_fn("db_query_rows",  vec![Type::Int, Type::Str],                         Type::List);
-tc.declare_fn("db_last_id",     vec![Type::Int],                                    Type::Int);
-tc.declare_fn("db_begin",       vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("db_commit",      vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("db_rollback",    vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("db_error",       vec![Type::Int],                                    Type::Str);
-tc.declare_fn("db_tables",      vec![Type::Int],                                    Type::List);
-tc.declare_fn("db_columns",     vec![Type::Int, Type::Str],                         Type::List);
-// ── db / postgresql ───────────────────────────────────────────────────────────
-tc.declare_fn("pg_connect",     vec![Type::Str, Type::Int, Type::Str, Type::Str, Type::Str], Type::Int);
-tc.declare_fn("pg_exec",        vec![Type::Int, Type::Str],                         Type::Int);
-tc.declare_fn("pg_query",       vec![Type::Int, Type::Str],                         Type::List);
-tc.declare_fn("pg_query_rows",  vec![Type::Int, Type::Str],                         Type::List);
-tc.declare_fn("pg_last_id",     vec![Type::Int],                                    Type::Int);
-tc.declare_fn("pg_begin",       vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("pg_commit",      vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("pg_rollback",    vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("pg_close",       vec![Type::Int],                                    Type::Bool);
-tc.declare_fn("pg_error",       vec![Type::Int],                                    Type::Str);
+        // ── db — postgresql ───────────────────────────────────────────────
+        tc.declare_fn("pg_connect",  vec![Type::Str, Type::Int, Type::Str, Type::Str, Type::Str], Type::Int);
+        tc.declare_fn("pg_exec",     vec![Type::Int, Type::Str], Type::Int);
+        tc.declare_fn("pg_query",    vec![Type::Int, Type::Str], Type::List);
+        tc.declare_fn("pg_query_rows", vec![Type::Int, Type::Str], Type::List);
+        tc.declare_fn("pg_last_id",  vec![Type::Int],            Type::Int);
+        tc.declare_fn("pg_begin",    vec![Type::Int],            Type::Bool);
+        tc.declare_fn("pg_commit",   vec![Type::Int],            Type::Bool);
+        tc.declare_fn("pg_rollback", vec![Type::Int],            Type::Bool);
+        tc.declare_fn("pg_close",    vec![Type::Int],            Type::Bool);
+        tc.declare_fn("pg_error",    vec![Type::Int],            Type::Str);
 
         tc
     }
@@ -176,7 +235,8 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
     fn pop_scope(&mut self)  { self.scopes.pop(); }
 
     fn declare(&mut self, name: &str, ty: Type, is_const: bool) {
-        self.scopes.last_mut().unwrap().vars.insert(name.to_string(), Symbol { ty, is_const });
+        self.scopes.last_mut().unwrap().vars
+            .insert(name.to_string(), Symbol { ty, is_const });
     }
 
     fn lookup(&self, name: &str) -> Option<&Symbol> {
@@ -201,15 +261,15 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
     }
 
     fn declare_fn(&mut self, name: &str, param_types: Vec<Type>, return_type: Type) {
-        self.scopes.last_mut().unwrap().fns.insert(name.to_string(), (param_types, return_type));
+        self.scopes.last_mut().unwrap().fns
+            .insert(name.to_string(), (param_types, return_type));
     }
 
     fn declare_enum(&mut self, def: EnumDef) {
         self.scopes.last_mut().unwrap().enums.insert(def.name.clone(), def);
     }
 
-    // ── Infer ─────────────────────────────────────────────────────────────
-
+    // ── Type inference ────────────────────────────────────────────────────
     fn infer(&self, expr: &Expr) -> Type {
         match expr {
             Expr::Int(_)    => Type::Int,
@@ -219,10 +279,11 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
             Expr::Null      => Type::Null,
             Expr::List(_)   => Type::List,
             Expr::Variable(name) => {
-                self.lookup(name).map(|s| s.ty.clone()).unwrap_or(Type::Named("unknown".into()))
+                self.lookup(name).map(|s| s.ty.clone())
+                    .unwrap_or(Type::Named("unknown".into()))
             }
-            Expr::Add(a,_) | Expr::Sub(a,_) |
-            Expr::Mul(a,_) | Expr::Div(a,_) => self.infer(a),
+            Expr::Add(a, _) | Expr::Sub(a, _) |
+            Expr::Mul(a, _) | Expr::Div(a, _) => self.infer(a),
             Expr::Eq(..)  | Expr::NotEq(..) |
             Expr::Gt(..)  | Expr::Lt(..)    |
             Expr::Gte(..) | Expr::Lte(..)   |
@@ -230,19 +291,16 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
             Expr::Index(..) => Type::Named("unknown".into()),
             Expr::EnumVariant { enum_name, .. } => Type::Named(enum_name.clone()),
             Expr::FunctionCall { name, .. } => {
-                self.lookup_fn(name).map(|(_,r)| r.clone()).unwrap_or(Type::Named("unknown".into()))
+                self.lookup_fn(name).map(|(_, r)| r.clone())
+                    .unwrap_or(Type::Named("unknown".into()))
             }
-            // await unwraps whatever the inner expr returns
             Expr::Await(inner) => self.infer(inner),
-            // spawn is fire-and-forget → void/null
             Expr::Spawn { .. } => Type::Null,
         }
     }
 
     // ── Public entry ──────────────────────────────────────────────────────
-
     pub fn check(&mut self, stmts: &[Stmt]) -> LiphiaResult<()> {
-        // First pass: register all top-level fns and enums (forward refs)
         for stmt in stmts {
             match stmt {
                 Stmt::Fn { name, params, return_type, is_async, .. } => {
@@ -338,7 +396,6 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
                 for s in body { self.check_stmt(s)?; }
                 self.pop_scope();
             }
-            // ── Fn / async fn ─────────────────────────────────────────────
             Stmt::Fn { name, params, return_type, body, is_async } => {
                 if *is_async { self.async_fn_names.insert(name.clone()); }
                 let prev_return = self.current_return_type.replace(return_type.clone());
@@ -363,8 +420,8 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
                     }
                 }
             }
-            Stmt::Enum(def)     => { self.declare_enum(def.clone()); }
-            Stmt::ExprStmt(expr)=> { self.check_expr(expr)?; }
+            Stmt::Enum(def)      => { self.declare_enum(def.clone()); }
+            Stmt::ExprStmt(expr) => { self.check_expr(expr)?; }
             Stmt::Break | Stmt::Continue => {}
         }
         Ok(())
@@ -398,21 +455,19 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
                 for arg in args { self.check_expr(arg)?; }
                 Ok(())
             }
-            // ── await ──────────────────────────────────────────────────────
             Expr::Await(inner) => {
                 if !self.in_async_fn {
                     return Err(LiphiaError::new(
-                        ErrorKind::InvalidStatement,
+                        ErrorKind::AsyncAwaitOutsideAsync,
                         "'await' can only be used inside an 'async fn'",
                     ));
                 }
                 self.check_expr(inner)
             }
-            // ── spawn ──────────────────────────────────────────────────────
             Expr::Spawn { name, args } => {
                 if !self.async_fn_names.contains(name) {
                     return Err(LiphiaError::new(
-                        ErrorKind::TypeError,
+                        ErrorKind::SpawnNonAsync,
                         format!("spawn: '{}' must be declared as 'async fn'", name),
                     ));
                 }
@@ -427,10 +482,10 @@ tc.declare_fn("pg_error",       vec![Type::Int],                                
                 for item in items { self.check_expr(item)?; }
                 Ok(())
             }
-            Expr::Add(a,b) | Expr::Sub(a,b) | Expr::Mul(a,b) | Expr::Div(a,b) |
-            Expr::Eq(a,b)  | Expr::NotEq(a,b) |
-            Expr::Gt(a,b)  | Expr::Lt(a,b) | Expr::Gte(a,b) | Expr::Lte(a,b) |
-            Expr::And(a,b) | Expr::Or(a,b) => {
+            Expr::Add(a, b) | Expr::Sub(a, b) | Expr::Mul(a, b) | Expr::Div(a, b) |
+            Expr::Eq(a, b)  | Expr::NotEq(a, b) |
+            Expr::Gt(a, b)  | Expr::Lt(a, b) | Expr::Gte(a, b) | Expr::Lte(a, b) |
+            Expr::And(a, b) | Expr::Or(a, b) => {
                 self.check_expr(a)?;
                 self.check_expr(b)
             }
