@@ -1,107 +1,78 @@
-# Liphia (.lph)
+# Liphia Language Support for VS Code
 
-> A general-purpose programming language with Python-style indentation syntax,
-> strong static typing, and a bytecode virtual machine written in Rust.
+> Syntax highlighting and snippets for the Liphia programming language (`.lph`).
 
-[![Engine](https://img.shields.io/badge/engine-0.5.1-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Extension](https://img.shields.io/badge/extension-0.0.2-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
-[![License](https://img.shields.io/badge/license-MIT%20AND%20Apache--2.0-blue)](./LICENSE-MIT)
-
-Liphia is a general-purpose language with indentation-delimited syntax
-(similar to Python), explicit static typing, and a bytecode compiler
-and virtual machine both written in Rust.
-
-**Not a toy language.** Liphia has its own compiler, bytecode format,
-and VM — no external runtime, no interpreter dependency, no GC overhead.
-The compiled binary is fully self-contained.
-
-> **Notice:** The project is under active development. Full documentation,
-> stable releases, and the standard library will be published when the
-> engine reaches sufficient stability.
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
 
 ---
 
-## Table of Contents
+## Features
 
-- [Repository layout](#repository-layout)
-- [How to run](#how-to-run)
-- [Current syntax — Engine 0.5.1](#current-syntax--engine-051)
-  - [Comments](#comments)
-  - [Primitive types](#primitive-types)
-  - [Variables](#variables)
-  - [Input and output](#input-and-output)
-  - [Operators](#operators)
-  - [Conditionals](#conditionals)
-  - [Functions](#functions)
-  - [File imports](#file-imports)
-- [Full example](#full-example)
-- [Roadmap](#roadmap)
-- [License](#license)
+- Syntax highlighting for all Liphia keywords, types, operators, and literals
+- Highlighting for all stdlib modules: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`
+- Code snippets for common patterns
+- Comment toggling with `#`
 
 ---
 
-## Repository layout
+## What's new in 0.0.2
 
-```
-liphia/
-└── liphia_engine/
-    ├── crates/
-    │   ├── liphia_cli/              # entry point — reads .lph files and runs the VM
-    │   │   ├── Cargo.toml
-    │   │   └── src/main.rs
-    │   ├── liphia_compiler/         # lexer, parser, AST, bytecode compiler
-    │   │   ├── Cargo.toml
-    │   │   └── src/
-    │   │       ├── ast.rs
-    │   │       ├── bytecode.rs
-    │   │       ├── lexer.rs
-    │   │       ├── lib.rs
-    │   │       └── parser.rs
-    │   └── liphia_virtual_machine/  # stack-based VM that executes bytecode
-    │       ├── Cargo.toml
-    │       └── src/
-    │           ├── lib.rs
-    │           ├── opcode.rs
-    │           ├── value.rs
-    │           └── vm.rs
-    ├── Cargo.lock
-    └── Cargo.toml
-```
+- Added keywords: `var`, `const`, `enum`, `async`, `await`, `spawn`
+- Added types: `list`, `null`
+- Added all stdlib functions as highlighted builtins (grouped by module)
+- Added escape sequence highlighting inside strings
+- Operators split into categories: comparison, arithmetic, assignment, logical
+- New snippets: async fn, HTTP server boilerplate, SQLite, neural network forward pass, Adam/SGD optimizers, classification metrics
 
 ---
 
-## How to run
+## Snippets
 
-**Requirement:** [Rust installed](https://rustup.rs/).
-
-Inside the `liphia_engine/` workspace, run any `.lph` file with Cargo:
-
-```bash
-cargo run -p liphia_cli -- path/to/program.lph
-```
-
-**Linux / macOS:**
-```bash
-cargo run -p liphia_cli -- ../liphia-examples/hello.lph
-```
-
-**Windows (PowerShell):**
-```powershell
-cargo run -p liphia_cli -- ..\liphia-examples\hello.lph
-```
-
-After the first build you can run the binary directly:
-
-```powershell
-.\target\debug\liphia_cli.exe path\to\program.lph
-```
-
-Input and output (`print`, `input`) happen directly in the terminal.
+| Prefix        | Description                              |
+|---------------|------------------------------------------|
+| `print`       | `print(value)`                           |
+| `var`         | Variable (type inferred)                 |
+| `vart`        | Variable (typed)                         |
+| `const`       | Constant declaration                     |
+| `int`         | Integer variable                         |
+| `float`       | Float variable                           |
+| `str`         | String variable                          |
+| `bool`        | Boolean variable                         |
+| `list`        | List variable                            |
+| `if`          | If statement                             |
+| `ifelse`      | If/else                                  |
+| `ifelifelse`  | If/elif/else                             |
+| `while`       | While loop                               |
+| `for`         | For loop                                 |
+| `forstep`     | For loop with step                       |
+| `fn`          | Function declaration                     |
+| `fnr`         | Function with return value               |
+| `async`       | Async function                           |
+| `asyncawait`  | Async function with await                |
+| `spawn`       | Spawn async task                         |
+| `enum`        | Enum declaration                         |
+| `import`      | Import local file                        |
+| `importfrom`  | Import stdlib module                     |
+| `importai`    | `import from "ai"`                       |
+| `importmath`  | `import from "math"`                     |
+| `importhttp`  | `import from "http"`                     |
+| `importdb`    | `import from "db"`                       |
+| `importjson`  | `import from "json"`                     |
+| `httpserver`  | Full HTTP server boilerplate             |
+| `sqlite`      | SQLite open, create, query               |
+| `nnforward`   | Neural network forward pass              |
+| `sgd`         | SGD weight update                        |
+| `adam`        | Adam optimizer update                    |
+| `metrics`     | Print accuracy, precision, recall, f1    |
+| `div`         | Section divider comment                  |
 
 ---
 
-## Current syntax — Engine 0.5.1
+## Syntax — Engine 0.9.0
 
 ### Comments
 
@@ -110,233 +81,114 @@ Input and output (`print`, `input`) happen directly in the terminal.
 print("Hello, world!")
 ```
 
----
-
-### Primitive types
+### Types
 
 | Type    | Description                             |
 |---------|-----------------------------------------|
-| `int`   | Integer numbers                         |
-| `float` | Floating-point numbers                  |
-| `str`   | Strings                                 |
-| `bool`  | Boolean values (`true` or `false`)      |
+| `int`   | 64-bit integer                          |
+| `float` | 64-bit floating-point                   |
+| `str`   | UTF-8 string                            |
+| `bool`  | `true` or `false`                       |
+| `list`  | Dynamic list                            |
 | `void`  | Return type for functions with no value |
-
----
+| `null`  | Null literal                            |
 
 ### Variables
 
 ```lph
-name: type = value
-```
-
-```lph
 age: int = 20
-height: float = 1.80
-username: str = "Cristiane"
-active: bool = true
+username: str = "Alice"
+var score = 100
+const MAX = 999
 ```
-
----
-
-### Input and output
-
-**Output:**
-```lph
-print("Hello, world!")
-print("Age: ", 20)
-```
-
-**Input:**
-```lph
-username: str = input("Enter your name: ")
-print("Hello, ", username)
-```
-
-> `input()` always returns `str` in the current engine.
-> Type conversion will be added in a future release.
-
----
-
-### Operators
-
-**Arithmetic:**
-
-| Operator | Operation      |
-|----------|----------------|
-| `+`      | Addition       |
-| `-`      | Subtraction    |
-| `*`      | Multiplication |
-| `/`      | Division       |
-
-**Comparison:**
-
-| Operator | Meaning               |
-|----------|-----------------------|
-| `==`     | Equal to              |
-| `!=`     | Not equal to          |
-| `>`      | Greater than          |
-| `<`      | Less than             |
-| `>=`     | Greater than or equal |
-| `<=`     | Less than or equal    |
-
-Comparisons return `bool`.
-
-**Logical:**
-
-| Operator | Meaning     |
-|----------|-------------|
-| `and`    | Logical AND |
-| `or`     | Logical OR  |
-| `not`    | Logical NOT |
-
----
-
-### Conditionals
-
-```lph
-if condition:
-    ...
-elif other_condition:
-    ...
-else:
-    ...
-```
-
-**Example:**
-```lph
-age: int = 17
-
-if age >= 18:
-    print("Adult")
-elif age == 17:
-    print("Almost there")
-else:
-    print("Minor")
-```
-
----
 
 ### Functions
 
 ```lph
-fn name(param: type, ...) -> return_type:
-    ...
-    return value
-```
-
-**Example:**
-```lph
 fn add(a: int, b: int) -> int:
     return a + b
 
-result: int = add(10, 5)
-print("Result: ", result)
+async fn server_loop() -> void:
+    while true:
+        var got: bool = await http_accept()
+        if got:
+            route()
 ```
 
-**Void function (no return value):**
+### Loops
+
 ```lph
-fn greet(name: str) -> void:
-    print("Hello, ", name)
+while i < 10:
+    i = i + 1
+
+for i from 0 to 10 step 2:
+    print(i)
 ```
 
-> `void` is part of the type system spec. The compiler accepts it
-> as a return type annotation; full validation is planned for engine 0.8.
+### Lists
+
+```lph
+var values: list = [1, 2, 3]
+append(values, 4)
+var last = pop(values)
+print(values[0])
+print(values[-1])
+```
+
+### Enums
+
+```lph
+enum Status:
+    Ok
+    Error
+
+var s = Status.Ok
+```
+
+### Async and concurrency
+
+```lph
+async fn worker(id: int) -> void:
+    var data = await http_get("http://api.example.com")
+    print("done", id)
+
+spawn worker(1)
+spawn worker(2)
+```
+
+### Stdlib modules
+
+```lph
+import from "ai"
+import from "math"
+import from "db"
+
+var conn: int = db_open("data.sqlite")
+db_exec(conn, "CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, name TEXT)")
+db_exec(conn, "INSERT INTO t (name) VALUES ('Alice')")
+var rows = db_query_rows(conn, "SELECT * FROM t")
+print(len(rows))
+db_close(conn)
+```
 
 ---
 
-### File imports
+## How to run Liphia
 
-```lph
-import "./utils.lph"
+**Requirement:** [Rust](https://rustup.rs/) installed.
+
+```bash
+cd src
+cargo build --release -p liphia_cli
 ```
 
-> In the current engine, `import` works as a **source-level include**:
-> the contents of the imported file are inserted before compilation.
-> Recursive imports are supported. Import cycles are detected and
-> skipped automatically.
->
-> Real module support is planned for **Engine 1.0**:
-> ```lph
-> import "io"
-> ```
+Then run any `.lph` file:
 
----
-
-## Full example
-
-```lph
-import "./utils.lph"
-
-print("=== Liphia Demo ===")
-
-username: str = input("Enter your name: ")
-print("Hello, ", username)
-
-fn add(a: int, b: int) -> int:
-    return a + b
-
-x: int = add(10, 5)
-print("10 + 5 = ", x)
-
-age: int = 17
-
-if age >= 18:
-    print("Adult")
-elif age == 17:
-    print("Almost there")
-else:
-    print("Minor")
-
-print("Done.")
+```bash
+liphia path/to/program.lph
 ```
 
----
-
-## Roadmap
-
-### ✅ Engine 0.5.1 — current
-
-- [x] Statically typed variables
-- [x] Output and input (`print`, `input`)
-- [x] Conditionals (`if`, `elif`, `else`)
-- [x] Typed functions with explicit return
-- [x] File import by source include
-- [x] Arithmetic, comparison, and logical operators
-- [x] Performance: Fibonacci(30) ~146ms (below CPython 3 ~161ms on the same hardware)
-
-### 🔧 Engine 0.6 — Loops *(planned)*
-
-- [ ] `while`
-- [ ] `for`
-- [ ] `break`
-- [ ] `continue`
-
-### 🔧 Engine 0.7 — Better errors *(planned)*
-
-- [ ] Error reporting without `panic!`
-- [ ] Line and column in error messages
-- [ ] Friendly, readable error output
-
-### 🔧 Engine 0.8 — Real type checking *(planned)*
-
-- [ ] Type validation in expressions
-- [ ] Return type validation
-- [ ] Parameter type validation
-
-### 🔧 Engine 0.9 — Data structures *(planned)*
-
-- [ ] Lists: `list[int]`
-- [ ] Maps: `map[str -> int]`
-- [ ] Indexing: `x[0]`
-
-### 🎯 Engine 1.0 — Stable release *(planned)*
-
-- [ ] Real module system (`import` / `export`)
-- [ ] Minimal official standard library
-- [ ] Official CLI: `liphia run file.lph`
-- [ ] Public license and documentation
-- [ ] First stable release
+See the [main repository](https://github.com/shferreira-lab/liphia) for full documentation.
 
 ---
 
@@ -344,8 +196,8 @@ print("Done.")
 
 Licensed under either of:
 
-- [MIT License](./LICENSE-MIT)
-- [Apache License, Version 2.0](./LICENSE-APACHE)
+- [MIT License](./licenses/LICENSE-MIT)
+- [Apache License, Version 2.0](./licenses/LICENSE-APACHE)
 
 at your option.
 

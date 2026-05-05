@@ -6,14 +6,26 @@
     { "include": "#comments" },
     { "include": "#strings" },
     { "include": "#numbers" },
-    { "include": "#keywords" },
+    { "include": "#keywords_control" },
+    { "include": "#keywords_declaration" },
+    { "include": "#keywords_async" },
     { "include": "#keywords_loop" },
     { "include": "#types" },
-    { "include": "#booleans" },
-    { "include": "#builtin_functions" },
+    { "include": "#constants" },
+    { "include": "#stdlib_ai" },
+    { "include": "#stdlib_math" },
+    { "include": "#stdlib_stats" },
+    { "include": "#stdlib_fs" },
+    { "include": "#stdlib_http" },
+    { "include": "#stdlib_ws" },
+    { "include": "#stdlib_net" },
+    { "include": "#stdlib_json" },
+    { "include": "#stdlib_db" },
+    { "include": "#core_functions" },
     { "include": "#operators" }
   ],
   "repository": {
+
     "comments": {
       "patterns": [
         {
@@ -22,36 +34,63 @@
         }
       ]
     },
+
     "strings": {
       "patterns": [
         {
           "name": "string.quoted.double.liphia",
           "begin": "\"",
-          "end": "\""
-        },
-        {
-          "name": "string.quoted.single.liphia",
-          "begin": "'",
-          "end": "'"
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.liphia",
+              "match": "\\\\[ntr\\\\\"0]"
+            }
+          ]
         }
       ]
     },
+
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.liphia",
-          "match": "\\b\\d+(\\.\\d+)?\\b"
+          "name": "constant.numeric.float.liphia",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.liphia",
+          "match": "\\b\\d+\\b"
         }
       ]
     },
-    "keywords": {
+
+    "keywords_control": {
       "patterns": [
         {
           "name": "keyword.control.liphia",
-          "match": "\\b(if|elif|else|fn|return|import)\\b"
+          "match": "\\b(if|elif|else|return|import)\\b"
         }
       ]
     },
+
+    "keywords_declaration": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.liphia",
+          "match": "\\b(fn|var|const|enum|spawn)\\b"
+        }
+      ]
+    },
+
+    "keywords_async": {
+      "patterns": [
+        {
+          "name": "keyword.control.async.liphia",
+          "match": "\\b(async|await)\\b"
+        }
+      ]
+    },
+
     "keywords_loop": {
       "patterns": [
         {
@@ -60,39 +99,140 @@
         }
       ]
     },
+
     "types": {
       "patterns": [
         {
           "name": "storage.type.liphia",
-          "match": "\\b(int|float|str|bool|void)\\b"
+          "match": "\\b(int|float|str|bool|void|list|null)\\b"
         }
       ]
     },
-    "booleans": {
+
+    "constants": {
       "patterns": [
         {
-          "name": "constant.language.boolean.liphia",
-          "match": "\\b(true|false)\\b"
+          "name": "constant.language.liphia",
+          "match": "\\b(true|false|null)\\b"
         }
       ]
     },
-    "builtin_functions": {
+
+    "core_functions": {
       "patterns": [
         {
           "name": "support.function.builtin.liphia",
-          "match": "\\b(print|input)\\b"
+          "match": "\\b(print|input|len|to_int|to_float|to_str|trim|upper|lower|contains|starts_with|ends_with|replace|split|append|pop|keys)\\b"
         }
       ]
     },
+
+    "stdlib_ai": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.ai.liphia",
+          "match": "\\b(sigmoid|relu|leaky_relu|tanh_act|elu|gelu|swish|softmax|argmax|dot|norm|vec_add|vec_sub|vec_mul|vec_scale|vec_sum|matrix_new|matrix_mul|matrix_add|transpose|normalize|standardize|clip|linspace|arange|mse|mae|cross_entropy|binary_cross_entropy|seed|rand_uniform|rand_normal|rand_int|shuffle|gradient_clip|sgd_update|adam_update|accuracy|precision|recall|f1_score|cosine_similarity|euclidean_dist|manhattan_dist)\\b"
+        }
+      ]
+    },
+
+    "stdlib_math": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.math.liphia",
+          "match": "\\b(sqrt|pow|abs|floor|ceil|round|min|max|pi|e|log|log10|sin|cos|tan)\\b"
+        }
+      ]
+    },
+
+    "stdlib_stats": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.stats.liphia",
+          "match": "\\b(sum|mean|median|variance|stdev|min_list|max_list|count)\\b"
+        }
+      ]
+    },
+
+    "stdlib_fs": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.fs.liphia",
+          "match": "\\b(read_file|write_file|append_file|file_exists)\\b"
+        }
+      ]
+    },
+
+    "stdlib_http": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.http.liphia",
+          "match": "\\b(http_listen|http_accept|http_method|http_path|http_query|http_body|http_header|http_respond|http_respond_json|http_get|http_post|http_put|http_patch|http_delete|http_status)\\b"
+        }
+      ]
+    },
+
+    "stdlib_ws": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.ws.liphia",
+          "match": "\\b(ws_listen|ws_accept|ws_clients|ws_send|ws_recv|ws_broadcast|ws_close)\\b"
+        }
+      ]
+    },
+
+    "stdlib_net": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.net.liphia",
+          "match": "\\b(tcp_connect|tcp_send|tcp_recv|tcp_close|udp_send)\\b"
+        }
+      ]
+    },
+
+    "stdlib_json": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.json.liphia",
+          "match": "\\b(json_encode|json_decode|json_get|json_has)\\b"
+        }
+      ]
+    },
+
+    "stdlib_db": {
+      "patterns": [
+        {
+          "name": "support.function.stdlib.db.liphia",
+          "match": "\\b(db_open|db_open_memory|db_close|db_exec|db_query|db_query_rows|db_last_id|db_begin|db_commit|db_rollback|db_error|db_tables|db_columns|pg_connect|pg_exec|pg_query|pg_query_rows|pg_last_id|pg_begin|pg_commit|pg_rollback|pg_close|pg_error)\\b"
+        }
+      ]
+    },
+
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator.liphia",
-          "match": "(==|!=|>=|<=|>|<|\\+|\\-|\\*|\\/|=|->)"
+          "name": "keyword.operator.comparison.liphia",
+          "match": "(==|!=|>=|<=|>|<)"
+        },
+        {
+          "name": "keyword.operator.arrow.liphia",
+          "match": "->"
+        },
+        {
+          "name": "keyword.operator.arithmetic.liphia",
+          "match": "(\\+|\\-|\\*|\\/)"
+        },
+        {
+          "name": "keyword.operator.assignment.liphia",
+          "match": "(?<![=!<>])=(?!=)"
         },
         {
           "name": "keyword.operator.logical.liphia",
           "match": "\\b(and|or|not)\\b"
+        },
+        {
+          "name": "keyword.operator.optional.liphia",
+          "match": "\\?"
         }
       ]
     }

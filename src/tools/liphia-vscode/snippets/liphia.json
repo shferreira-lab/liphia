@@ -1,15 +1,37 @@
 {
   "Print": {
     "prefix": "print",
-    "body": ["print(${1})"],
+    "body": ["print(${1:value})"],
     "description": "Print to terminal"
+  },
+  "Print multiple": {
+    "prefix": "printm",
+    "body": ["print(\"${1:label}\", ${2:value})"],
+    "description": "Print label and value"
   },
   "Input": {
     "prefix": "input",
-    "body": ["${1:name}: ${2:str} = input(\"${3:Enter}: \")"],
-    "description": "Read user input"
+    "body": ["${1:name}: str = input(\"${2:Enter}: \")"],
+    "description": "Read user input (always returns str)"
   },
-  "Integer variable": {
+
+  "Var inferred": {
+    "prefix": "var",
+    "body": ["var ${1:name} = ${2:value}"],
+    "description": "Declare variable (type inferred)"
+  },
+  "Var typed": {
+    "prefix": "vart",
+    "body": ["var ${1:name}: ${2:int} = ${3:0}"],
+    "description": "Declare typed variable"
+  },
+  "Const": {
+    "prefix": "const",
+    "body": ["const ${1:NAME} = ${2:value}"],
+    "description": "Declare constant"
+  },
+
+  "Int variable": {
     "prefix": "int",
     "body": ["${1:name}: int = ${2:0}"],
     "description": "Declare integer variable"
@@ -24,21 +46,17 @@
     "body": ["${1:name}: str = \"${2:value}\""],
     "description": "Declare string variable"
   },
-  "Boolean variable": {
+  "Bool variable": {
     "prefix": "bool",
     "body": ["${1:name}: bool = ${2:true}"],
     "description": "Declare boolean variable"
   },
-  "True": {
-    "prefix": "true",
-    "body": ["true"],
-    "description": "Boolean true"
+  "List variable": {
+    "prefix": "list",
+    "body": ["var ${1:name}: list = [${2:}]"],
+    "description": "Declare list variable"
   },
-  "False": {
-    "prefix": "false",
-    "body": ["false"],
-    "description": "Boolean false"
-  },
+
   "If": {
     "prefix": "if",
     "body": [
@@ -47,8 +65,8 @@
     ],
     "description": "If statement"
   },
-  "If with else": {
-    "prefix": "if_else",
+  "If else": {
+    "prefix": "ifelse",
     "body": [
       "if ${1:condition}:",
       "    ${2:# code}",
@@ -57,8 +75,8 @@
     ],
     "description": "If/else statement"
   },
-  "If with elif and else": {
-    "prefix": "if_elif_else",
+  "If elif else": {
+    "prefix": "ifelifelse",
     "body": [
       "if ${1:condition}:",
       "    ${2:# code}",
@@ -85,6 +103,7 @@
     ],
     "description": "Else branch"
   },
+
   "While": {
     "prefix": "while",
     "body": [
@@ -93,26 +112,16 @@
     ],
     "description": "While loop"
   },
-  "While with break": {
-    "prefix": "while_break",
-    "body": [
-      "while ${1:condition}:",
-      "    ${2:# code}",
-      "    if ${3:exit_condition}:",
-      "        break"
-    ],
-    "description": "While loop with break"
-  },
   "For": {
     "prefix": "for",
     "body": [
       "for ${1:i} from ${2:0} to ${3:10}:",
       "    ${4:# code}"
     ],
-    "description": "For loop (exclusive)"
+    "description": "For loop"
   },
-  "For with step": {
-    "prefix": "for_step",
+  "For step": {
+    "prefix": "forstep",
     "body": [
       "for ${1:i} from ${2:0} to ${3:10} step ${4:2}:",
       "    ${5:# code}"
@@ -129,36 +138,200 @@
     "body": ["continue"],
     "description": "Continue to next iteration"
   },
+
   "Function": {
     "prefix": "fn",
     "body": [
-      "fn ${1:name}(${2:params}) -> ${3:void}:",
-      "    ${4:# code}",
-      "    return ${5:value}"
+      "fn ${1:name}(${2:param}: ${3:type}) -> ${4:void}:",
+      "    ${5:# code}"
     ],
-    "description": "Declare function with return"
+    "description": "Declare function"
   },
-  "Void function": {
-    "prefix": "fn_void",
+  "Function with return": {
+    "prefix": "fnr",
     "body": [
-      "fn ${1:name}(${2:params}) -> void:",
-      "    ${3:# code}"
+      "fn ${1:name}(${2:param}: ${3:type}) -> ${4:int}:",
+      "    ${5:# code}",
+      "    return ${6:value}"
     ],
-    "description": "Declare void function"
+    "description": "Declare function with return value"
+  },
+  "Async function": {
+    "prefix": "async",
+    "body": [
+      "async fn ${1:name}(${2:param}: ${3:type}) -> ${4:void}:",
+      "    ${5:# code}"
+    ],
+    "description": "Declare async function"
+  },
+  "Async function with await": {
+    "prefix": "asyncawait",
+    "body": [
+      "async fn ${1:name}() -> void:",
+      "    var ${2:result} = await ${3:some_fn()}",
+      "    ${4:# code}"
+    ],
+    "description": "Async function with await"
+  },
+  "Spawn": {
+    "prefix": "spawn",
+    "body": ["spawn ${1:async_fn}(${2:args})"],
+    "description": "Spawn async task (fire-and-forget)"
   },
   "Return": {
     "prefix": "return",
     "body": ["return ${1:value}"],
     "description": "Return value"
   },
-  "Import": {
-    "prefix": "import",
-    "body": ["import \"${1:module}\""],
-    "description": "Import module"
+
+  "Enum": {
+    "prefix": "enum",
+    "body": [
+      "enum ${1:Name}:",
+      "    ${2:Variant1}",
+      "    ${3:Variant2}"
+    ],
+    "description": "Declare enum"
   },
-  "Line comment": {
-    "prefix": "//",
+
+  "Import file": {
+    "prefix": "import",
+    "body": ["import \"${1:path/to/file.lph}\""],
+    "description": "Import local file"
+  },
+  "Import stdlib": {
+    "prefix": "importfrom",
+    "body": ["import from \"${1:module}\""],
+    "description": "Import stdlib module (requires liphia install)"
+  },
+  "Import ai": {
+    "prefix": "importai",
+    "body": ["import from \"ai\""],
+    "description": "Import AI stdlib module"
+  },
+  "Import math": {
+    "prefix": "importmath",
+    "body": ["import from \"math\""],
+    "description": "Import math stdlib module"
+  },
+  "Import http": {
+    "prefix": "importhttp",
+    "body": ["import from \"http\""],
+    "description": "Import http stdlib module"
+  },
+  "Import db": {
+    "prefix": "importdb",
+    "body": ["import from \"db\""],
+    "description": "Import db stdlib module (SQLite + PostgreSQL)"
+  },
+  "Import json": {
+    "prefix": "importjson",
+    "body": ["import from \"json\""],
+    "description": "Import json stdlib module"
+  },
+
+  "HTTP server loop": {
+    "prefix": "httpserver",
+    "body": [
+      "import from \"http\"",
+      "",
+      "const PORT = ${1:3000}",
+      "",
+      "fn route() -> void:",
+      "    var method = http_method()",
+      "    var path = http_path()",
+      "    if method == \"GET\" and path == \"/\":",
+      "        http_respond_json(200, \"{\\\"status\\\": \\\"ok\\\"}\")",
+      "    else:",
+      "        http_respond_json(404, \"{\\\"error\\\": \\\"not found\\\"}\")",
+      "",
+      "async fn server_loop() -> void:",
+      "    while true:",
+      "        var got: bool = await http_accept()",
+      "        if got:",
+      "            route()",
+      "",
+      "http_listen(PORT)",
+      "print(\"Server running on port\", PORT)",
+      "spawn server_loop()"
+    ],
+    "description": "HTTP server boilerplate"
+  },
+
+  "SQLite open and query": {
+    "prefix": "sqlite",
+    "body": [
+      "import from \"db\"",
+      "",
+      "var conn: int = db_open(\"${1:data.sqlite}\")",
+      "db_exec(conn, \"CREATE TABLE IF NOT EXISTS ${2:items} (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)\")",
+      "db_exec(conn, \"INSERT INTO ${2:items} (name) VALUES ('${3:test}')\")",
+      "var rows = db_query_rows(conn, \"SELECT * FROM ${2:items}\")",
+      "print(\"rows:\", len(rows))",
+      "db_close(conn)"
+    ],
+    "description": "SQLite open, create table and query"
+  },
+
+  "Neural network forward": {
+    "prefix": "nnforward",
+    "body": [
+      "import from \"ai\"",
+      "",
+      "# weights: flat row-major  W[H x I]",
+      "var W: list = rand_normal(${1:8}, 0.0, 0.1)",
+      "var b: list = rand_normal(${2:4}, 0.0, 0.1)",
+      "",
+      "fn forward(x: list) -> list:",
+      "    var z = matrix_mul(W, x, ${3:4}, ${4:2}, 1)",
+      "    z = vec_add(z, b)",
+      "    var a = z",
+      "    var i = 0",
+      "    while i < ${3:4}:",
+      "        a[i] = sigmoid(z[i])",
+      "        i = i + 1",
+      "    return a"
+    ],
+    "description": "Neural network forward pass (dense layer)"
+  },
+
+  "SGD update": {
+    "prefix": "sgd",
+    "body": [
+      "var ${1:weights} = sgd_update(${1:weights}, ${2:grads}, ${3:0.01})"
+    ],
+    "description": "SGD weight update"
+  },
+  "Adam update": {
+    "prefix": "adam",
+    "body": [
+      "# update moments first",
+      "var ${3:m} = vec_add(vec_scale(${3:m}, ${6:0.9}), vec_scale(${2:grads}, 1.0 - ${6:0.9}))",
+      "var ${4:v} = vec_add(vec_scale(${4:v}, ${7:0.999}), vec_scale(vec_mul(${2:grads}, ${2:grads}), 1.0 - ${7:0.999}))",
+      "var ${1:weights} = adam_update(${1:weights}, ${2:grads}, ${3:m}, ${4:v}, ${5:step}, ${8:0.001}, ${6:0.9}, ${7:0.999}, 0.00000001)"
+    ],
+    "description": "Adam optimizer update"
+  },
+
+  "Classify metrics": {
+    "prefix": "metrics",
+    "body": [
+      "print(\"accuracy :\", accuracy(${1:pred}, ${2:target}))",
+      "print(\"precision:\", precision(${1:pred}, ${2:target}))",
+      "print(\"recall   :\", recall(${1:pred}, ${2:target}))",
+      "print(\"f1_score :\", f1_score(${1:pred}, ${2:target}))"
+    ],
+    "description": "Print all classification metrics"
+  },
+
+  "Comment": {
+    "prefix": "#",
     "body": ["# ${1:comment}"],
     "description": "Line comment"
+  },
+  "Section divider": {
+    "prefix": "div",
+    "body": ["# ── ${1:section} ──────────────────────────────────────────────────────────────"],
+    "description": "Section divider comment"
   }
 }
