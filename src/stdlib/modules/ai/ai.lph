@@ -1,38 +1,187 @@
-# stdlib/lph/ai.lph
-# AI and machine learning primitives.
-# Status: STUB — functions are registered but not yet implemented.
-# Calling any function from this module will raise a runtime error.
+# stdlib/modules/ai/ai.lph
 #
+# ai — AI and machine learning primitives for Liphia.
+#
+# All functions are native (implemented in Rust, no external dependencies).
+# Matrices use flat lists in row-major order: element [r][c] = list[r * cols + c]
+#
+# Install:
+#   liphia install ai
+#
+# Usage:
+#   import from "ai"
 #
 # ── Activation functions ──────────────────────────────────────────────────────
 #
 # sigmoid(x: float) -> float
-#   Returns 1 / (1 + e^(-x)). Output is between 0 and 1.
+#   1 / (1 + e^(-x)). Output in (0, 1). Binary classification output layer.
 #
 # relu(x: float) -> float
-#   Returns max(0, x). Used in neural network hidden layers.
+#   max(0, x). Standard hidden layer activation.
 #
-# softmax(v: list) -> list
-#   Normalizes a list of floats to a probability distribution (sums to 1).
+# leaky_relu(x: float, alpha: float) -> float
+#   x if x >= 0, else alpha * x. Prevents dying ReLU. Typical alpha: 0.01.
 #
-# argmax(v: list) -> int
-#   Returns the index of the maximum value in a list.
+# tanh_act(x: float) -> float
+#   tanh(x). Output in (-1, 1). Zero-centered alternative to sigmoid.
 #
-# ── Linear algebra ────────────────────────────────────────────────────────────
+# elu(x: float, alpha: float) -> float
+#   x if x >= 0, else alpha * (e^x - 1). Smooth alternative to ReLU.
+#
+# gelu(x: float) -> float
+#   x * sigmoid(1.702 * x). Used in transformer models (BERT, GPT).
+#
+# swish(x: float) -> float
+#   x * sigmoid(x). Self-gated. Often outperforms ReLU on deep networks.
+#
+# ── Vector operations ─────────────────────────────────────────────────────────
 #
 # dot(a: list, b: list) -> float
 #   Vector dot product. Both lists must have the same length.
 #
 # norm(v: list) -> float
-#   L2 (Euclidean) norm of a vector.
+#   L2 (Euclidean) norm: sqrt(sum(x^2)).
+#
+# vec_add(a: list, b: list) -> list
+#   Element-wise addition.
+#
+# vec_sub(a: list, b: list) -> list
+#   Element-wise subtraction.
+#
+# vec_mul(a: list, b: list) -> list
+#   Element-wise multiplication (Hadamard product).
+#
+# vec_scale(v: list, scalar: float) -> list
+#   Multiplies every element by scalar.
+#
+# vec_sum(v: list) -> float
+#   Sum of all elements.
+#
+# ── Classification ────────────────────────────────────────────────────────────
+#
+# softmax(v: list) -> list
+#   Probability distribution over v (sums to 1). Numerically stable.
+#
+# argmax(v: list) -> int
+#   Index of the maximum value.
+#
+# ── Matrix operations (flat row-major) ────────────────────────────────────────
 #
 # matrix_new(rows: int, cols: int, fill: float) -> list
-#   Creates a flat list of (rows * cols) floats all set to fill.
-#   Access element [r][c] as: matrix[r * cols + c]
+#   Creates a flat matrix of (rows * cols) elements all set to fill.
 #
 # matrix_mul(a: list, b: list, rows: int, inner: int, cols: int) -> list
-#   Matrix multiplication of (rows x inner) by (inner x cols).
-#   Returns a flat list of (rows * cols) floats.
+#   Multiplies (rows x inner) matrix A by (inner x cols) matrix B.
+#   Returns flat (rows x cols) result.
 #
 # matrix_add(a: list, b: list) -> list
-#   Element-wise addition of two equal-length lists.
+#   Element-wise addition of two equal-length matrices.
+#
+# transpose(m: list, rows: int, cols: int) -> list
+#   Transpose of a (rows x cols) matrix. Returns (cols x rows) flat list.
+#
+# ── Data preprocessing ────────────────────────────────────────────────────────
+#
+# normalize(v: list) -> list
+#   Min-max scaling to [0, 1]: (x - min) / (max - min).
+#
+# standardize(v: list) -> list
+#   Zero mean, unit variance: (x - mean) / std.
+#
+# clip(v: list, min: float, max: float) -> list
+#   Clamps every element to [min, max].
+#
+# linspace(start: float, end: float, n: int) -> list
+#   n evenly spaced values from start to end (inclusive).
+#
+# arange(start: float, end: float, step: float) -> list
+#   Values from start up to (not including) end, spaced by step.
+#
+# ── Loss functions ────────────────────────────────────────────────────────────
+#
+# mse(pred: list, target: list) -> float
+#   Mean Squared Error: mean((pred - target)^2). Regression.
+#
+# mae(pred: list, target: list) -> float
+#   Mean Absolute Error: mean(|pred - target|). Robust to outliers.
+#
+# cross_entropy(pred: list, target: list) -> float
+#   Categorical cross-entropy: -sum(target * log(pred)).
+#   Use with softmax output.
+#
+# binary_cross_entropy(pred: list, target: list) -> float
+#   Binary cross-entropy averaged over list.
+#   Use with sigmoid output.
+#
+# ── Random ────────────────────────────────────────────────────────────────────
+#
+# seed(n: int) -> null
+#   Sets the random seed. Call once for reproducibility.
+#
+# rand_uniform(n: int, low: float, high: float) -> list
+#   n floats sampled uniformly from [low, high).
+#
+# rand_normal(n: int, mean: float, std: float) -> list
+#   n floats from a normal distribution (Box-Muller).
+#
+# rand_int(low: int, high: int) -> int
+#   Random integer in [low, high).
+#
+# shuffle(v: list) -> list
+#   New list with elements in random order (Fisher-Yates). Original unchanged.
+#
+# ── Gradients and optimization ────────────────────────────────────────────────
+#
+# gradient_clip(grads: list, max_norm: float) -> list
+#   Scales gradients so their L2 norm does not exceed max_norm.
+#   Returns grads unchanged if norm(grads) <= max_norm.
+#   Essential for RNN / transformer training stability.
+#
+# sgd_update(weights: list, grads: list, lr: float) -> list
+#   Stochastic Gradient Descent: weights - lr * grads.
+#   Simple and effective for most tasks.
+#
+# adam_update(weights, grads, m, v, t, lr, beta1, beta2, eps) -> list
+#   Adam optimizer: adaptive learning rates per parameter.
+#   Returns updated weights.
+#   Standard defaults: lr=0.001, beta1=0.9, beta2=0.999, eps=1e-8
+#
+#   m and v (moment vectors) must be maintained externally.
+#   Update them before calling adam_update:
+#     m = vec_add(vec_scale(m, beta1), vec_scale(grads, 1.0 - beta1))
+#     v = vec_add(vec_scale(v, beta2), vec_scale(vec_mul(grads, grads), 1.0 - beta2))
+#
+# ── Classification metrics ────────────────────────────────────────────────────
+#
+# Values >= 0.5 are treated as positive (class 1), < 0.5 as negative (class 0).
+# target should contain 0.0 or 1.0 values.
+#
+# accuracy(pred: list, target: list) -> float
+#   Fraction of correct predictions: (TP + TN) / total.
+#
+# precision(pred: list, target: list) -> float
+#   TP / (TP + FP). How many predicted positives are actually positive.
+#   Returns 0 if no positive predictions.
+#
+# recall(pred: list, target: list) -> float
+#   TP / (TP + FN). How many actual positives were found.
+#   Returns 0 if no actual positives.
+#
+# f1_score(pred: list, target: list) -> float
+#   Harmonic mean of precision and recall: 2 * P * R / (P + R).
+#   Balanced metric for imbalanced datasets.
+#
+# ── Distance functions ────────────────────────────────────────────────────────
+#
+# cosine_similarity(a: list, b: list) -> float
+#   dot(a, b) / (norm(a) * norm(b)). Range [-1, 1].
+#   1 = identical direction, 0 = orthogonal, -1 = opposite.
+#   Standard metric for embeddings, NLP similarity, recommendation systems.
+#
+# euclidean_dist(a: list, b: list) -> float
+#   L2 distance: sqrt(sum((a - b)^2)).
+#   Standard geometric distance. Used in k-NN, clustering.
+#
+# manhattan_dist(a: list, b: list) -> float
+#   L1 distance: sum(|a - b|).
+#   More robust to outliers than Euclidean. Used in sparse feature spaces.
