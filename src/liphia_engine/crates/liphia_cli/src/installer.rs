@@ -1,8 +1,5 @@
 // liphia_cli/src/installer.rs
-//
 // Package manager for Liphia.
-
-
 
 use std::collections::HashMap;
 use std::fs;
@@ -77,7 +74,7 @@ pub fn install_modules(modules: &[&str]) {
     }
 }
 
-// ── liphia install (sem args → lê liphia.toml) ───────────────────────────────
+// ── liphia install (reading liphia.toml) ───────────────────────────────
 pub fn install_from_manifest() {
     let content = fs::read_to_string(MANIFEST).unwrap_or_else(|_| {
         eprintln!("[liphia] liphia.toml not found. Run 'liphia init' first.");
@@ -101,7 +98,7 @@ pub fn install_from_manifest() {
     }
 }
 
-// ── instala um módulo ─────────────────────────────────────────────────────────
+// ── install a module ─────────────────────────────────────────────────────────
 fn do_install(name: &str) -> bool {
     print!("  installing '{}'... ", name);
     io::stdout().flush().unwrap();
@@ -113,7 +110,7 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
-    // destino: <cwd>/liphia_modules/<name>/<name>.lph
+    // path: <cwd>/liphia_modules/<name>/<name>.lph
     let dest_dir  = PathBuf::from(MODULES_DIR).join(name);
     let dest_file = dest_dir.join(format!("{}.lph", name));
 
@@ -128,7 +125,7 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
-    // baixa <name>.lph do GitHub
+    // download <name>.lph from GitHub
     let url = format!("{}/{}/{}.lph", REGISTRY_RAW, name, name);
     match http_get(&url) {
         Ok(body) => {
@@ -148,7 +145,7 @@ fn do_install(name: &str) -> bool {
         }
     }
 
-    // baixa module.toml (opcional)
+    // download module.toml
     let toml_url = format!("{}/{}/module.toml", REGISTRY_RAW, name);
     if let Ok(body) = http_get(&toml_url) {
         let _ = fs::write(dest_dir.join("module.toml"), body);
@@ -159,7 +156,7 @@ fn do_install(name: &str) -> bool {
     true
 }
 
-// ── HTTP GET via curl ─────────────────────────────────────────────────────────
+// ── HTTP GET by curl ─────────────────────────────────────────────────────────
 fn http_get(url: &str) -> Result<String, String> {
     let curl = std::process::Command::new("curl")
         .args(["-fsSL", "--max-time", "15", url])
@@ -175,7 +172,7 @@ fn http_get(url: &str) -> Result<String, String> {
             Err(format!("curl error ({}): {}", out.status, stderr.trim()))
         }
         Err(_) => {
-            // tenta wget como fallback
+            // try wget - fallback
             let wget = std::process::Command::new("wget")
                 .args(["-qO-", "--timeout=15", url])
                 .output();

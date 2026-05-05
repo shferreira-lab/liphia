@@ -57,7 +57,7 @@ pub fn start() {
             _ => {}
         }
 
-        // Controle simples de indentação estilo Python
+        // Simple indentation control
         if trimmed.ends_with(":") {
             indent_level += 1;
         } else if trimmed.is_empty() && indent_level > 0 {
@@ -66,7 +66,7 @@ pub fn start() {
 
         buffer.push_str(&line);
 
-        // Executa apenas quando bloco fechado
+        // Runs only when block is closed
         if indent_level == 0 && !buffer.trim().is_empty() {
             match compile_safe(&buffer) {
                 Ok(opcodes) => {
@@ -83,7 +83,7 @@ pub fn start() {
     }
 }
 
-/// Compilação segura: captura parse/type/bytecode errors sem encerrar o REPL
+/// Safe compilation: captures parse/type/bytecode errors without closing the REPL
 fn compile_safe(source: &str) -> Result<Vec<Opcode>, String> {
     // 1. Lex + Parse
     let lexer = Lexer::new(source);

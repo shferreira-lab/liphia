@@ -4,7 +4,8 @@ mod installer;
 mod repl;
 
 use liphia_core_native;
-use liphia_stdlib_native; 
+use liphia_stdlib_native;
+
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -29,13 +30,16 @@ fn resolve_import_file(base_dir: &Path, import_path: &str) -> Option<PathBuf> {
     None
 }
 
+
 // ── Stdlib module resolution ──────────────────────────────────────────────────
 //
 // Resolution order:
-//   1. ./liphia_modules/<name>/<name>.lph  — installed via `liphia install`
-//   2. LIPHIA_STDLIB_PATH env var          — global install / CI
-//   3. Paths relative to exe               — distributed binary
+//   1. ./liphia_modules/<name>/<name>.lph — installed using `liphia install`
+//   2. LIPHIA_STDLIB_PATH env var         — global install / CI
+//   3. Paths relative to exe              — distributed binary
 //   4. Paths relative to cwd              — development layout
+
+
 fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Option<PathBuf> {
     let name     = module_name.trim_end_matches(".lph");
     let filename = format!("{}.lph", name);
@@ -86,13 +90,13 @@ fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Option<PathBu
     let dev_candidates = [
     cwd.join("stdlib/modules").join(name).join(&filename),
     cwd.join("../src/stdlib/modules").join(name).join(&filename),
-    // subindo de crates/liphia_cli até src/
+    // going up from crates/liphia_cli to src
     cwd.join("../../stdlib/modules").join(name).join(&filename),
     cwd.join("../../../stdlib/modules").join(name).join(&filename),
     cwd.join("../../../../stdlib/modules").join(name).join(&filename),
-    // liphia_modules/ instalados via liphia install
+    // liphia_modules/ installed by liphia install
     cwd.join("liphia_modules").join(name).join(&filename),
-    // candidatos antigos mantidos
+    // older candidates
     cwd.join("../../../liphia-stdlib/lph").join(&filename),
     cwd.join("../../liphia-stdlib/lph").join(&filename),
     cwd.join("../../stdlib/lph").join(&filename),

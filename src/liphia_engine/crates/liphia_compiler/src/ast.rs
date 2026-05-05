@@ -59,12 +59,10 @@ pub enum Expr {
     EnumVariant { enum_name: String, variant: String },
     // Function call
     FunctionCall { name: String, args: Vec<Expr> },
-    // ── NEW ──────────────────────────────────────────────────────────────
     /// await <expr>  — only valid inside an async fn
     Await(Box<Expr>),
     /// spawn <name>(args)  — fire-and-forget async task
     Spawn { name: String, args: Vec<Expr> },
-    // ─────────────────────────────────────────────────────────────────────
 }
 
 #[derive(Debug, Clone)]

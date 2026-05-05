@@ -33,10 +33,9 @@ pub enum Token {
     AmpAmp,
     PipePipe,
     Bang,
-    // ── NEW ──────────────────────────────────────────────────────────────
-    Async,   // async
-    Await,   // await
-    // ─────────────────────────────────────────────────────────────────────
+    // async await
+    Async,
+    Await,
     // Indentation
     Indent,
     Dedent,
@@ -249,7 +248,7 @@ impl Lexer {
 
     fn read_string(&mut self) -> LiphiaResult<Token> {
         let (sl, sc) = (self.line(), self.column());
-        self.advance(); // opening "
+        self.advance();
         let mut text = String::new();
         loop {
             match self.cur() {

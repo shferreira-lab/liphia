@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use liphia_virtual_machine::opcode::Opcode;
 
 const MAGIC:          &[u8; 4] = b"LBC\0";
-const FORMAT_VERSION: u32      = 4; // bumped: Suspend + Spawn opcodes
+const FORMAT_VERSION: u32      = 4;
 
 pub fn cache_path(source_path: &Path) -> PathBuf {
     let dir  = source_path.parent().unwrap_or(Path::new("."));
@@ -123,10 +123,8 @@ fn write_opcode(buf: &mut Vec<u8>, op: &Opcode) {
         Opcode::GetIndex         => buf.push(0x61),
         Opcode::SetIndex         => buf.push(0x62),
         Opcode::Pop              => buf.push(0x63),
-        // ── NEW ──────────────────────────────────────────────────────────
         Opcode::Suspend          => buf.push(0x70),
         Opcode::Spawn(a, n)      => { buf.push(0x71); buf.extend(&(*a as u32).to_le_bytes()); buf.extend(&(*n as u32).to_le_bytes()); }
-        // ─────────────────────────────────────────────────────────────────
         Opcode::Halt             => buf.push(0xFF),
     }
 }
@@ -174,14 +172,12 @@ fn read_opcode(data: &[u8]) -> Option<(Opcode, usize)> {
         0x61 => (Opcode::GetIndex, 0),
         0x62 => (Opcode::SetIndex, 0),
         0x63 => (Opcode::Pop, 0),
-        // ── NEW ──────────────────────────────────────────────────────────
         0x70 => (Opcode::Suspend, 0),
         0x71 => {
             let a = u32::from_le_bytes(data[1..5].try_into().ok()?) as usize;
             let n = u32::from_le_bytes(data[5..9].try_into().ok()?) as usize;
             (Opcode::Spawn(a, n), 8)
         }
-        // ─────────────────────────────────────────────────────────────────
         0xFF => (Opcode::Halt, 0),
         _    => return None,
     };

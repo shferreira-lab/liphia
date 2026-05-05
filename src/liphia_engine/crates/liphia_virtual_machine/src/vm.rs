@@ -65,10 +65,8 @@ struct Task {
 
 impl Task {
     fn new(pc: usize, args: Vec<Value>) -> Self {
-        // args are already on a fresh stack so the first instructions of the
-        // callee (StoreVar) will consume them.
         let mut stack = args;
-        stack.reverse(); // match the Call convention: last arg on top
+        stack.reverse();
         Self {
             pc,
             stack,
@@ -114,10 +112,7 @@ impl VM {
     // ── Entry point ───────────────────────────────────────────────────────
 
     pub fn run(&mut self, program: Vec<Opcode>) -> VmResult<()> {
-        // Wrap program in Rc so all tasks share the same instruction slice.
         let program = Rc::new(program);
-
-        // The "main" task starts at pc = 0 with no arguments.
         let main_task = Task::new(0, vec![]);
         let mut queue: VecDeque<Task> = VecDeque::new();
         queue.push_back(main_task);
@@ -147,9 +142,6 @@ impl VM {
         task:    &mut Task,
         queue:   &mut VecDeque<Task>,
     ) -> VmResult<StepResult> {
-        // Each quantum runs up to QUANTUM instructions before yielding to
-        // let other tasks run.  This prevents a tight while-loop in one task
-        // from starving all others.
         const QUANTUM: usize = 256;
 
         for _ in 0..QUANTUM {
@@ -158,7 +150,6 @@ impl VM {
             }
 
             match &program[task.pc].clone() {
-                // ── Push ──────────────────────────────────────────────────
                 Opcode::PushInt(v)    => task.stack.push(Value::Int(*v)),
                 Opcode::PushFloat(v)  => task.stack.push(Value::Float(*v)),
                 Opcode::PushString(v) => task.stack.push(Value::Str(Rc::new(v.clone()))),
@@ -374,21 +365,16 @@ impl VM {
                     let top = task.stack.last().cloned().unwrap_or(Value::Null);
                     match top {
                         Value::Null | Value::Bool(false) => {
-                            // Pop the not-ready value — will be re-pushed
-                            // when the preceding call re-runs next tick.
                             task.stack.pop();
-                            // Do NOT advance pc — re-run from Suspend next tick.
                             return Ok(StepResult::Suspend);
                         }
                         _ => {
-                            // Value is ready — keep it on stack, advance past Suspend.
                             task.pc += 1;
                             return Ok(StepResult::Continue);
                         }
                     }
                 }
 
-                // Spawn(address, arg_count): create new task, fire-and-forget.
                 Opcode::Spawn(address, arg_count) => {
                     let address   = *address;
                     let arg_count = *arg_count;
@@ -407,8 +393,6 @@ impl VM {
 
             task.pc += 1;
         }
-
-        // Quantum exhausted — yield so other tasks can run.
         Ok(StepResult::Continue)
     }
 

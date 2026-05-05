@@ -61,6 +61,5 @@ pub enum Opcode {
     /// Spawn(address, arg_count)
     Spawn(usize, usize),
 
-    // ─────────────────────────────────────────────────────────────────────
     Halt,
 }

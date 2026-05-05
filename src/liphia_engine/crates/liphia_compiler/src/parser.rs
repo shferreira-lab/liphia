@@ -41,7 +41,7 @@ impl Parser {
         Ok(())
     }
 
-    // FIX 2: tolerant version of expect(Newline) + expect(Indent).
+    // tolerant version of expect(Newline) + expect(Indent).
     // Skips any blank lines/comments between ":" and the first indented line.
     fn expect_indent_after_colon(&mut self) -> LiphiaResult<()> {
         self.skip_newlines()?;
@@ -98,10 +98,8 @@ impl Parser {
             Token::Ident(n) if n == "var"      => self.parse_var(),
             Token::Ident(n) if n == "const"    => self.parse_const(),
             Token::Ident(n) if n == "enum"     => self.parse_enum(),
-            // FIX 1: spawn as top-level / block statement
             Token::Ident(n) if n == "spawn"    => self.parse_spawn_stmt(),
             Token::Ident(_)                    => self.parse_ident_stmt(),
-            // await as a bare statement: await some_fn()
             Token::Await => {
                 self.advance()?;
                 let expr = self.parse_expr()?;
@@ -117,17 +115,17 @@ impl Parser {
     // ── spawn fn_name(args) as statement ─────────────────────────────────
 
     fn parse_spawn_stmt(&mut self) -> LiphiaResult<Stmt> {
-        self.advance()?; // consume `spawn`
+        self.advance()?;
         let name = self.take_ident("expected function name after 'spawn'")?;
         self.expect(Token::LParen)?;
-        let args = self.parse_arg_list()?; // FIX 5: EOF-safe
+        let args = self.parse_arg_list()?;
         Ok(Stmt::ExprStmt(Expr::Spawn { name, args }))
     }
 
     // ── async fn ─────────────────────────────────────────────────────────
 
     fn parse_async_fn(&mut self) -> LiphiaResult<Stmt> {
-        self.advance()?; // consume `async`
+        self.advance()?;
         if !self.is("fn") {
             return Err(LiphiaError::new(
                 ErrorKind::UnexpectedToken,
@@ -140,11 +138,10 @@ impl Parser {
     // ── fn (shared by sync and async) ────────────────────────────────────
 
     fn parse_fn(&mut self, is_async: bool) -> LiphiaResult<Stmt> {
-        self.advance()?; // consume `fn`
+        self.advance()?;
         let name = self.take_ident("expected function name")?;
         self.expect(Token::LParen)?;
 
-        // FIX 5: EOF-safe param list
         let mut params = vec![];
         while self.current != Token::RParen {
             if self.current == Token::EOF {
@@ -164,7 +161,6 @@ impl Parser {
         let return_type = self.parse_type()?;
         self.expect(Token::Colon)?;
 
-        // FIX 2: tolerant indent — handles blank lines after ":"
         self.expect_indent_after_colon()?;
         let body = self.parse_block()?;
         Ok(Stmt::Fn { name, params, return_type, body, is_async })
@@ -201,7 +197,6 @@ impl Parser {
         self.advance()?;
         let name = self.take_ident("expected enum name")?;
         self.expect(Token::Colon)?;
-        // FIX 2
         self.expect_indent_after_colon()?;
         let mut variants = vec![];
         self.skip_newlines()?;
@@ -237,7 +232,7 @@ impl Parser {
         // name(args)  — function call as statement, result discarded
         if self.current == Token::LParen {
             self.advance()?;
-            let args = self.parse_arg_list()?; // FIX 5
+            let args = self.parse_arg_list()?;
             return Ok(Stmt::ExprStmt(Expr::FunctionCall { name, args }));
         }
 
@@ -252,7 +247,7 @@ impl Parser {
     fn parse_print(&mut self) -> LiphiaResult<Stmt> {
         self.advance()?;
         self.expect(Token::LParen)?;
-        let args = self.parse_arg_list()?; // FIX 5
+        let args = self.parse_arg_list()?;
         Ok(Stmt::Print(args))
     }
 
@@ -260,7 +255,6 @@ impl Parser {
         self.advance()?;
         let condition = self.parse_expr()?;
         self.expect(Token::Colon)?;
-        // FIX 2
         self.expect_indent_after_colon()?;
         let body = self.parse_block()?;
         Ok(Stmt::While { condition, body })
@@ -280,7 +274,6 @@ impl Parser {
             None
         };
         self.expect(Token::Colon)?;
-        // FIX 2
         self.expect_indent_after_colon()?;
         let body = self.parse_block()?;
         Ok(Stmt::For { var, from, to, step, body })
@@ -288,7 +281,6 @@ impl Parser {
 
     fn parse_return(&mut self) -> LiphiaResult<Stmt> {
         self.advance()?;
-        // FIX: bare `return` without expression → return null
         if matches!(self.current, Token::Newline | Token::EOF | Token::Dedent) {
             return Ok(Stmt::Return(Expr::Null));
         }
@@ -300,14 +292,12 @@ impl Parser {
         self.advance()?;
         let condition = self.parse_expr()?;
         self.expect(Token::Colon)?;
-        // FIX 2
         self.expect_indent_after_colon()?;
         let block = self.parse_block()?;
 
         let mut branches   = vec![];
         let mut else_block = None;
 
-        // FIX 6: skip blank lines before elif/else
         loop {
             self.skip_newlines()?;
             if self.is("elif") {
@@ -330,7 +320,6 @@ impl Parser {
         Ok(Stmt::If { condition, block, branches, else_block })
     }
 
-    // FIX 3: guard against infinite loop on unexpected tokens
     fn parse_block(&mut self) -> LiphiaResult<Vec<Stmt>> {
         let mut stmts = vec![];
         self.skip_newlines()?;
@@ -338,7 +327,6 @@ impl Parser {
             stmts.push(self.parse_stmt()?);
             self.skip_newlines()?;
         }
-        // EOF acts as implicit dedent (end of file closes all open blocks)
         if self.current == Token::Dedent {
             self.advance()?;
         }
@@ -361,7 +349,6 @@ impl Parser {
                 self.advance()?;
                 Type::Named(name)
             }
-            // FIX 7: keywords used as types — clear error message
             Token::Async => return Err(LiphiaError::new(
                 ErrorKind::InvalidType,
                 "'async' is a keyword and cannot be used as a type",
@@ -467,7 +454,6 @@ impl Parser {
         self.parse_postfix()
     }
 
-    // FIX 4: full postfix chain — a[i][j] works in expressions
     fn parse_postfix(&mut self) -> LiphiaResult<Expr> {
         let mut expr = self.parse_primary()?;
         while self.current == Token::LBracket {
@@ -500,22 +486,20 @@ impl Parser {
                 self.advance()?;
                 let name = self.take_ident("expected function name after 'spawn'")?;
                 self.expect(Token::LParen)?;
-                let args = self.parse_arg_list()?; // FIX 5
+                let args = self.parse_arg_list()?;
                 Ok(Expr::Spawn { name, args })
             }
 
             Token::Ident(_) => {
                 let name = self.take_ident("")?;
-                // Enum variant: EnumName.Variant
                 if self.current == Token::Dot {
                     self.advance()?;
                     let variant = self.take_ident("expected variant name after '.'")?;
                     return Ok(Expr::EnumVariant { enum_name: name, variant });
                 }
-                // Function call: name(args)
                 if self.current == Token::LParen {
                     self.advance()?;
-                    let args = self.parse_arg_list()?; // FIX 5
+                    let args = self.parse_arg_list()?;
                     return Ok(Expr::FunctionCall { name, args });
                 }
                 Ok(Expr::Variable(name))
@@ -531,7 +515,6 @@ impl Parser {
             Token::LBracket => {
                 self.advance()?;
                 let mut items = vec![];
-                // FIX 5: EOF guard on list literals
                 while self.current != Token::RBracket {
                     if self.current == Token::EOF {
                         return Err(LiphiaError::new(
@@ -546,7 +529,6 @@ impl Parser {
                 Ok(Expr::List(items))
             }
 
-            // FIX 7: `async` in expression position — clear error
             Token::Async => Err(LiphiaError::new(
                 ErrorKind::InvalidExpression,
                 "'async' cannot be used as an expression — did you mean 'async fn ...'?",
@@ -559,10 +541,7 @@ impl Parser {
         }
     }
 
-    // ── FIX 5: EOF-safe argument list ─────────────────────────────────────
-    // Caller must have consumed the opening '('.
-    // Reads args separated by ',' until ')' or EOF.
-
+    // ── EOF-safe argument list ─────────────────────────────────────
     fn parse_arg_list(&mut self) -> LiphiaResult<Vec<Expr>> {
         let mut args = vec![];
         while self.current != Token::RParen {
@@ -588,7 +567,6 @@ impl Parser {
                 self.advance()?;
                 Ok(name)
             }
-            // FIX 7: keywords used as identifiers — specific messages
             Token::Async => Err(LiphiaError::new(
                 ErrorKind::ExpectedIdent,
                 "'async' is a keyword and cannot be used as an identifier",
