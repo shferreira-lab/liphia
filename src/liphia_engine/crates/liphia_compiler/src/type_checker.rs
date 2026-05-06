@@ -288,7 +288,13 @@ impl TypeChecker {
             Expr::Gt(..)  | Expr::Lt(..)    |
             Expr::Gte(..) | Expr::Lte(..)   |
             Expr::And(..) | Expr::Or(..)    | Expr::Not(..) => Type::Bool,
-            Expr::Index(..) => Type::Named("unknown".into()),
+            Expr::Index(list, _) => {
+                    match self.infer(list) {
+                Type::List => Type::Named("any".into()),
+                Type::Str  => Type::Str,
+                    other      => other,
+                    }
+            }
             Expr::EnumVariant { enum_name, .. } => Type::Named(enum_name.clone()),
             Expr::FunctionCall { name, .. } => {
                 self.lookup_fn(name).map(|(_, r)| r.clone())
