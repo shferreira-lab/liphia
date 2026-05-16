@@ -3,7 +3,7 @@
 // Event-loop VM — supports async/await via cooperative task scheduling.
 //
 // Architecture:
-//   VM holds a VecDeque<Task>.  Each Task is an independent coroutine with
+//   VM holds a VecDeque<Task>. Each Task is an independent coroutine with
 //   its own pc, stack, locals, and call-frame stack.
 //   Globals and native_fns are shared across all tasks.
 //
@@ -24,7 +24,6 @@ use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::io::{self, Write};
 use std::rc::Rc;
-
 use crate::opcode::Opcode;
 use crate::value::Value;
 
@@ -34,14 +33,17 @@ use crate::value::Value;
 pub struct VmError {
     pub message: String,
 }
+
 impl VmError {
     pub fn new(msg: impl Into<String>) -> Self { Self { message: msg.into() } }
 }
+
 impl std::fmt::Display for VmError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "runtime error: {}", self.message)
     }
 }
+
 pub type VmResult<T> = Result<T, VmError>;
 
 // ── Frame ─────────────────────────────────────────────────────────────────────
@@ -54,7 +56,6 @@ struct Frame {
 
 // ── Task ──────────────────────────────────────────────────────────────────────
 
-/// A single coroutine / green thread.
 #[derive(Debug)]
 struct Task {
     pc:     usize,
@@ -67,12 +68,7 @@ impl Task {
     fn new(pc: usize, args: Vec<Value>) -> Self {
         let mut stack = args;
         stack.reverse();
-        Self {
-            pc,
-            stack,
-            locals: vec![],
-            frames: vec![],
-        }
+        Self { pc, stack, locals: vec![], frames: vec![] }
     }
 
     fn pop(&mut self, ctx: &str) -> VmResult<Value> {
@@ -117,19 +113,35 @@ impl VM {
         let mut queue: VecDeque<Task> = VecDeque::new();
         queue.push_back(main_task);
 
-        // Round-robin event loop ─────────────────────────────────────────
+        // Tracks how many consecutive suspend rounds occurred.
+        // When all tasks in the queue are suspended, sleep briefly
+        // to avoid burning 100% CPU on an empty request queue.
+        let mut all_suspended_rounds = 0usize;
+
         while let Some(mut task) = queue.pop_front() {
             match self.step(&program, &mut task, &mut queue)? {
-                StepResult::Halt     => { /* task done — drop it */ }
-                StepResult::Suspend  => { queue.push_back(task); }
-                StepResult::Continue => { queue.push_back(task); }
+                StepResult::Halt => {
+                    all_suspended_rounds = 0;
+                }
+                StepResult::Suspend => {
+                    queue.push_back(task);
+                    all_suspended_rounds += 1;
+                    if all_suspended_rounds >= queue.len() {
+                        std::thread::sleep(std::time::Duration::from_millis(1));
+                        all_suspended_rounds = 0;
+                    }
+                }
+                StepResult::Continue => {
+                    all_suspended_rounds = 0;
+                    queue.push_back(task);
+                }
             }
         }
 
         Ok(())
     }
 
-    // ── Execute one "quantum" of a task ───────────────────────────────────
+    // ── Execute one quantum of a task ─────────────────────────────────────
     //
     // Returns:
     //   Continue — task ran some instructions, not done yet
@@ -142,9 +154,11 @@ impl VM {
         task:    &mut Task,
         queue:   &mut VecDeque<Task>,
     ) -> VmResult<StepResult> {
-        const QUANTUM: usize = 256;
+        // Global-scope tasks (server loop) use a smaller quantum so they
+        // yield faster and keep the event loop responsive.
+        let quantum = if task.frames.is_empty() { 32 } else { 256 };
 
-        for _ in 0..QUANTUM {
+        for _ in 0..quantum {
             if task.pc >= program.len() {
                 return Ok(StepResult::Halt);
             }
@@ -163,6 +177,7 @@ impl VM {
                 }
 
                 // ── Variables ─────────────────────────────────────────────
+
                 Opcode::StoreVar(idx) => {
                     let idx  = *idx as usize;
                     let base = task.frames.last().map(|f| f.base).unwrap_or(0);
@@ -175,6 +190,7 @@ impl VM {
                         task.locals.push(val);
                     }
                 }
+
                 Opcode::LoadVar(idx) => {
                     let idx  = *idx as usize;
                     let base = task.frames.last().map(|f| f.base).unwrap_or(0);
@@ -183,11 +199,13 @@ impl VM {
                         .clone();
                     task.stack.push(val);
                 }
+
                 Opcode::StoreGlobal(name) => {
                     let name = name.clone();
                     let val  = task.pop("StoreGlobal")?;
                     self.globals.insert(name, val);
                 }
+
                 Opcode::LoadGlobal(name) => {
                     let val = self.globals.get(name)
                         .ok_or_else(|| VmError::new(format!("undefined variable '{}'", name)))?
@@ -196,12 +214,14 @@ impl VM {
                 }
 
                 // ── Arithmetic ────────────────────────────────────────────
+
                 Opcode::Add  => self.op_add(task)?,
                 Opcode::Sub  => self.op_sub(task)?,
                 Opcode::Mul  => self.op_mul(task)?,
                 Opcode::Div  => self.op_div(task)?,
 
                 // ── Comparison ────────────────────────────────────────────
+
                 Opcode::Eq  => { let (a,b) = task.pop2("Eq")?;  task.stack.push(Value::Bool(a == b)); }
                 Opcode::Neq => { let (a,b) = task.pop2("Neq")?; task.stack.push(Value::Bool(a != b)); }
                 Opcode::Gt  => self.op_cmp(task, |a,b| a>b,  |a,b| a>b)?,
@@ -210,6 +230,7 @@ impl VM {
                 Opcode::Lte => self.op_cmp(task, |a,b| a<=b, |a,b| a<=b)?,
 
                 // ── Logical ───────────────────────────────────────────────
+
                 Opcode::And => {
                     let (a,b) = task.pop2("And")?;
                     match (a,b) {
@@ -217,6 +238,7 @@ impl VM {
                         _ => return Err(VmError::new("'and' requires two bool values")),
                     }
                 }
+
                 Opcode::Or => {
                     let (a,b) = task.pop2("Or")?;
                     match (a,b) {
@@ -224,6 +246,7 @@ impl VM {
                         _ => return Err(VmError::new("'or' requires two bool values")),
                     }
                 }
+
                 Opcode::Not => {
                     let v = task.pop("Not")?;
                     match v {
@@ -233,6 +256,7 @@ impl VM {
                 }
 
                 // ── I/O ───────────────────────────────────────────────────
+
                 Opcode::Input => {
                     let mut buf = String::new();
                     io::stdout().flush().unwrap();
@@ -240,6 +264,7 @@ impl VM {
                         .map_err(|e| VmError::new(format!("failed to read input: {}", e)))?;
                     task.stack.push(Value::Str(Rc::new(buf.trim_end().to_string())));
                 }
+
                 Opcode::Print(count) => {
                     let count = *count;
                     let mut args = Vec::with_capacity(count);
@@ -253,10 +278,12 @@ impl VM {
                 }
 
                 // ── Control flow ──────────────────────────────────────────
+
                 Opcode::Jump(dest) => {
                     task.pc = *dest;
                     continue;
                 }
+
                 Opcode::JumpIfFalse(dest) => {
                     let dest = *dest;
                     match task.pop("JumpIfFalse")? {
@@ -267,6 +294,7 @@ impl VM {
                 }
 
                 // ── Function calls ────────────────────────────────────────
+
                 Opcode::Call(address, _) => {
                     let address = *address;
                     let base    = task.locals.len();
@@ -274,6 +302,7 @@ impl VM {
                     task.pc = address;
                     continue;
                 }
+
                 Opcode::CallNamed(name, arg_count) => {
                     let arg_count = *arg_count;
                     let name      = name.clone();
@@ -289,6 +318,7 @@ impl VM {
                         )));
                     }
                 }
+
                 Opcode::Return => {
                     let ret   = task.stack.pop().unwrap_or(Value::Null);
                     let frame = task.frames.pop()
@@ -300,6 +330,7 @@ impl VM {
                 }
 
                 // ── Collections ───────────────────────────────────────────
+
                 Opcode::BuildList(count) => {
                     let count = *count;
                     let mut items = Vec::with_capacity(count);
@@ -307,6 +338,7 @@ impl VM {
                     items.reverse();
                     task.stack.push(Value::List(Rc::new(RefCell::new(items))));
                 }
+
                 Opcode::GetIndex => {
                     let index = task.pop("GetIndex")?;
                     let list  = task.pop("GetIndex")?;
@@ -333,6 +365,7 @@ impl VM {
                         _ => return Err(VmError::new("list index must be an int")),
                     }
                 }
+
                 Opcode::SetIndex => {
                     let value = task.pop("SetIndex")?;
                     let index = task.pop("SetIndex")?;
@@ -355,12 +388,11 @@ impl VM {
 
                 // ── Async ─────────────────────────────────────────────────
                 //
-                // Suspend: check the top-of-stack value.
-                //   • Null or Bool(false) → not ready yet.
-                //     DO NOT advance pc — stay on Suspend so next tick
-                //     the CallNamed above it re-executes.  Re-queue task.
-                //   • Any other value    → ready.  Advance normally,
-                //     leave value on stack as the result of the await expr.
+                // Suspend: if top-of-stack is Null or Bool(false) the awaited
+                // value is not ready. DO NOT advance pc — re-queue so the
+                // CallNamed above re-executes on the next tick.
+                // Any other value means ready; advance normally.
+
                 Opcode::Suspend => {
                     let top = task.stack.last().cloned().unwrap_or(Value::Null);
                     match top {
@@ -383,16 +415,29 @@ impl VM {
                     args.reverse();
                     let new_task = Task::new(address, args);
                     queue.push_back(new_task);
-                    // Spawner gets null — it doesn't wait for the child.
                     task.stack.push(Value::Null);
                 }
 
                 // ── Halt ──────────────────────────────────────────────────
-                Opcode::Halt => return Ok(StepResult::Halt),
+
+                Opcode::Halt => {
+                    #[cfg(debug_assertions)]
+                    if !task.stack.is_empty() {
+                        eprintln!(
+                            "[liphia/vm] warning: task ended with {} value(s) on stack",
+                            task.stack.len()
+                        );
+                    }
+                    task.frames.clear();
+                    task.locals.clear();
+                    task.stack.clear();
+                    return Ok(StepResult::Halt);
+                }
             }
 
             task.pc += 1;
         }
+
         Ok(StepResult::Continue)
     }
 
@@ -466,10 +511,7 @@ impl VM {
 // ── Internal scheduler signal ─────────────────────────────────────────────────
 
 enum StepResult {
-    /// Task completed (Halt reached or top-level Return).
     Halt,
-    /// Task yielded because an await result wasn't ready yet.
     Suspend,
-    /// Task ran a quantum and should continue on next round.
     Continue,
 }

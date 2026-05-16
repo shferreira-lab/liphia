@@ -1,0 +1,190 @@
+# stat_test1.lph
+# Tests for all functions in stdlib/lph/stats.lph
+# Run with: liphia stat_test1.lph
+#
+# Expected output shown after each print as a comment.
+# p-values and correlations may vary ±0.001 due to floating-point.
+
+import from "stats"
+
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — original functions")
+print("═══════════════════════════════════════════")
+
+data: list = [4.0, 7.0, 13.0, 2.0, 1.0]
+print(sum(data))            # 27.0
+print(mean(data))           # 5.4
+print(min_list(data))       # 1.0
+print(max_list(data))       # 13.0
+print(median(data))         # 4.0
+print(count(data))          # 5
+# population variance and stdev (divide by n)
+print(variance(data))       # 16.24
+print(stdev(data))          # 4.029888...
+# even-length median → average of two middles
+even: list = [3.0, 1.0, 4.0, 1.0]
+print(median(even))         # 2.0  (sorted: 1,1,3,4 → (1+3)/2)
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — sample statistics")
+print("═══════════════════════════════════════════")
+
+# Sample variance/stdev (divide by n-1 = 4)
+# mean = 5.4, SS = (4-5.4)²+(7-5.4)²+(13-5.4)²+(2-5.4)²+(1-5.4)²
+#           = 1.96 + 2.56 + 57.76 + 11.56 + 19.36 = 93.2
+# variance_sample = 93.2/4 = 23.3
+print(variance_sample(data))  # 23.3
+print(stdev_sample(data))     # 4.827007...  (sqrt(23.3))
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — descriptive / shape")
+print("═══════════════════════════════════════════")
+
+d2: list = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+# percentile
+print(percentile(d2, 0.0))    # 1.0
+print(percentile(d2, 50.0))   # 5.5   (linear interp between 5 and 6)
+print(percentile(d2, 100.0))  # 10.0
+print(percentile(d2, 25.0))   # 3.25  (Q1)
+print(percentile(d2, 75.0))   # 7.75  (Q3)
+# iqr = Q3 - Q1 = 7.75 - 3.25 = 4.5
+print(iqr(d2))                # 4.5
+# range_stat = 10 - 1 = 9
+print(range_stat(d2))         # 9.0
+# mode
+m_data: list = [1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0]
+print(mode(m_data))           # 3.0
+# zscore — check that mean ≈ 0 and stdev ≈ 1 after normalisation
+z: list = zscore(d2)
+print(sum(z))                 # ≈ 0.0   (sum of z-scores is always 0)
+print(mean(z))                # ≈ 0.0
+# covariance: perfectly correlated → cov = variance_sample
+x_cov: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+y_cov: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+print(covariance(x_cov, y_cov))   # 2.5
+print(variance_sample(x_cov))     # 2.5
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — correlation")
+print("═══════════════════════════════════════════")
+
+# Perfect positive linear correlation
+px: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+py: list = [2.0, 4.0, 6.0, 8.0, 10.0]
+print(pearson_r(px, py))      # 1.0
+# Perfect negative
+ny: list = [10.0, 8.0, 6.0, 4.0, 2.0]
+print(pearson_r(px, ny))      # -1.0
+# Spearman on monotone non-linear data
+sx: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+sy: list = [1.0, 4.0, 9.0, 16.0, 25.0]
+print(spearman_r(sx, sy))     # 1.0  (perfectly monotone)
+# Kendall tau on same data
+print(kendall_tau(sx, sy))    # 1.0  (all pairs concordant)
+# Spearman with ties
+tx: list = [1.0, 2.0, 3.0, 3.0, 5.0]
+ty: list = [5.0, 4.0, 3.0, 3.0, 1.0]
+print(spearman_r(tx, ty))     # ≈ -1.0 (perfectly inverse monotone)
+# More realistic: partial correlation
+rx: list = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+ry: list = [3.0, 1.0, 4.0, 1.0, 5.0, 9.0, 2.0, 6.0]
+print(pearson_r(rx, ry))      # ≈ 0.389...
+print(spearman_r(rx, ry))     # ≈ 0.333...
+print(kendall_tau(rx, ry))    # ≈ 0.214...
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — test statistics (no CDF)")
+print("═══════════════════════════════════════════")
+
+# Groups with clear difference → large |t|
+ctrl:  list = [5.1, 4.8, 5.3, 4.9, 5.0, 5.2, 4.7, 5.1, 4.9, 5.0]
+treat: list = [6.2, 5.9, 6.5, 6.1, 6.3, 6.0, 6.4, 6.2, 5.8, 6.3]
+t_ind: float = t_stat_independent(ctrl, treat)
+df:    float = t_degrees_of_freedom(ctrl, treat)
+print(t_ind)    # ≈ -9.0 to -10.0 (large negative: treat > ctrl)
+print(df)       # ≈ 18.0
+# Paired t: before/after intervention
+before: list = [200.0, 212.0, 195.0, 208.0, 220.0]
+after:  list = [185.0, 198.0, 180.0, 192.0, 205.0]
+t_pair: float = t_stat_paired(before, after)
+print(t_pair)   # ≈ 14.14  (before > after consistently)
+# Mann-Whitney U
+u: float = mann_whitney_u(ctrl, treat)
+print(u)        # 0.0
+# Wilcoxon W
+w: float = wilcoxon_w(before, after)
+print(w)        # 15.0
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — normality (Shapiro-Wilk)")
+print("═══════════════════════════════════════════")
+
+# Near-normal data → W close to 1
+normal_ish: list = [4.9, 5.0, 5.1, 4.8, 5.2, 5.0, 5.1, 4.9, 5.0, 4.8, 5.1, 5.0, 4.9, 5.1, 5.2, 4.8, 5.0, 5.1, 4.9, 5.0]
+print(shapiro_wilk_w(normal_ish))   # ≈ 0.95 – 0.99
+# Heavily skewed / non-normal data → W much lower
+skewed: list = [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 3.0, 5.0, 10.0, 50.0]
+print(shapiro_wilk_w(skewed))       # ≈ 0.60 – 0.75
+# Uniform distribution → moderate W
+uniform: list = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+print(shapiro_wilk_w(uniform))      # ≈ 0.96 – 0.98
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — p-values via CDF")
+print("═══════════════════════════════════════════")
+
+# p_value_normal
+print(p_value_normal(1.96))   # ≈ 0.04999...
+print(p_value_normal(2.576))  # ≈ 0.009998...
+print(p_value_normal(0.0))    # 1.0
+print(p_value_normal(-1.96))  # ≈ 0.04999...
+# p_value_t_ind
+print(p_value_t_ind(ctrl, treat))   # ≈ 0.0000...
+same_a: list = [5.0, 5.1, 4.9, 5.0, 5.1, 4.9, 5.0, 5.0, 5.1, 4.9]
+same_b: list = [5.0, 4.9, 5.1, 5.0, 5.0, 5.1, 4.9, 5.0, 5.1, 5.0]
+print(p_value_t_ind(same_a, same_b))  # ≈ 0.9 – 1.0
+# p_value_t_paired
+print(p_value_t_paired(before, after))  # ≈ 0.0000...
+pre:  list = [10.0, 10.1, 9.9, 10.0, 10.1]
+post: list = [10.1, 9.9, 10.1, 9.9, 10.0]
+print(p_value_t_paired(pre, post))  # ≈ 0.8 – 1.0
+# p_value_mann_whitney (requires min(n1,n2) > 10)
+mw_ctrl:  list = [5.1, 4.8, 5.3, 4.9, 5.0, 5.2, 4.7, 5.1, 4.9, 5.0, 5.3, 4.8, 5.1, 4.9, 5.2]
+mw_treat: list = [6.2, 5.9, 6.5, 6.1, 6.3, 6.0, 6.4, 6.2, 5.8, 6.3, 6.1, 6.4, 6.2, 6.0, 6.3]
+print(p_value_mann_whitney(mw_ctrl, mw_treat))  # ≈ 0.000...
+mw_a: list = [5.0, 5.1, 4.9, 5.0, 5.1, 4.9, 5.0, 5.0, 5.1, 4.9, 5.0, 5.1, 4.9, 5.0, 5.1]
+mw_b: list = [5.0, 4.9, 5.1, 5.0, 5.0, 5.1, 4.9, 5.0, 5.1, 5.0, 4.9, 5.0, 5.1, 5.0, 4.9]
+print(p_value_mann_whitney(mw_a, mw_b))         # ≈ 0.8 – 1.0
+
+print("")
+print("═══════════════════════════════════════════")
+print("  STAT TEST 1 — full workflow example")
+print("═══════════════════════════════════════════")
+
+# Simulated experiment: two independent groups, n=15 each.
+group_a: list = [12.1, 11.8, 13.0, 11.5, 12.4, 12.7, 11.9, 12.3, 12.0, 11.7, 12.5, 11.6, 12.2, 11.8, 12.1]
+group_b: list = [14.2, 13.9, 14.8, 13.5, 14.3, 14.7, 13.8, 14.1, 14.0, 13.6, 14.5, 13.7, 14.2, 13.9, 14.4]
+# Step 1 — descriptives
+print("Group A mean: ", mean(group_a))           # ≈ 12.11
+print("Group B mean: ", mean(group_b))           # ≈ 14.11
+print("Group A sd:   ", stdev_sample(group_a))   # ≈ 0.38
+print("Group B sd:   ", stdev_sample(group_b))   # ≈ 0.36
+# Step 2 — check normality
+print("Shapiro W A:  ", shapiro_wilk_w(group_a)) # ≈ 0.95+
+print("Shapiro W B:  ", shapiro_wilk_w(group_b)) # ≈ 0.95+
+# Step 3 — parametric test
+print("t statistic:  ", t_stat_independent(group_a, group_b))   # ≈ -15
+print("df:           ", t_degrees_of_freedom(group_a, group_b)) # ≈ 27
+print("p (t-test):   ", p_value_t_ind(group_a, group_b))        # ≈ 0.000
+# Step 4 — non-parametric confirmation
+print("U statistic:  ", mann_whitney_u(group_a, group_b))        # ≈ 0
+print("p (MW):       ", p_value_mann_whitney(group_a, group_b))  # ≈ 0.000
+
+print("")
+print("All stats tests done.")

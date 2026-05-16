@@ -1,7 +1,7 @@
 # stdlib/lph/math.lph
 # Mathematical functions — all implemented natively in Rust (stdlib/native/src/math.rs).
-
-# ── Available functions ───────────────────────────────────────────────────────
+#
+# ── Original functions ────────────────────────────────────────────────────────
 #
 # sqrt(x: int | float) -> float
 #   Square root. x must be >= 0.
@@ -22,7 +22,10 @@
 #   Rounds to nearest integer.
 #
 # min(a: int | float, b: int | float) -> int | float
+#   Smaller of two scalar values.
+#
 # max(a: int | float, b: int | float) -> int | float
+#   Larger of two scalar values.
 #
 # pi() -> float     # 3.141592653589793
 # e()  -> float     # 2.718281828459045
@@ -37,10 +40,109 @@
 # cos(x: int | float) -> float
 # tan(x: int | float) -> float
 #
-# ── Example ───────────────────────────────────────────────────────────────────
+# ── Trigonometry (inverse) ────────────────────────────────────────────────────
 #
-#   import "math.lph"
+# asin(x: int | float) -> float
+#   Arc sine in radians. x must be in [-1, 1].
 #
-#   var r: float = sqrt(16.0)          # 4.0
-#   var area: float = pi() * pow(5.0, 2.0)
-#   print("circle area: ", area)
+# acos(x: int | float) -> float
+#   Arc cosine in radians. x must be in [-1, 1].
+#
+# atan(x: int | float) -> float
+#   Arc tangent in radians.
+#
+# atan2(y: int | float, x: int | float) -> float
+#   Four-quadrant arc tangent of y/x. Returns angle in [-π, π].
+#   Correctly handles x = 0.
+#
+# ── Hyperbolic ────────────────────────────────────────────────────────────────
+#
+# sinh(x: int | float) -> float
+# cosh(x: int | float) -> float
+# tanh(x: int | float) -> float
+#
+# ── Exponential / logarithm ───────────────────────────────────────────────────
+#
+# exp(x: int | float) -> float
+#   e raised to the power x.  exp(1.0) == e().
+#
+# log2(x: int | float) -> float
+#   Base-2 logarithm. x must be > 0.
+#
+# log_base(x: int | float, b: int | float) -> float
+#   Logarithm of x in arbitrary base b.
+#   x must be > 0. b must be > 0 and != 1.
+#
+# ── Number theory / combinatorics ─────────────────────────────────────────────
+#
+# factorial(n: int) -> int
+#   n! for n in [0, 20]. Raises error for n > 20 (i64 overflow).
+#   factorial(0) == 1.
+#
+# gcd(a: int, b: int) -> int
+#   Greatest common divisor of |a| and |b|.
+#
+# lcm(a: int, b: int) -> int
+#   Least common multiple of |a| and |b|.
+#   Returns 0 if either argument is 0.
+#
+# ── Geometry / vector ─────────────────────────────────────────────────────────
+#
+# hypot(a: int | float, b: int | float) -> float
+#   Euclidean distance: sqrt(a² + b²). Numerically stable.
+#
+# deg_to_rad(x: int | float) -> float
+#   Converts degrees to radians.
+#
+# rad_to_deg(x: int | float) -> float
+#   Converts radians to degrees.
+#
+# ── Utilities ─────────────────────────────────────────────────────────────────
+#
+# sign(x: int | float) -> int
+#   Returns -1 if x < 0, 0 if x == 0, 1 if x > 0.
+#
+# clamp(x: int | float, lo: int | float, hi: int | float) -> int | float
+#   Restricts x to the range [lo, hi].
+#   Returns same type as x when all three args are the same type;
+#   promotes to float on mixed types.
+#
+# is_nan(x: int | float) -> bool
+#   True if x is IEEE 754 NaN. Always false for int.
+#
+# is_inf(x: int | float) -> bool
+#   True if x is positive or negative infinity. Always false for int.
+#
+# ── Examples ──────────────────────────────────────────────────────────────────
+#
+#   import from "math"
+#
+#   # Basic
+#   r: float = sqrt(16.0)                   # 4.0
+#   area: float = pi() * pow(5.0, 2.0)      # 78.539...
+#
+#   # Inverse trig
+#   angle: float = asin(1.0)                # pi/2 ≈ 1.5707...
+#   q: float = atan2(1.0, 1.0)              # pi/4 ≈ 0.7853...
+#
+#   # Angle conversion
+#   rad: float = deg_to_rad(180.0)          # pi
+#   deg: float = rad_to_deg(pi())           # 180.0
+#
+#   # Exponential
+#   growth: float = exp(1.0)                # e ≈ 2.7182...
+#   bits: float = log2(1024.0)              # 10.0
+#   custom: float = log_base(8.0, 2.0)      # 3.0
+#
+#   # Combinatorics
+#   f: int = factorial(6)                   # 720
+#   g: int = gcd(48, 18)                    # 6
+#   l: int = lcm(4, 6)                      # 12
+#
+#   # Geometry
+#   dist: float = hypot(3.0, 4.0)           # 5.0
+#
+#   # Utilities
+#   s: int = sign(-7.5)                     # -1
+#   c: float = clamp(15.0, 0.0, 10.0)       # 10.0
+#   nan_check: bool = is_nan(sqrt(0.0))     # false

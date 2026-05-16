@@ -60,32 +60,85 @@ impl TypeChecker {
         tc.declare_fn("pop",         vec![Type::List],                    any());
         tc.declare_fn("keys",        vec![Type::List],                    Type::List);
 
-        // ── math ──────────────────────────────────────────────────────────
-        tc.declare_fn("sqrt",   vec![any()],          Type::Float);
-        tc.declare_fn("pow",    vec![any(), any()],   Type::Float);
-        tc.declare_fn("abs",    vec![any()],          Type::Float);
-        tc.declare_fn("floor",  vec![any()],          Type::Int);
-        tc.declare_fn("ceil",   vec![any()],          Type::Int);
-        tc.declare_fn("round",  vec![any()],          Type::Int);
-        tc.declare_fn("min",    vec![any(), any()],   Type::Float);
-        tc.declare_fn("max",    vec![any(), any()],   Type::Float);
-        tc.declare_fn("pi",     vec![],               Type::Float);
-        tc.declare_fn("e",      vec![],               Type::Float);
-        tc.declare_fn("log",    vec![any()],          Type::Float);
-        tc.declare_fn("log10",  vec![any()],          Type::Float);
-        tc.declare_fn("sin",    vec![any()],          Type::Float);
-        tc.declare_fn("cos",    vec![any()],          Type::Float);
-        tc.declare_fn("tan",    vec![any()],          Type::Float);
+       // ── math ──────────────────────────────────────────────────────────────
+        tc.declare_fn("sqrt",       vec![any()],          Type::Float);
+        tc.declare_fn("pow",        vec![any(), any()],   Type::Float);
+        tc.declare_fn("abs",        vec![any()],          any());
+        tc.declare_fn("floor",      vec![any()],          Type::Int);
+        tc.declare_fn("ceil",       vec![any()],          Type::Int);
+        tc.declare_fn("round",      vec![any()],          Type::Int);
+        tc.declare_fn("min",        vec![any(), any()],   any());
+        tc.declare_fn("max",        vec![any(), any()],   any());
+        tc.declare_fn("pi",         vec![],               Type::Float);
+        tc.declare_fn("e",          vec![],               Type::Float);
+        tc.declare_fn("log",        vec![any()],          Type::Float);
+        tc.declare_fn("log10",      vec![any()],          Type::Float);
+        tc.declare_fn("sin",        vec![any()],          Type::Float);
+        tc.declare_fn("cos",        vec![any()],          Type::Float);
+        tc.declare_fn("tan",        vec![any()],          Type::Float);
+        // inverse trig
+        tc.declare_fn("asin",       vec![any()],          Type::Float);
+        tc.declare_fn("acos",       vec![any()],          Type::Float);
+        tc.declare_fn("atan",       vec![any()],          Type::Float);
+        tc.declare_fn("atan2",      vec![any(), any()],   Type::Float);
+        // hyperbolic
+        tc.declare_fn("sinh",       vec![any()],          Type::Float);
+        tc.declare_fn("cosh",       vec![any()],          Type::Float);
+        tc.declare_fn("tanh",       vec![any()],          Type::Float);
+        // exponential / logarithm
+        tc.declare_fn("exp",        vec![any()],          Type::Float);
+        tc.declare_fn("log2",       vec![any()],          Type::Float);
+        tc.declare_fn("log_base",   vec![any(), any()],   Type::Float);
+        // number theory
+        tc.declare_fn("factorial",  vec![any()],          Type::Int);
+        tc.declare_fn("gcd",        vec![any(), any()],   Type::Int);
+        tc.declare_fn("lcm",        vec![any(), any()],   Type::Int);
+        // geometry
+        tc.declare_fn("hypot",      vec![any(), any()],   Type::Float);
+        tc.declare_fn("deg_to_rad", vec![any()],          Type::Float);
+        tc.declare_fn("rad_to_deg", vec![any()],          Type::Float);
+        // utilities
+        tc.declare_fn("sign",       vec![any()],          Type::Int);
+        tc.declare_fn("clamp",      vec![any(), any(), any()], any());
+        tc.declare_fn("is_nan",     vec![any()],          Type::Bool);
+        tc.declare_fn("is_inf",     vec![any()],          Type::Bool);
 
-        // ── stats ─────────────────────────────────────────────────────────
-        tc.declare_fn("sum",      vec![Type::List], Type::Float);
-        tc.declare_fn("mean",     vec![Type::List], Type::Float);
-        tc.declare_fn("min_list", vec![Type::List], Type::Float);
-        tc.declare_fn("max_list", vec![Type::List], Type::Float);
-        tc.declare_fn("median",   vec![Type::List], Type::Float);
-        tc.declare_fn("variance", vec![Type::List], Type::Float);
-        tc.declare_fn("stdev",    vec![Type::List], Type::Float);
-        tc.declare_fn("count",    vec![Type::List], Type::Int);
+        // ── stats ─────────────────────────────────────────────────────────────
+        tc.declare_fn("sum",                  vec![Type::List],             Type::Float);
+        tc.declare_fn("mean",                 vec![Type::List],             Type::Float);
+        tc.declare_fn("min_list",             vec![Type::List],             Type::Float);
+        tc.declare_fn("max_list",             vec![Type::List],             Type::Float);
+        tc.declare_fn("median",               vec![Type::List],             Type::Float);
+        tc.declare_fn("variance",             vec![Type::List],             Type::Float);
+        tc.declare_fn("stdev",                vec![Type::List],             Type::Float);
+        tc.declare_fn("count",                vec![Type::List],             Type::Int);
+        // sample
+        tc.declare_fn("variance_sample",      vec![Type::List],             Type::Float);
+        tc.declare_fn("stdev_sample",         vec![Type::List],             Type::Float);
+        // descriptive
+        tc.declare_fn("percentile",           vec![Type::List, any()],      Type::Float);
+        tc.declare_fn("iqr",                  vec![Type::List],             Type::Float);
+        tc.declare_fn("zscore",               vec![Type::List],             Type::List);
+        tc.declare_fn("covariance",           vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("mode",                 vec![Type::List],             Type::Float);
+        tc.declare_fn("range_stat",           vec![Type::List],             Type::Float);
+        // correlation
+        tc.declare_fn("pearson_r",            vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("spearman_r",           vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("kendall_tau",          vec![Type::List, Type::List], Type::Float);
+        // test statistics
+        tc.declare_fn("t_stat_independent",   vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("t_degrees_of_freedom", vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("t_stat_paired",        vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("mann_whitney_u",       vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("wilcoxon_w",           vec![Type::List, Type::List], Type::Float);
+        // normality
+        tc.declare_fn("shapiro_wilk_w",       vec![Type::List],             Type::Float);
+        // p-values
+        tc.declare_fn("p_value_t_ind",        vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("p_value_t_paired",     vec![Type::List, Type::List], Type::Float);
+        tc.declare_fn("p_value_normal",       vec![any()],                  Type::Float);
+        tc.declare_fn("p_value_mann_whitney", vec![Type::List, Type::List], Type::Float);
 
         // ── fs ────────────────────────────────────────────────────────────
         tc.declare_fn("read_file",   vec![Type::Str],            Type::Str);

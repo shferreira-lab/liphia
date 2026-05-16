@@ -9,6 +9,7 @@
 //   liphia_stdlib_native::register_all(&mut vm);
 //   vm.run(opcodes)?;
 
+mod cdf;
 pub mod ai;
 pub mod db;
 pub mod fs;
@@ -18,6 +19,7 @@ pub mod math;
 pub mod net;
 pub mod stats;
 pub mod ws;
+
 
 use liphia_virtual_machine::vm::VM;
 

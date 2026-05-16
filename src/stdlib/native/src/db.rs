@@ -35,18 +35,13 @@
 //   pg_rollback(handle: int)               → bool
 //   pg_close(handle: int)                  → bool
 //   pg_error(handle: int)                  → str
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-
 use rusqlite::{Connection as SqliteConnection, types::ValueRef};
-
 use liphia_virtual_machine::value::Value;
 use liphia_virtual_machine::vm::{VmError, VmResult, VM};
-
 // ── Registration ──────────────────────────────────────────────────────────────
-
 pub fn register(vm: &mut VM) {
     // SQLite
     vm.register_native("db_open",        native_db_open);
@@ -74,17 +69,14 @@ pub fn register(vm: &mut VM) {
     vm.register_native("pg_close",       native_pg_close);
     vm.register_native("pg_error",       native_pg_error);
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Connection registry
 // ─────────────────────────────────────────────────────────────────────────────
-
 thread_local! {
     static SQLITE_CONNS: RefCell<HashMap<i64, SqliteConn>> = RefCell::new(HashMap::new());
     static PG_CONNS:     RefCell<HashMap<i64, PgConn>>     = RefCell::new(HashMap::new());
     static NEXT_HANDLE:  RefCell<i64>                      = RefCell::new(1);
 }
-
 fn alloc_handle() -> i64 {
     NEXT_HANDLE.with(|h| {
         let mut h = h.borrow_mut();
@@ -93,18 +85,15 @@ fn alloc_handle() -> i64 {
         id
     })
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // SQLite connection wrapper
 // ─────────────────────────────────────────────────────────────────────────────
-
 struct SqliteConn {
     conn:       SqliteConnection,
     last_id:    i64,
     last_error: String,
     in_txn:     bool,
 }
-
 impl SqliteConn {
     fn open(path: &str) -> Result<Self, String> {
         let conn = SqliteConnection::open(path)
@@ -114,7 +103,6 @@ impl SqliteConn {
             .map_err(|e| e.to_string())?;
         Ok(Self { conn, last_id: 0, last_error: String::new(), in_txn: false })
     }
-
     fn open_memory() -> Result<Self, String> {
         let conn = SqliteConnection::open_in_memory()
             .map_err(|e| e.to_string())?;
@@ -123,9 +111,7 @@ impl SqliteConn {
         Ok(Self { conn, last_id: 0, last_error: String::new(), in_txn: false })
     }
 }
-
 // ── Value conversion ──────────────────────────────────────────────────────────
-
 fn sqlite_value_to_liphia(val: ValueRef) -> Value {
     match val {
         ValueRef::Null        => Value::Null,
@@ -139,21 +125,16 @@ fn sqlite_value_to_liphia(val: ValueRef) -> Value {
         )),
     }
 }
-
 // ── Helper: run a SELECT and return flat list [col, val, col, val, ...] ───────
-
 fn sqlite_query_flat(conn: &SqliteConn, sql: &str) -> Result<Value, String> {
     let mut stmt = conn.conn.prepare(sql)
         .map_err(|e| e.to_string())?;
-
     let col_names: Vec<String> = stmt.column_names()
         .iter()
         .map(|s| s.to_string())
         .collect();
-
     let col_count = col_names.len();
     let mut flat  = vec![];
-
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
     while let Some(row) = rows.next().map_err(|e| e.to_string())? {
         for i in 0..col_count {
@@ -161,24 +142,18 @@ fn sqlite_query_flat(conn: &SqliteConn, sql: &str) -> Result<Value, String> {
             flat.push(sqlite_value_to_liphia(row.get_ref(i).unwrap_or(ValueRef::Null)));
         }
     }
-
     Ok(Value::List(Rc::new(RefCell::new(flat))))
 }
-
 // ── Helper: run a SELECT and return list of flat-row lists ────────────────────
-
 fn sqlite_query_rows(conn: &SqliteConn, sql: &str) -> Result<Value, String> {
     let mut stmt = conn.conn.prepare(sql)
         .map_err(|e| e.to_string())?;
-
     let col_names: Vec<String> = stmt.column_names()
         .iter()
         .map(|s| s.to_string())
         .collect();
-
     let col_count = col_names.len();
     let mut result_rows = vec![];
-
     let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
     while let Some(row) = rows.next().map_err(|e| e.to_string())? {
         let mut flat_row = vec![];
@@ -188,14 +163,11 @@ fn sqlite_query_rows(conn: &SqliteConn, sql: &str) -> Result<Value, String> {
         }
         result_rows.push(Value::List(Rc::new(RefCell::new(flat_row))));
     }
-
     Ok(Value::List(Rc::new(RefCell::new(result_rows))))
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // SQLite native functions
 // ─────────────────────────────────────────────────────────────────────────────
-
 fn native_db_open(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 1 {
         return Err(VmError::new("db_open(path: str) — expected 1 argument"));
@@ -207,7 +179,6 @@ fn native_db_open(args: Vec<Value>) -> VmResult<Value> {
     SQLITE_CONNS.with(|c| c.borrow_mut().insert(handle, conn));
     Ok(Value::Int(handle))
 }
-
 fn native_db_open_memory(_args: Vec<Value>) -> VmResult<Value> {
     let conn = SqliteConn::open_memory()
         .map_err(|e| VmError::new(format!("db_open_memory: {}", e)))?;
@@ -215,25 +186,21 @@ fn native_db_open_memory(_args: Vec<Value>) -> VmResult<Value> {
     SQLITE_CONNS.with(|c| c.borrow_mut().insert(handle, conn));
     Ok(Value::Int(handle))
 }
-
 fn native_db_close(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_close")?;
     let removed = SQLITE_CONNS.with(|c| c.borrow_mut().remove(&handle).is_some());
     Ok(Value::Bool(removed))
 }
-
 fn native_db_exec(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("db_exec(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "db_exec")?;
     let sql    = str_arg(&args[1], "db_exec")?;
-
     SQLITE_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("db_exec: invalid handle {}", handle)))?;
-
         match conn.conn.execute(&sql, []) {
             Ok(affected) => {
                 conn.last_id    = conn.conn.last_insert_rowid();
@@ -247,45 +214,38 @@ fn native_db_exec(args: Vec<Value>) -> VmResult<Value> {
         }
     })
 }
-
 fn native_db_query(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("db_query(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "db_query")?;
     let sql    = str_arg(&args[1], "db_query")?;
-
     SQLITE_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("db_query: invalid handle {}", handle)))?;
-
         sqlite_query_flat(conn, &sql).map_err(|e| {
             conn.last_error = e.clone();
             VmError::new(format!("db_query: {}", e))
         })
     })
 }
-
 fn native_db_query_rows(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("db_query_rows(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "db_query_rows")?;
     let sql    = str_arg(&args[1], "db_query_rows")?;
-
     SQLITE_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("db_query_rows: invalid handle {}", handle)))?;
-
         sqlite_query_rows(conn, &sql).map_err(|e| {
             conn.last_error = e.clone();
             VmError::new(format!("db_query_rows: {}", e))
         })
     })
 }
-
 fn native_db_last_id(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_last_id")?;
     SQLITE_CONNS.with(|c| {
@@ -295,7 +255,6 @@ fn native_db_last_id(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Int(conn.last_id))
     })
 }
-
 fn native_db_begin(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_begin")?;
     SQLITE_CONNS.with(|c| {
@@ -308,7 +267,6 @@ fn native_db_begin(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_db_commit(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_commit")?;
     SQLITE_CONNS.with(|c| {
@@ -321,7 +279,6 @@ fn native_db_commit(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_db_rollback(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_rollback")?;
     SQLITE_CONNS.with(|c| {
@@ -334,7 +291,6 @@ fn native_db_rollback(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_db_error(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_error")?;
     SQLITE_CONNS.with(|c| {
@@ -344,7 +300,6 @@ fn native_db_error(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Str(Rc::new(conn.last_error.clone())))
     })
 }
-
 fn native_db_tables(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "db_tables")?;
     SQLITE_CONNS.with(|c| {
@@ -357,7 +312,6 @@ fn native_db_tables(args: Vec<Value>) -> VmResult<Value> {
         Ok(result)
     })
 }
-
 fn native_db_columns(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("db_columns(handle: int, table: str) — expected 2 arguments"));
@@ -374,7 +328,6 @@ fn native_db_columns(args: Vec<Value>) -> VmResult<Value> {
         Ok(result)
     })
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // PostgreSQL — wire protocol v3 (pure TCP, no external crate)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -386,19 +339,15 @@ fn native_db_columns(args: Vec<Value>) -> VmResult<Value> {
 //   - Handle CommandComplete and ErrorResponse
 //
 // Does NOT support: TLS, SCRAM, prepared statements, COPY, streaming replication.
-// For production use, add the `postgres` crate later.
-
+// For production use, add the postgres crate later.
 use std::io::{Read, Write};
 use std::net::TcpStream;
-
 struct PgConn {
     stream:     TcpStream,
     last_id:    i64,
     last_error: String,
 }
-
 // ── Protocol helpers ──────────────────────────────────────────────────────────
-
 fn pg_write_startup(stream: &mut TcpStream, user: &str, db: &str) -> Result<(), String> {
     // StartupMessage: length(4) + protocol(4) + "user\0<user>\0database\0<db>\0\0"
     let mut payload = vec![];
@@ -410,13 +359,11 @@ fn pg_write_startup(stream: &mut TcpStream, user: &str, db: &str) -> Result<(), 
     payload.extend_from_slice(db.as_bytes());
     payload.push(0);
     payload.push(0); // terminator
-
     let len = (payload.len() + 4) as u32;
     stream.write_all(&len.to_be_bytes()).map_err(|e| e.to_string())?;
     stream.write_all(&payload).map_err(|e| e.to_string())?;
     Ok(())
 }
-
 fn pg_read_msg(stream: &mut TcpStream) -> Result<(u8, Vec<u8>), String> {
     let mut tag = [0u8; 1];
     stream.read_exact(&mut tag).map_err(|e| e.to_string())?;
@@ -428,7 +375,6 @@ fn pg_read_msg(stream: &mut TcpStream) -> Result<(u8, Vec<u8>), String> {
     stream.read_exact(&mut body).map_err(|e| e.to_string())?;
     Ok((tag[0], body))
 }
-
 fn pg_write_msg(stream: &mut TcpStream, tag: u8, body: &[u8]) -> Result<(), String> {
     stream.write_all(&[tag]).map_err(|e| e.to_string())?;
     let len = (body.len() + 4) as u32;
@@ -436,28 +382,23 @@ fn pg_write_msg(stream: &mut TcpStream, tag: u8, body: &[u8]) -> Result<(), Stri
     stream.write_all(body).map_err(|e| e.to_string())?;
     Ok(())
 }
-
 fn pg_send_password(stream: &mut TcpStream, password: &str) -> Result<(), String> {
     let mut body = password.as_bytes().to_vec();
     body.push(0);
     pg_write_msg(stream, b'p', &body)
 }
-
 fn pg_send_query(stream: &mut TcpStream, sql: &str) -> Result<(), String> {
     let mut body = sql.as_bytes().to_vec();
     body.push(0);
     pg_write_msg(stream, b'Q', &body)
 }
-
 fn pg_connect_inner(host: &str, port: u16, user: &str, password: &str, db: &str)
     -> Result<TcpStream, String>
 {
     let addr = format!("{}:{}", host, port);
     let mut stream = TcpStream::connect(&addr)
         .map_err(|e| format!("pg_connect: cannot connect to {}: {}", addr, e))?;
-
     pg_write_startup(&mut stream, user, db)?;
-
     // Auth handshake
     loop {
         let (tag, body) = pg_read_msg(&mut stream)?;
@@ -487,10 +428,8 @@ fn pg_connect_inner(host: &str, port: u16, user: &str, password: &str, db: &str)
             _    => {}     // ignore unknown
         }
     }
-
     Ok(stream)
 }
-
 fn pg_error_message(body: &[u8]) -> String {
     // ErrorResponse fields: byte(field_type) + str(value) + \0, terminated by \0
     let mut msg = String::new();
@@ -509,18 +448,14 @@ fn pg_error_message(body: &[u8]) -> String {
     }
     msg
 }
-
 // ── Execute a simple query; returns (affected_rows, col_names, data_rows) ─────
-
 fn pg_simple_query(stream: &mut TcpStream, sql: &str)
     -> Result<(i64, Vec<String>, Vec<Vec<Option<String>>>), String>
 {
     pg_send_query(stream, sql)?;
-
     let mut col_names: Vec<String> = vec![];
     let mut data_rows: Vec<Vec<Option<String>>> = vec![];
     let mut affected: i64 = 0;
-
     loop {
         let (tag, body) = pg_read_msg(stream)?;
         match tag {
@@ -582,12 +517,9 @@ fn pg_simple_query(stream: &mut TcpStream, sql: &str)
             _    => {}
         }
     }
-
     Ok((affected, col_names, data_rows))
 }
-
 // ── Rows to flat Liphia list ──────────────────────────────────────────────────
-
 fn pg_rows_to_flat(col_names: &[String], data_rows: &[Vec<Option<String>>]) -> Value {
     let mut flat = vec![];
     for row in data_rows {
@@ -603,7 +535,6 @@ fn pg_rows_to_flat(col_names: &[String], data_rows: &[Vec<Option<String>>]) -> V
     }
     Value::List(Rc::new(RefCell::new(flat)))
 }
-
 fn pg_rows_to_row_list(col_names: &[String], data_rows: &[Vec<Option<String>>]) -> Value {
     let mut rows = vec![];
     for row in data_rows {
@@ -621,9 +552,7 @@ fn pg_rows_to_row_list(col_names: &[String], data_rows: &[Vec<Option<String>>]) 
     }
     Value::List(Rc::new(RefCell::new(rows)))
 }
-
 // ── PostgreSQL native functions ───────────────────────────────────────────────
-
 fn native_pg_connect(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 5 {
         return Err(VmError::new(
@@ -635,10 +564,8 @@ fn native_pg_connect(args: Vec<Value>) -> VmResult<Value> {
     let user = str_arg(&args[2], "pg_connect")?;
     let pass = str_arg(&args[3], "pg_connect")?;
     let db   = str_arg(&args[4], "pg_connect")?;
-
     let stream = pg_connect_inner(&host, port, &user, &pass, &db)
         .map_err(|e| VmError::new(e))?;
-
     let handle = alloc_handle();
     PG_CONNS.with(|c| c.borrow_mut().insert(handle, PgConn {
         stream,
@@ -647,19 +574,16 @@ fn native_pg_connect(args: Vec<Value>) -> VmResult<Value> {
     }));
     Ok(Value::Int(handle))
 }
-
 fn native_pg_exec(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("pg_exec(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "pg_exec")?;
     let sql    = str_arg(&args[1], "pg_exec")?;
-
     PG_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("pg_exec: invalid handle {}", handle)))?;
-
         match pg_simple_query(&mut conn.stream, &sql) {
             Ok((affected, _, _)) => {
                 conn.last_error = String::new();
@@ -672,19 +596,16 @@ fn native_pg_exec(args: Vec<Value>) -> VmResult<Value> {
         }
     })
 }
-
 fn native_pg_query(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("pg_query(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "pg_query")?;
     let sql    = str_arg(&args[1], "pg_query")?;
-
     PG_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("pg_query: invalid handle {}", handle)))?;
-
         match pg_simple_query(&mut conn.stream, &sql) {
             Ok((_, cols, rows)) => {
                 conn.last_error = String::new();
@@ -697,19 +618,16 @@ fn native_pg_query(args: Vec<Value>) -> VmResult<Value> {
         }
     })
 }
-
 fn native_pg_query_rows(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
         return Err(VmError::new("pg_query_rows(handle: int, sql: str) — expected 2 arguments"));
     }
     let handle = int_arg(&args, 0, "pg_query_rows")?;
     let sql    = str_arg(&args[1], "pg_query_rows")?;
-
     PG_CONNS.with(|c| {
         let mut map = c.borrow_mut();
         let conn = map.get_mut(&handle)
             .ok_or_else(|| VmError::new(format!("pg_query_rows: invalid handle {}", handle)))?;
-
         match pg_simple_query(&mut conn.stream, &sql) {
             Ok((_, cols, rows)) => {
                 conn.last_error = String::new();
@@ -722,7 +640,6 @@ fn native_pg_query_rows(args: Vec<Value>) -> VmResult<Value> {
         }
     })
 }
-
 fn native_pg_last_id(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_last_id")?;
     PG_CONNS.with(|c| {
@@ -732,7 +649,6 @@ fn native_pg_last_id(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Int(conn.last_id))
     })
 }
-
 fn native_pg_begin(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_begin")?;
     PG_CONNS.with(|c| {
@@ -744,7 +660,6 @@ fn native_pg_begin(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_pg_commit(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_commit")?;
     PG_CONNS.with(|c| {
@@ -756,7 +671,6 @@ fn native_pg_commit(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_pg_rollback(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_rollback")?;
     PG_CONNS.with(|c| {
@@ -768,7 +682,6 @@ fn native_pg_rollback(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(true))
     })
 }
-
 fn native_pg_close(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_close")?;
     // Send Terminate message before dropping
@@ -781,7 +694,6 @@ fn native_pg_close(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Bool(removed))
     })
 }
-
 fn native_pg_error(args: Vec<Value>) -> VmResult<Value> {
     let handle = int_arg(&args, 0, "pg_error")?;
     PG_CONNS.with(|c| {
@@ -791,18 +703,15 @@ fn native_pg_error(args: Vec<Value>) -> VmResult<Value> {
         Ok(Value::Str(Rc::new(conn.last_error.clone())))
     })
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
 fn str_arg(val: &Value, ctx: &str) -> VmResult<String> {
     match val {
         Value::Str(s) => Ok(s.as_str().to_string()),
         _ => Err(VmError::new(format!("{}: argument must be str", ctx))),
     }
 }
-
 fn int_arg(args: &[Value], idx: usize, ctx: &str) -> VmResult<i64> {
     match args.get(idx) {
         Some(Value::Int(n)) => Ok(*n),

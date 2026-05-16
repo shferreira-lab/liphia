@@ -1,0 +1,8 @@
+[package]
+name    = "math_stats"
+version = "0.1.0"
+
+[dependencies]
+stats = "latest"
+math = "latest"
+# liphia install <module> adds entries here automatically

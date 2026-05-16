@@ -1,38 +1,207 @@
 # stdlib/lph/stats.lph
-# Statistical functions for lists — all implemented natively in Rust (stdlib/native/src/stats.rs).
-
-# ── Available functions ───────────────────────────────────────────────────────
+# Statistical functions for lists — implemented natively in Rust (stdlib/native/src/stats.rs).
+# p-value functions use the internal CDF module (stdlib/native/src/cdf.rs).
+#
+# ── Original functions ────────────────────────────────────────────────────────
 #
 # sum(data: list) -> float
-#   Sum of all elements. List must contain int or float.
-#
 # mean(data: list) -> float
-#   Arithmetic mean.
-#
 # min_list(data: list) -> float
-#   Minimum value in list.
-#
 # max_list(data: list) -> float
-#   Maximum value in list.
 #
 # median(data: list) -> float
-#   Median value (middle element when sorted).
-#   For even-length lists, returns average of two middle values.
+#   For even-length lists returns average of two middle values.
 #
 # variance(data: list) -> float
-#   Population variance.
+#   Population variance (divides by n).
+#   Use variance_sample() when working with a sample, not the full population.
 #
 # stdev(data: list) -> float
-#   Population standard deviation.
+#   Population standard deviation (divides by n).
 #
 # count(data: list) -> int
-#   Number of elements. Same as len() for lists.
 #
-# ── Example ───────────────────────────────────────────────────────────────────
+# ── Sample statistics (Bessel-corrected, divides by n-1) ─────────────────────
 #
-#   import "stats.lph"
+# variance_sample(data: list) -> float
+#   Sample variance. Requires >= 2 elements.
 #
-#   var data: list = [4.0, 7.0, 13.0, 2.0, 1.0]
-#   print("mean:   ", mean(data))
-#   print("stdev:  ", stdev(data))
-#   print("median: ", median(data))
+# stdev_sample(data: list) -> float
+#   Sample standard deviation. Requires >= 2 elements.
+#
+# ── Descriptive / shape ───────────────────────────────────────────────────────
+#
+# percentile(data: list, p: float) -> float
+#   p-th percentile, p in [0.0, 100.0]. Linear interpolation (same as NumPy).
+#   percentile(data, 25.0)  →  Q1
+#   percentile(data, 50.0)  →  same as median()
+#   percentile(data, 75.0)  →  Q3
+#
+# iqr(data: list) -> float
+#   Interquartile range: Q3 - Q1.
+#
+# zscore(data: list) -> list
+#   Returns a new list of z-scores: z_i = (x_i - mean) / stdev_sample.
+#   Requires >= 2 elements and non-zero standard deviation.
+#
+# covariance(x: list, y: list) -> float
+#   Sample covariance of two equal-length lists.
+#
+# mode(data: list) -> float
+#   Most frequent value. On ties returns the first one found.
+#
+# range_stat(data: list) -> float
+#   Range: max - min.
+#
+# ── Correlation ───────────────────────────────────────────────────────────────
+#
+# pearson_r(x: list, y: list) -> float     result ∈ [-1, 1]
+#   Pearson product-moment correlation.
+#   Measures linear association. Assumes continuous, roughly normal data.
+#   Both lists must have equal length >= 2.
+#
+# spearman_r(x: list, y: list) -> float    result ∈ [-1, 1]
+#   Spearman rank correlation.
+#   Non-parametric. Works on ordinal data or monotone non-linear relations.
+#   Both lists must have equal length >= 2.
+#
+# kendall_tau(x: list, y: list) -> float   result ∈ [-1, 1]
+#   Kendall τ-b rank correlation.
+#   Corrects for ties in both x and y — consistent with SciPy, R, and SPSS.
+#   More robust than Spearman for small samples or many ties.
+#   Both lists must have equal length >= 2.
+#
+# ── Two-sample test statistics (no p-value) ───────────────────────────────────
+#
+# Use these when you want to inspect the raw statistic or look it up
+# in a printed critical-value table.  For direct p-values see the section below.
+#
+# t_stat_independent(a: list, b: list) -> float
+#   Welch's t statistic for two independent groups (unequal variance assumed).
+#   Groups may have different sizes.  Each group needs >= 2 elements.
+#
+# t_degrees_of_freedom(a: list, b: list) -> float
+#   Welch–Satterthwaite degrees of freedom for the above.
+#   Use together with t_stat_independent() to look up a t-table.
+#
+# t_stat_paired(a: list, b: list) -> float
+#   Paired t statistic (before/after, matched subjects).
+#   Both lists must have equal length >= 2.  df = len(a) - 1.
+#   Note: when all differences are identical the sample variance approaches
+#   zero and t grows very large (mathematically correct, not a bug).
+#
+# mann_whitney_u(a: list, b: list) -> float
+#   Mann-Whitney U statistic (smaller of U1 and U2).
+#   Non-parametric test for two independent groups; no normality assumption.
+#   For small samples compare against a Mann-Whitney critical-value table.
+#   For min(n1,n2) > 10, use p_value_mann_whitney() for a direct p-value.
+#
+# wilcoxon_w(a: list, b: list) -> float
+#   Wilcoxon signed-rank W statistic (sum of positive ranks of a-b differences).
+#   Non-parametric alternative to the paired t-test.
+#   Both lists must have equal length >= 2.  Zero differences are excluded.
+#
+# ── Normality ─────────────────────────────────────────────────────────────────
+#
+# shapiro_wilk_w(data: list) -> float      result ∈ (0, 1]
+#   Shapiro-Wilk W statistic.
+#   W close to 1  →  data is consistent with normality.
+#   W much less than 1  →  evidence against normality.
+#   Approximate implementation (probit-based coefficients), reliable for
+#   n in [3, 50]. Results may differ slightly from SciPy/R which use the
+#   exact tabled coefficients of Shapiro & Wilk (1965).
+#   Run this BEFORE choosing between parametric and non-parametric tests.
+#
+# ── p-values ──────────────────────────────────────────────────────────────────
+#
+# All p-value functions return two-tailed p-values.
+# Convention: p < 0.05 → significant at 5 % level.
+#
+# p_value_t_ind(a: list, b: list) -> float
+#   Two-tailed p-value for the independent-samples Welch t-test.
+#   Uses the t CDF with Welch–Satterthwaite degrees of freedom.
+#   Each group needs >= 2 elements.
+#
+# p_value_t_paired(a: list, b: list) -> float
+#   Two-tailed p-value for the paired t-test.
+#   Both lists must have equal length >= 2.
+#
+# p_value_normal(z: float) -> float
+#   Two-tailed p-value for a z-score under the standard normal.
+#   p = P(|Z| >= |z|) = 2 * (1 - Φ(|z|))
+#   Useful for large-sample approximations (e.g. after standardising a statistic).
+#
+# p_value_mann_whitney(a: list, b: list) -> float
+#   Two-tailed p-value for Mann-Whitney U via the normal approximation
+#   (includes continuity correction).
+#   Requires min(n1, n2) > 10.  For smaller samples use mann_whitney_u()
+#   with a printed critical-value table.
+#
+# ── Decision guide ────────────────────────────────────────────────────────────
+#
+#   Step 1 — check normality:
+#     w: float = shapiro_wilk_w(group_a)
+#     # W > ~0.95 and n small → assume normal
+#
+#   Step 2a — normal, independent groups:
+#     p: float = p_value_t_ind(group_a, group_b)
+#
+#   Step 2b — normal, paired/repeated:
+#     p: float = p_value_t_paired(before, after)
+#
+#   Step 3a — non-normal or ordinal, independent:
+#     p: float = p_value_mann_whitney(group_a, group_b)  # n > 10
+#     # or for small n:
+#     u: float = mann_whitney_u(group_a, group_b)        # look up table
+#
+#   Step 3b — non-normal or ordinal, paired:
+#     w: float = wilcoxon_w(before, after)               # look up table
+#
+#   Step 4 — association:
+#     r: float = pearson_r(x, y)    # linear, continuous
+#     r: float = spearman_r(x, y)   # monotone, ordinal
+#     t: float = kendall_tau(x, y)  # small n, many ties
+#
+# ── Examples ──────────────────────────────────────────────────────────────────
+#
+#   import from "stats"
+#
+#   control:   list = [5.1, 4.8, 5.3, 4.9, 5.0, 5.2, 4.7, 5.1, 4.9, 5.0, 5.3, 4.8, 5.1, 4.9, 5.2]
+#   treatment: list = [6.2, 5.9, 6.5, 6.1, 6.3, 6.0, 6.4, 6.2, 5.8, 6.3, 6.1, 6.4, 6.2, 6.0, 6.3]
+#
+#   # 1. Normality
+#   w_c: float = shapiro_wilk_w(control)
+#   w_t: float = shapiro_wilk_w(treatment)
+#   print("Shapiro-Wilk control:   ", w_c)
+#   print("Shapiro-Wilk treatment: ", w_t)
+#
+#   # 2. Descriptives
+#   print("mean control:   ", mean(control))
+#   print("mean treatment: ", mean(treatment))
+#   print("stdev (sample): ", stdev_sample(control))
+#   print("median control: ", median(control))
+#   print("IQR control:    ", iqr(control))
+#
+#   # 3. Independent t-test (parametric)
+#   p_t: float = p_value_t_ind(control, treatment)
+#   print("p-value t-test: ", p_t)     # expect p << 0.05
+#
+#   # 4. Mann-Whitney (non-parametric, n=15 each → ok for normal approx)
+#   p_u: float = p_value_mann_whitney(control, treatment)
+#   print("p-value Mann-Whitney: ", p_u)
+#
+#   # 5. Correlation
+#   x: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+#   y: list = [2.1, 3.9, 6.2, 7.8, 10.1]
+#   print("Pearson r:    ", pearson_r(x, y))
+#   print("Spearman rho: ", spearman_r(x, y))
+#   print("Kendall tau:  ", kendall_tau(x, y))
+#
+#   # 6. z-score
+#   z: list = zscore(control)
+#   print("z-scores: ", z)
+#
+#   # 7. Percentiles
+#   print("Q1:     ", percentile(control, 25.0))
+#   print("Q3:     ", percentile(control, 75.0))
+#   print("90th:   ", percentile(control, 90.0))

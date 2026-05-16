@@ -211,8 +211,7 @@ fn send_response(status: i64, body: &str, content_type: &str) -> VmResult<Value>
          Connection: close\r\n\r\n{}",
         status, reason, content_type, body.len(), body
     );
-
-    CURRENT.with(|c| {
+    let result = CURRENT.with(|c| {
         let mut opt = c.borrow_mut();
         if let Some(ref mut req) = *opt {
             req.stream
@@ -224,8 +223,15 @@ fn send_response(status: i64, body: &str, content_type: &str) -> VmResult<Value>
                 "http_respond: no active request — call http_accept first",
             ))
         }
-    })
+    });
+   
+    if result.is_ok() {
+        CURRENT.with(|c| *c.borrow_mut() = None);
+    }
+
+    result
 }
+
 
 fn native_http_respond(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
