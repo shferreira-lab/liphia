@@ -1,6 +1,6 @@
 [module]
 name        = "db"
-version     = "1.0.0"
+version     = "1.0.2"
 description = "Database driver for Liphia — SQLite (embedded, zero dependencies) and PostgreSQL (pure TCP wire protocol)"
 native      = true
 

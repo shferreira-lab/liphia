@@ -4,6 +4,7 @@
 > Created by Sergio H. Ferreira — started in late 2025.
 
 [![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Compiler](https://img.shields.io/badge/compiler-0.9.1-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
@@ -61,14 +62,19 @@ liphia/
 ├── src/
 │   ├── liphia_engine/
 │   │   └── crates/
-│   │       ├── liphia_cli/        # CLI runner + REPL shell
-│   │       ├── liphia_compiler/   # lexer, parser, AST, bytecode compiler
-│   │       ├── liphia_core_native/# core string, list and value utilities
-│   │       └── liphia_virtual_machine/ # bytecode VM
+│   │       ├── liphia_cli/                 # CLI runner + REPL shell
+│   │       ├── liphia_compiler/            # lexer, parser, AST, bytecode compiler
+│   │       ├── liphia_core_native/         # core string, list and value utilities
+│   │       └── liphia_virtual_machine/     # bytecode VM
 │   │
 │   ├── stdlib/
 │   │   ├── modules/               # .lph modules (import from "...")
 │   │   └── native/                # Rust native stdlib bindings
+│   │       └── src/
+│   │           ├── cdf.rs         # internal CDF / special functions (not exported)
+│   │           ├── math.rs
+│   │           ├── stats.rs
+│   │           └── ...
 │   │
 │   ├── tests/                     # tests and benchmarks
 │   └── tools/
@@ -173,11 +179,11 @@ Creates `liphia.toml` in the current directory.
 **Install a module:**
 
 ```bash
-liphia install ai
-liphia install math fs json
+liphia install math
+liphia install stats fs json
 ```
 
-Downloads the module from the Liphia registry into `liphia_modules/` — similar to `npm install`.
+Downloads the module from the Liphia registry into `liphia_modules/`.
 
 **Install all dependencies from `liphia.toml`:**
 
@@ -196,8 +202,8 @@ Available modules: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db
 Once installed, import in your `.lph` file:
 
 ```lph
-import from "ai"
 import from "math"
+import from "stats"
 ```
 
 ---
@@ -519,7 +525,7 @@ These functions are always available — no import required.
 | Function          | Returns | Description                    |
 |-------------------|---------|--------------------------------|
 | `len(list)`       | `int`   | Number of elements             |
-| `append(list, v)` | `null`  | Add element to end (in-place)  |
+| `append(list, v)` | `void`  | Add element to end (in-place)  |
 | `pop(list)`       | `any`   | Remove and return last element |
 | `keys(list)`      | `list`  | Returns list of indices [0..n] |
 
@@ -529,6 +535,171 @@ These functions are always available — no import required.
 
 Install modules with `liphia install <name>`.
 All stdlib functions are native — implemented in Rust and compiled into the CLI binary.
+
+---
+
+### `math` — mathematical functions
+
+```bash
+liphia install math
+```
+
+```lph
+import from "math"
+
+# basics
+print(sqrt(16.0))           # 4.0
+print(pow(2.0, 10.0))       # 1024.0
+print(abs(-7))              # 7
+print(floor(3.9))           # 3
+print(ceil(3.1))            # 4
+print(round(3.5))           # 4
+print(min(3, 7))            # 3
+print(max(3.5, 2.1))        # 3.5
+print(pi())                 # 3.141592653589793
+print(e())                  # 2.718281828459045
+
+# logarithm / exponential
+print(log(e()))             # 1.0
+print(log10(100.0))         # 2.0
+print(log2(1024.0))         # 10.0
+print(log_base(8.0, 2.0))   # 3.0
+print(exp(1.0))             # 2.718281828459045
+
+# trigonometry
+print(sin(0.0))             # 0.0
+print(cos(0.0))             # 1.0
+print(tan(0.0))             # 0.0
+print(asin(1.0))            # 1.5707963... (π/2)
+print(acos(1.0))            # 0.0
+print(atan(1.0))            # 0.7853981... (π/4)
+print(atan2(1.0, 1.0))      # 0.7853981... (π/4)
+
+# hyperbolic
+print(sinh(1.0))            # 1.1752011...
+print(cosh(1.0))            # 1.5430806...
+print(tanh(1.0))            # 0.7615941...
+
+# number theory
+print(factorial(10))        # 3628800
+print(gcd(48, 18))          # 6
+print(lcm(4, 6))            # 12
+
+# geometry / angle conversion
+print(hypot(3.0, 4.0))      # 5.0
+print(deg_to_rad(180.0))    # 3.141592653589793
+print(rad_to_deg(pi()))     # 180.0
+
+# utilities
+print(sign(-7.5))           # -1
+print(clamp(15.0, 0.0, 10.0)) # 10.0
+print(is_nan(0.0))          # false
+print(is_inf(0.0))          # false
+```
+
+**Full function list:**
+
+| Category            | Functions |
+|---------------------|-----------|
+| Basic               | `sqrt`, `pow`, `abs`, `floor`, `ceil`, `round`, `min`, `max` |
+| Constants           | `pi`, `e` |
+| Logarithm / exp     | `log`, `log10`, `log2`, `log_base`, `exp` |
+| Trigonometry        | `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2` |
+| Hyperbolic          | `sinh`, `cosh`, `tanh` |
+| Number theory       | `factorial`, `gcd`, `lcm` |
+| Geometry            | `hypot`, `deg_to_rad`, `rad_to_deg` |
+| Utilities           | `sign`, `clamp`, `is_nan`, `is_inf` |
+
+---
+
+### `stats` — statistical functions
+
+```bash
+liphia install stats
+```
+
+```lph
+import from "stats"
+
+var data: list = [4.0, 7.0, 13.0, 2.0, 1.0]
+
+# descriptives
+print(sum(data))              # 27.0
+print(mean(data))             # 5.4
+print(median(data))           # 4.0
+print(stdev(data))            # 4.029...  (population)
+print(stdev_sample(data))     # 4.827...  (sample, n-1)
+print(variance(data))         # 16.24
+print(variance_sample(data))  # 23.3
+print(min_list(data))         # 1.0
+print(max_list(data))         # 13.0
+print(count(data))            # 5
+print(mode(data))             # most frequent value
+print(range_stat(data))       # 12.0
+
+# percentiles and spread
+var d: list = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+print(percentile(d, 25.0))    # 3.25  (Q1)
+print(percentile(d, 75.0))    # 7.75  (Q3)
+print(iqr(d))                 # 4.5
+
+# normalisation
+var z: list = zscore(data)    # list of z-scores
+print(covariance(d, d))       # same as variance_sample(d)
+
+# correlation
+var x: list = [1.0, 2.0, 3.0, 4.0, 5.0]
+var y: list = [2.1, 3.9, 6.2, 7.8, 10.1]
+print(pearson_r(x, y))        # ≈ 0.999  (strong linear)
+print(spearman_r(x, y))       # ≈ 1.0   (perfectly monotone)
+print(kendall_tau(x, y))      # ≈ 1.0
+
+# normality check (run before choosing test)
+var w: float = shapiro_wilk_w(data)
+print(w)                      # W close to 1 → consistent with normal
+
+# hypothesis tests — two independent groups
+var ctrl:  list = [5.1, 4.9, 5.0, 5.2, 4.8, 5.1, 4.9, 5.0, 5.1, 4.8]
+var treat: list = [6.2, 6.0, 6.3, 6.1, 5.9, 6.4, 6.2, 6.1, 6.3, 6.0]
+
+var p: float = p_value_t_ind(ctrl, treat)
+print("p-value (t-test): ", p)          # ≈ 0.000 → significant
+
+var u: float = mann_whitney_u(ctrl, treat)
+print("Mann-Whitney U: ", u)            # 0.0 → complete separation
+
+# hypothesis tests — paired
+var before: list = [200.0, 212.0, 195.0, 208.0, 220.0]
+var after:  list = [185.0, 198.0, 180.0, 192.0, 205.0]
+
+var p2: float = p_value_t_paired(before, after)
+print("p-value (paired t): ", p2)       # ≈ 0.000
+
+var w2: float = wilcoxon_w(before, after)
+print("Wilcoxon W: ", w2)               # 15.0 (all diffs positive)
+
+# p-value from a z-score
+print(p_value_normal(1.96))             # ≈ 0.05
+```
+
+**Full function list:**
+
+| Category              | Functions |
+|-----------------------|-----------|
+| Descriptive           | `sum`, `mean`, `median`, `min_list`, `max_list`, `count`, `mode`, `range_stat` |
+| Variance / spread     | `variance`, `stdev`, `variance_sample`, `stdev_sample`, `percentile`, `iqr` |
+| Normalisation         | `zscore`, `covariance` |
+| Correlation           | `pearson_r`, `spearman_r`, `kendall_tau` |
+| Test statistics       | `t_stat_independent`, `t_degrees_of_freedom`, `t_stat_paired`, `mann_whitney_u`, `wilcoxon_w` |
+| Normality             | `shapiro_wilk_w` |
+| p-values              | `p_value_t_ind`, `p_value_t_paired`, `p_value_normal`, `p_value_mann_whitney` |
+
+> **Note — p-values:** `p_value_t_ind` and `p_value_t_paired` use the t-distribution CDF
+> implemented in pure Rust (Lanczos log-gamma + Lentz continued fractions for the
+> incomplete beta, no external dependencies). `p_value_mann_whitney` uses the normal
+> approximation and requires `min(n1, n2) > 10`.
+
+---
 
 ### `ai` — machine learning primitives
 
@@ -541,20 +712,20 @@ import from "ai"
 
 # activations
 print(sigmoid(0.0))           # 0.5
-print(relu(-3.0))             # 0
+print(relu(-3.0))             # 0.0
 print(leaky_relu(-3.0, 0.01)) # -0.03
 print(gelu(1.0))              # 0.841...
 
 # vectors
 var a: list = [1.0, 2.0, 3.0]
 var b: list = [4.0, 5.0, 6.0]
-print(dot(a, b))              # 32
+print(dot(a, b))              # 32.0
 print(norm(a))                # 3.741...
 print(vec_add(a, b))          # [5, 7, 9]
 
 # preprocessing
-print(normalize([2.0, 4.0, 6.0, 8.0]))   # [0, 0.33, 0.66, 1]
-print(standardize([2.0, 4.0, 6.0, 8.0])) # zero mean, unit variance
+print(normalize([2.0, 4.0, 6.0, 8.0]))
+print(standardize([2.0, 4.0, 6.0, 8.0]))
 
 # loss functions
 var pred:   list = [0.9, 0.1, 0.8]
@@ -562,20 +733,17 @@ var target: list = [1.0, 0.0, 1.0]
 print(mse(pred, target))
 print(binary_cross_entropy(pred, target))
 
-# classification metrics
+# metrics
 print(accuracy(pred, target))
 print(f1_score(pred, target))
 
 # distances
-var u: list = [1.0, 0.0, 0.0]
-var v: list = [0.0, 1.0, 0.0]
-print(cosine_similarity(u, v))  # 0
-print(euclidean_dist(u, v))     # 1.414...
+print(cosine_similarity([1.0, 0.0], [0.0, 1.0]))  # 0.0
+print(euclidean_dist([1.0, 0.0], [0.0, 1.0]))     # 1.414...
 
 # random
 seed(42)
 var weights = rand_normal(8, 0.0, 0.1)
-print(weights)
 
 # optimization
 var w: list = [0.5, -0.3, 0.8]
@@ -594,36 +762,7 @@ Full function list: `sigmoid`, `relu`, `leaky_relu`, `tanh_act`, `elu`, `gelu`, 
 `accuracy`, `precision`, `recall`, `f1_score`,
 `cosine_similarity`, `euclidean_dist`, `manhattan_dist`.
 
-### `math` — mathematical functions
-
-```bash
-liphia install math
-```
-
-```lph
-import from "math"
-
-print(sqrt(16.0))    # 4
-print(pow(2.0, 8.0)) # 256
-print(pi())          # 3.14159...
-print(sin(0.0))      # 0
-print(log(1.0))      # 0
-```
-
-### `stats` — statistical functions
-
-```bash
-liphia install stats
-```
-
-```lph
-import from "stats"
-
-var data: list = [2.0, 4.0, 4.0, 5.0, 7.0, 9.0]
-print(mean(data))
-print(stdev(data))
-print(median(data))
-```
+---
 
 ### `fs` — file system
 
@@ -637,7 +776,10 @@ import from "fs"
 write_file("hello.txt", "Hello from Liphia!")
 var content = read_file("hello.txt")
 print(content)
+print(file_exists("hello.txt"))  # true
 ```
+
+---
 
 ### `json` — JSON encoding and decoding
 
@@ -653,6 +795,8 @@ print(json_get(raw, "name"))   # Alice
 print(json_has(raw, "email"))  # false
 ```
 
+---
+
 ### `db` — SQLite and PostgreSQL
 
 ```bash
@@ -664,13 +808,10 @@ import from "db"
 
 # SQLite — embedded, no installation required
 var conn: int = db_open("data.sqlite")
-var sql = "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)"
-db_exec(conn, sql)
+db_exec(conn, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
 db_exec(conn, "INSERT INTO users (name) VALUES ('Alice')")
 var rows = db_query_rows(conn, "SELECT * FROM users")
 print("rows:", len(rows))
-var last_id = db_last_id(conn)
-print("last id:", last_id)
 db_close(conn)
 
 # PostgreSQL — pure TCP wire protocol
@@ -679,6 +820,8 @@ pg_exec(pg, "INSERT INTO products (name) VALUES ('Widget')")
 var products = pg_query_rows(pg, "SELECT * FROM products")
 pg_close(pg)
 ```
+
+---
 
 ### `http` — HTTP server and client
 
@@ -699,12 +842,12 @@ async fn server_loop() -> void:
     while true:
         var got: bool = await http_accept()
         if got:
-            var method = http_method()
-            var path = http_path()
             http_respond_json(200, "{\"status\": \"ok\"}")
 
 spawn server_loop()
 ```
+
+---
 
 ### `ws` — WebSockets
 
@@ -721,6 +864,8 @@ async fn accept_loop() -> void:
     ws_send(client, "Welcome!")
     ws_broadcast("New client connected")
 ```
+
+---
 
 ### `net` — TCP/UDP sockets
 
@@ -744,6 +889,7 @@ tcp_close(conn)
 
 ```lph
 import from "math"
+import from "stats"
 import from "ai"
 
 print("=== Liphia Demo ===")
@@ -751,24 +897,37 @@ print("=== Liphia Demo ===")
 fn add(a: int, b: int) -> int:
     return a + b
 
-fn factorial(n: int) -> int:
+fn user_factorial(n: int) -> int:
     if n <= 1:
         return 1
-    return n * factorial(n - 1)
+    return n * user_factorial(n - 1)
 
 var x: int = add(10, 5)
 print("10 + 5 =", x)
-print("10! =", factorial(10))
+print("10! =", user_factorial(10))
 
-var values: list = [1, 2, 3, 4, 5]
-print("first =", values[0])
-print("last  =", values[-1])
-append(values, 6)
-print("length =", len(values))
-
+# math
 print("sqrt(144) =", sqrt(144.0))
 print("pi =", pi())
+print("log2(1024) =", log2(1024.0))
+print("hypot(3,4) =", hypot(3.0, 4.0))
+print("deg_to_rad(90) =", deg_to_rad(90.0))
 
+# stats
+var scores: list = [72.0, 85.0, 90.0, 68.0, 77.0, 95.0, 82.0]
+print("mean:   ", mean(scores))
+print("median: ", median(scores))
+print("stdev:  ", stdev_sample(scores))
+print("IQR:    ", iqr(scores))
+print("Shapiro-Wilk W: ", shapiro_wilk_w(scores))
+
+var group_a: list = [5.1, 4.9, 5.0, 5.2, 4.8, 5.1, 4.9, 5.0, 5.1, 4.8,
+                     5.0, 5.1, 4.9, 5.2, 5.0]
+var group_b: list = [6.2, 6.0, 6.3, 6.1, 5.9, 6.4, 6.2, 6.1, 6.3, 6.0,
+                     6.2, 6.3, 6.1, 6.0, 6.2]
+print("p-value (t-test): ", p_value_t_ind(group_a, group_b))
+
+# ai
 var v: list = [1.0, 2.0, 3.0]
 print("norm([1,2,3]) =", norm(v))
 print("sigmoid(1)    =", sigmoid(1.0))
@@ -777,9 +936,6 @@ seed(42)
 var w = rand_normal(4, 0.0, 0.1)
 w = sgd_update(w, rand_normal(4, 0.0, 0.01), 0.001)
 print("trained weights:", w)
-
-var msg: str = "  hello, liphia!  "
-print(trim(upper(msg)))
 
 print("Done.")
 ```
@@ -808,8 +964,10 @@ print("Done.")
 - [x] Bytecode cache (`.lbc`)
 - [x] Core native functions — string, list, type conversion (always available)
 - [x] Standard library: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`
-- [x] `db` module: SQLite (bundled, zero dependencies) + PostgreSQL (pure TCP wire protocol)
-- [x] `ai` module: activations, vectors, matrices, preprocessing, loss functions, random, optimization (SGD, Adam), classification metrics, distances
+- [x] `db` module: SQLite (bundled) + PostgreSQL (pure TCP wire protocol)
+- [x] `ai` module: activations, vectors, matrices, preprocessing, loss, random, optimization, metrics, distances
+- [x] `math` module: trig, inverse trig, hyperbolic, exp/log, number theory, geometry, utilities (35 functions)
+- [x] `stats` module: descriptive, sample statistics, percentiles, correlation (Pearson/Spearman/Kendall), hypothesis tests (t-test, Mann-Whitney, Wilcoxon, Shapiro-Wilk), p-values via pure-Rust CDF (26 functions)
 - [x] VS Code extension v0.0.2 (syntax highlighting + snippets)
 
 ### 🎯 Engine 1.0 — Stable release *(planned)*

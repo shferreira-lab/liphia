@@ -1,5 +1,5 @@
 [module]
 name        = "ai"
-version     = "1.0.1"
+version     = "1.0.3"
 description = "AI and neural network primitives"
 native      = true
