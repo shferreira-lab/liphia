@@ -4,9 +4,53 @@ All notable changes to the Liphia engine are documented here.
 
 ---
 
-## [Unreleased] — math 1.0.2 · stats 1.0.3 · compiler 0.9.1
+## [Unreleased] — stdlib · 0.2.1
+
 
 ### Added
+
+**`http` — 1.1.0** (stdlib/native/src/http.rs)
+
+Native CORS support added. All HTTP responses now automatically include the following headers:
+
+- `Access-Control-Allow-Origin: *`
+- `Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- `Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With`
+- `Access-Control-Max-Age: 86400`
+
+These headers are injected by `send_response` — the internal function called by both
+`http_respond` and `http_respond_json` — so CORS is handled automatically for every
+response without any change to user `.lph` code.
+
+To support browser preflight requests (`OPTIONS`), add an `OPTIONS` handler to your router:
+
+```lph
+fn route() -> void:
+    var method: str = http_method()
+    var path:   str = http_path()
+
+    if method == "OPTIONS":
+        http_respond_json(200, "{}")
+    else:
+        if method == "POST" and path == "/login":
+            handle_login()
+        else:
+            http_respond_json(404, "{\"error\": \"not found\"}")
+```
+
+No new functions were added in this release. The public API surface is unchanged:
+
+```
+http_listen, http_accept, http_method, http_path, http_query,
+http_body, http_header, http_respond, http_respond_json,
+http_get, http_post, http_put, http_patch, http_delete, http_status
+```
+
+**`stdlib/lph/http.lph` — 1.0.2**
+
+Documentation updated to reflect native CORS support and the `OPTIONS` preflight pattern.
+
+---
 
 **`math` — 1.0.2** (stdlib/native/src/math.rs)
 
