@@ -4,25 +4,25 @@
 //
 // ── Server workflow (use inside async fn + await loop) ────────────────────────
 //
-//   http_listen(port)               → bool   bind port, spawn accept thread
-//   http_accept()                   → bool   true if a new request is ready
-//                                            false if queue empty  (await-able)
-//   http_method()                   → str    "GET" | "POST" | "PUT" | ...
-//   http_path()                     → str    "/users/42"
-//   http_query()                    → str    "page=1&limit=10"  (after '?')
-//   http_body()                     → str    request body
-//   http_header(name: str)          → str    single header value (lowercase key)
-//   http_respond(status, body)      → bool   text/plain response + close conn
-//   http_respond_json(status, body) → bool   application/json  response
+//   http_listen(port: int)               → bool   bind port, spawn accept thread
+//   http_accept()                         → bool   true if a new request is ready
+//                                                  false if queue empty  (await-able)
+//   http_method()                         → str    "GET" | "POST" | "PUT" | ...
+//   http_path()                           → str    "/users/42"
+//   http_query()                          → str    "page=1&limit=10"  (after '?')
+//   http_body()                           → str    request body
+//   http_header(name: str)                → str    single header value (lowercase key)
+//   http_respond(status, body)            → bool   text/plain response + close conn
+//   http_respond_json(status, body)       → bool   application/json  response
 //
 // ── Client ───────────────────────────────────────────────────────────────────
 //
-//   http_get(url)                   → str    response body
-//   http_post(url, body)            → str
-//   http_put(url, body)             → str
-//   http_patch(url, body)           → str
-//   http_delete(url)                → str
-//   http_status()                   → int    last response HTTP status code
+//   http_get(url)                         → str    response body
+//   http_post(url, body)                  → str
+//   http_put(url, body)                   → str
+//   http_patch(url, body)                 → str
+//   http_delete(url)                      → str
+//   http_status()                         → int    last response HTTP status code
 
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
@@ -52,9 +52,7 @@ struct HttpServerState {
 
 thread_local! {
     static SERVER_STATE: RefCell<Option<Arc<HttpServerState>>> = RefCell::new(None);
-
     static CURRENT: RefCell<Option<CurrentRequest>> = RefCell::new(None);
-
     static LAST_STATUS: RefCell<i64> = RefCell::new(0);
 }
 
@@ -97,7 +95,6 @@ fn native_http_listen(args: Vec<Value>) -> VmResult<Value> {
         Value::Int(p) => *p,
         _ => return Err(VmError::new("http_listen: port must be int")),
     };
-
     let listener = TcpListener::bind(format!("0.0.0.0:{}", port))
         .map_err(|e| VmError::new(format!("http_listen: bind failed on port {}: {}", port, e)))?;
 
@@ -139,7 +136,7 @@ fn native_http_accept(_args: Vec<Value>) -> VmResult<Value> {
     };
 
     match req {
-        None => Ok(Value::Bool(false)), // not ready — Suspend will re-poll
+        None => Ok(Value::Bool(false)),
         Some(r) => {
             CURRENT.with(|c| {
                 *c.borrow_mut() = Some(CurrentRequest {
@@ -208,9 +205,13 @@ fn send_response(status: i64, body: &str, content_type: &str) -> VmResult<Value>
          Content-Type: {}\r\n\
          Content-Length: {}\r\n\
          Access-Control-Allow-Origin: *\r\n\
+         Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS\r\n\
+         Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With\r\n\
+         Access-Control-Max-Age: 86400\r\n\
          Connection: close\r\n\r\n{}",
         status, reason, content_type, body.len(), body
     );
+
     let result = CURRENT.with(|c| {
         let mut opt = c.borrow_mut();
         if let Some(ref mut req) = *opt {
@@ -224,14 +225,12 @@ fn send_response(status: i64, body: &str, content_type: &str) -> VmResult<Value>
             ))
         }
     });
-   
+
     if result.is_ok() {
         CURRENT.with(|c| *c.borrow_mut() = None);
     }
-
     result
 }
-
 
 fn native_http_respond(args: Vec<Value>) -> VmResult<Value> {
     if args.len() != 2 {
@@ -272,24 +271,21 @@ fn native_http_respond_json(args: Vec<Value>) -> VmResult<Value> {
 fn parse_request(stream: &mut TcpStream) -> Result<PendingRequest, String> {
     let mut reader = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
 
-    // Request line: METHOD /path?query HTTP/1.1
     let mut first_line = String::new();
     reader.read_line(&mut first_line).map_err(|e| e.to_string())?;
     let parts: Vec<&str> = first_line.trim().splitn(3, ' ').collect();
     if parts.len() < 2 {
         return Err(format!("malformed request line: {:?}", first_line));
     }
-    let method     = parts[0].to_string();
-    let full_path  = parts[1].to_string();
+    let method    = parts[0].to_string();
+    let full_path = parts[1].to_string();
 
-    // Split path from query string
     let (path, query) = if let Some(idx) = full_path.find('?') {
         (full_path[..idx].to_string(), full_path[idx+1..].to_string())
     } else {
         (full_path, String::new())
     };
 
-    // Headers
     let mut headers        = HashMap::new();
     let mut content_length = 0usize;
     loop {
@@ -307,32 +303,25 @@ fn parse_request(stream: &mut TcpStream) -> Result<PendingRequest, String> {
         }
     }
 
-    // Body
     let mut body_bytes = vec![0u8; content_length];
     if content_length > 0 {
         reader.read_exact(&mut body_bytes).map_err(|e| e.to_string())?;
     }
     let body = String::from_utf8_lossy(&body_bytes).to_string();
 
-    // We need the original stream (not the BufReader clone) for writing.
-    // The TcpStream passed in is the one we write to.
     let write_stream = stream.try_clone().map_err(|e| e.to_string())?;
-
     Ok(PendingRequest { method, path, query, headers, body, stream: write_stream })
 }
 
 // ── HTTP client ───────────────────────────────────────────────────────────────
 
 fn http_request(method: &str, url: &str, body: Option<&str>) -> VmResult<(i64, String)> {
-    // Strip scheme
     let url = url.strip_prefix("http://").unwrap_or(url);
-
     let (host_port, path) = if let Some(idx) = url.find('/') {
         (&url[..idx], &url[idx..])
     } else {
         (url, "/")
     };
-
     let (host, port) = if let Some(idx) = host_port.rfind(':') {
         let p: u16 = host_port[idx+1..].parse()
             .map_err(|_| VmError::new(format!("http: invalid port in URL '{}'", url)))?;
@@ -362,7 +351,6 @@ fn http_request(method: &str, url: &str, body: Option<&str>) -> VmResult<(i64, S
     let status: i64 = status_line.split_whitespace().nth(1)
         .and_then(|s| s.parse().ok()).unwrap_or(0);
 
-    // Skip response headers
     loop {
         let mut line = String::new();
         reader.read_line(&mut line).ok();

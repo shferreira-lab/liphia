@@ -1,28 +1,91 @@
 # stdlib/lph/http.lph
-# HTTP server and client.
-# Status: functions implemented where noted.
+# HTTP server and client — Liphia Engine 0.9.0
+#
+# CORS is handled automatically by the runtime (http.rs).
+# All responses include:
+#   Access-Control-Allow-Origin: *
+#   Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+#   Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+#   Access-Control-Max-Age: 86400
+#
+# To support browser preflight (OPTIONS), add this to your route() fn:
+#
+#   if method == "OPTIONS":
+#       http_respond_json(200, "{}")
 #
 # ── Server functions ──────────────────────────────────────────────────────────
-
+#
 # http_listen(port: int) -> bool
+#   Binds the server to the given port.
+#   Must be called before http_accept().
+#
 # http_accept() -> bool
+#   Returns true if a new request is ready, false if the queue is empty.
+#   Use inside a while true loop (sync) or await loop (async).
+#
 # http_method() -> str
+#   Returns the HTTP method of the current request: "GET", "POST", "PUT", etc.
+#
 # http_path() -> str
+#   Returns the path of the current request, e.g. "/users/42".
+#
 # http_query() -> str
+#   Returns the query string after '?', e.g. "page=1&limit=10".
+#
 # http_body() -> str
+#   Returns the raw body of the current request (JSON, form data, etc).
+#
 # http_header(name: str) -> str
+#   Returns the value of a request header (lowercase key).
+#   Example: http_header("content-type") -> "application/json"
+#
 # http_respond(status: int, body: str) -> bool
+#   Sends a text/plain response and closes the connection.
+#
 # http_respond_json(status: int, body: str) -> bool
-
+#   Sends an application/json response and closes the connection.
+#
 # ── Client functions ──────────────────────────────────────────────────────────
-
+#
 # http_get(url: str) -> str
+#   Performs a GET request. Returns the response body.
+#
 # http_post(url: str, body: str) -> str
+#   Performs a POST request with a JSON body. Returns the response body.
+#
 # http_put(url: str, body: str) -> str
+#   Performs a PUT request with a JSON body. Returns the response body.
+#
 # http_patch(url: str, body: str) -> str
+#   Performs a PATCH request with a JSON body. Returns the response body.
+#
 # http_delete(url: str) -> str
+#   Performs a DELETE request. Returns the response body.
+#
 # http_status() -> int
-
-# ── Planned functions ─────────────────────────────────────────────────────────
-
-# (no specific planned functions listed; callbacks or extensions can be added later)
+#   Returns the HTTP status code of the last client request.
+#
+# ── Usage example ─────────────────────────────────────────────────────────────
+#
+# import from "http"
+# import from "json"
+#
+# fn route() -> void:
+#     var method: str = http_method()
+#     var path: str   = http_path()
+#
+#     if method == "OPTIONS":
+#         http_respond_json(200, "{}")
+#     else:
+#         if method == "POST" and path == "/login":
+#             handle_login()
+#         else:
+#             http_respond_json(404, "{\"error\": \"not found\"}")
+#
+# http_listen(8000)
+# print("Server running on port 8000")
+#
+# while true:
+#     var got: bool = http_accept()
+#     if got:
+#         route()
