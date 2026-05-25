@@ -284,6 +284,14 @@ impl TypeChecker {
         tc
     }
 
+    pub fn declare_var_external(&mut self, name: &str, ty: Type) {
+        self.declare(name, ty, false);
+    }
+
+    pub fn declare_fn_external(&mut self, name: &str, params: Vec<Type>, ret: Type) {
+        self.declare_fn(name, params, ret);
+    }
+    
     fn push_scope(&mut self) { self.scopes.push(Scope::new()); }
     fn pop_scope(&mut self)  { self.scopes.pop(); }
 
