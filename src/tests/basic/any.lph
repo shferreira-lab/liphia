@@ -1,0 +1,17 @@
+
+# Error   - after the test, please, mark # to become a comment and check next one.
+var x = "Alice"
+x = 13
+
+# Ok
+var y: any = "Alice"
+y = 13
+
+# error  str - int
+name: str = "Alice"
+name = 42
+
+
+# Error   - constant and PI
+const PI = 3.14
+PI= 1

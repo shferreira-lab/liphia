@@ -408,12 +408,23 @@ impl TypeChecker {
             }
             Stmt::Assign { name, value } => {
                 self.check_expr(value)?;
-                if let Some(sym) = self.lookup(name) {
+                if let Some(sym) = self.lookup(name).cloned() {
                     if sym.is_const {
+                      return Err(LiphiaError::new(
+                          ErrorKind::TypeError,
+                            format!("cannot reassign const '{}'", name),
+                       ));
+                    }
+        
+               let new_ty = self.infer(value);
+               if !sym.ty.is_compatible(&new_ty) {
                         return Err(LiphiaError::new(
                             ErrorKind::TypeError,
-                            format!("cannot reassign const '{}'", name),
-                        ));
+                           format!(
+                               "cannot assign {:?} to '{}' of type {:?}",
+                                new_ty, name, sym.ty
+                            ),
+                      ));
                     }
                 }
             }
