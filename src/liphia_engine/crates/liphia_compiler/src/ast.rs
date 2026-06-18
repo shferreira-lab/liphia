@@ -103,7 +103,7 @@ pub enum Stmt {
         params:      Vec<Parameter>,
         return_type: Type,
         body:        Vec<Stmt>,
-        is_async:    bool,   // ← NEW
+        is_async:    bool,   
     },
     Enum(EnumDef),
     ExprStmt(Expr),
