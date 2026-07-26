@@ -1,8 +1,15 @@
+# Liphia
+
+liphia_cache/
+liphia_modules/
+
+
+
 # Rust / Cargo
 target/
 Cargo.lock
 
-# Compilados e binários
+# Compilers and bin
 *.exe
 *.dll
 *.so
@@ -17,11 +24,11 @@ dist/
 build/
 out/
 
-# Makefile gerados
+# Makefile 
 Makefile
 *.mk
 
-# Arquivos de sistema
+# System files
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -40,16 +47,14 @@ desktop.ini
 *.tmp
 *.temp
 
-# Variáveis de ambiente
+# env var
 .env
 .env.local
 
-# pasta interna para comunicações
+# 
 /notas
 /examples_me
-
-
-
+notes/
 
 # python
 
