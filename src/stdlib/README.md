@@ -1,6 +1,6 @@
 # Liphia Standard Library
 
-Official package registry for the [Liphia](https://github.com/liphia-lang) language.
+Official package registry for the [Liphia](https://github.com/shferreira-lab/liphia) language.
 
 ## Installing packages
 ```bash
