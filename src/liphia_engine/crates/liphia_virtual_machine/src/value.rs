@@ -11,6 +11,9 @@ pub enum Value {
     Bool(bool),
     Str(Rc<String>),
     List(Rc<RefCell<Vec<Value>>>),
+    // Associative list — Vec<(key, value)> instead of HashMap, because
+    // Value contains Float and does not implement Eq/Hash.
+    Map(Rc<RefCell<Vec<(Value, Value)>>>),
     EnumVariant { enum_name: Rc<String>, variant: Rc<String> },
     Null,
 }
@@ -24,6 +27,9 @@ impl PartialEq for Value {
             (Value::Str(a),   Value::Str(b))   => a == b,
             (Value::Null,     Value::Null)      => true,
             (Value::List(a),  Value::List(b))  => {
+                Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow()
+            }
+            (Value::Map(a),   Value::Map(b))   => {
                 Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow()
             }
             (Value::EnumVariant { enum_name: e1, variant: v1 },
@@ -49,6 +55,15 @@ impl fmt::Display for Value {
                     write!(f, "{}", item)?;
                 }
                 write!(f, "]")
+            }
+            Value::Map(v) => {
+                let items = v.borrow();
+                write!(f, "{{")?;
+                for (i, (k, val)) in items.iter().enumerate() {
+                    if i > 0 { write!(f, ", ")?; }
+                    write!(f, "{}: {}", k, val)?;
+                }
+                write!(f, "}}")
             }
             Value::EnumVariant { enum_name, variant } => {
                 write!(f, "{}.{}", enum_name, variant)

@@ -40,6 +40,7 @@ pub enum Opcode {
 
     // ── Collections ───────────────────────────────────────────────────────
     BuildList(usize),
+    BuildMap(usize),
     GetIndex,
     SetIndex,
 
@@ -60,6 +61,10 @@ pub enum Opcode {
     /// the spawning task does NOT wait for it (fire-and-forget).
     /// Spawn(address, arg_count)
     Spawn(usize, usize),
+
+    // ── Error handling ───────────────────────────────────────────────────
+    PushHandler(usize),
+    PopHandler,
 
     Halt,
 }
