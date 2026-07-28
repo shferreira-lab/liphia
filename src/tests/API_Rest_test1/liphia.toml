@@ -1,9 +1,0 @@
-[package]
-name    = "API_Rest_test1"
-version = "0.1.0"
-
-[dependencies]
-db = "latest"
-json = "latest"
-http = "latest"
-# liphia install <module> adds entries here automatically

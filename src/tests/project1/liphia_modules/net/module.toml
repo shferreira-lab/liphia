@@ -1,5 +1,0 @@
-[module]
-name        = "net"
-version     = "1.0.0"
-description = "Low-level TCP/UDP networking"
-native      = true

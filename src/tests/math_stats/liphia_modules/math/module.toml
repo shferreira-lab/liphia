@@ -1,5 +1,0 @@
-[module]
-name        = "math"
-version     = "1.0.0"
-description = "Mathematical functions"
-native      = true

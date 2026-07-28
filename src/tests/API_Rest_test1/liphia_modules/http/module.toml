@@ -1,5 +1,0 @@
-[module]
-name        = "http"
-version     = "1.0.0"
-description = "HTTP client and server"
-native      = true
