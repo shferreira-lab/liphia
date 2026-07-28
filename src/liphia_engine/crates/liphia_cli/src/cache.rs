@@ -120,6 +120,9 @@ fn write_opcode(buf: &mut Vec<u8>, op: &Opcode) {
         Opcode::Call(a, n)       => { buf.push(0x51); buf.extend(&(*a as u32).to_le_bytes()); buf.extend(&(*n as u32).to_le_bytes()); }
         Opcode::Return           => buf.push(0x52),
         Opcode::BuildList(n)     => { buf.push(0x60); buf.extend(&(*n as u32).to_le_bytes()); }
+        Opcode::BuildMap(n) => { buf.push(0x64); buf.extend(&(*n as u32).to_le_bytes());},
+        Opcode::PushHandler(pc)  => { buf.push(0x80); buf.extend(&(*pc as u32).to_le_bytes()); }
+        Opcode::PopHandler       => buf.push(0x81),
         Opcode::GetIndex         => buf.push(0x61),
         Opcode::SetIndex         => buf.push(0x62),
         Opcode::Pop              => buf.push(0x63),
@@ -172,12 +175,15 @@ fn read_opcode(data: &[u8]) -> Option<(Opcode, usize)> {
         0x61 => (Opcode::GetIndex, 0),
         0x62 => (Opcode::SetIndex, 0),
         0x63 => (Opcode::Pop, 0),
+        0x64 => { let n  = u32::from_le_bytes(data[1..5].try_into().ok()?) as usize; (Opcode::BuildMap(n), 4) }
         0x70 => (Opcode::Suspend, 0),
         0x71 => {
             let a = u32::from_le_bytes(data[1..5].try_into().ok()?) as usize;
             let n = u32::from_le_bytes(data[5..9].try_into().ok()?) as usize;
             (Opcode::Spawn(a, n), 8)
         }
+        0x80 => { let pc = u32::from_le_bytes(data[1..5].try_into().ok()?) as usize; (Opcode::PushHandler(pc), 4) }
+        0x81 => (Opcode::PopHandler, 0),
         0xFF => (Opcode::Halt, 0),
         _    => return None,
     };
