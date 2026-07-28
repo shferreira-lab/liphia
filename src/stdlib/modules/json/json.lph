@@ -1,14 +1,24 @@
 # stdlib/lph/json.lph
-# JSON encode / decode — zero external dependencies.
-# Status: functions implemented where noted.
 #
-# ── JSON Functions ────────────────────────────────────────────────────────────
+# JSON encode / decode — zero external dependencies.
+#
+# ── JSON Functions ───────────────────────────────────────────────────────────
 
 # json_encode(value: any) -> str
-# json_decode(text: str) -> list
+#   Serializes any Liphia value to a JSON string.
+
+# json_decode(text: str) -> any
+#   Parses a JSON string.
+#   Returns:
+#     object  -> map
+#     array   -> list
+#     string  -> str
+#     number  -> int | float
+#     boolean -> bool
+#     null    -> null
+
 # json_get(text: str, key: str) -> str
+#   Returns the string representation of the value associated with a key.
+
 # json_has(text: str, key: str) -> bool
-
-# ── Planned functions ─────────────────────────────────────────────────────────
-
-# (no specific planned functions listed; further enhancements can be added later)
+#   Returns true if the key exists in the JSON object.
