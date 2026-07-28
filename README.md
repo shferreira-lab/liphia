@@ -3,8 +3,8 @@
 > A statically typed, indentation-based programming language powered by a Rust bytecode VM.
 > Created by Sergio H. Ferreira — started in late 2025.
 
-[![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
-[![Compiler](https://img.shields.io/badge/compiler-0.9.1-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Engine](https://img.shields.io/badge/engine-0.10.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Compiler](https://img.shields.io/badge/compiler-0.10.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
@@ -29,7 +29,7 @@ Compiled programs are fully self-contained.
 - [How to build](#how-to-build)
 - [How to run](#how-to-run)
 - [Package manager](#package-manager)
-- [Current syntax — Engine 0.9.0](#current-syntax--engine-090)
+- [Current syntax — Engine 0.10.0](#current-syntax--engine-0100)
   - [Comments](#comments)
   - [Primitive types](#primitive-types)
   - [Variables](#variables)
@@ -39,7 +39,10 @@ Compiled programs are fully self-contained.
   - [Loops](#loops)
   - [Functions](#functions)
   - [Lists](#lists)
+  - [Maps](#maps)
   - [Enums](#enums)
+  - [Error handling — try/catch](#error-handling--trycatch)
+  - [String interpolation — f-strings](#string-interpolation--f-strings)
   - [Async and concurrency](#async-and-concurrency)
   - [File imports](#file-imports)
   - [Stdlib modules](#stdlib-modules)
@@ -64,7 +67,7 @@ liphia/
 │   │   └── crates/
 │   │       ├── liphia_cli/                 # CLI runner + REPL shell
 │   │       ├── liphia_compiler/            # lexer, parser, AST, bytecode compiler
-│   │       ├── liphia_core_native/         # core string, list and value utilities
+│   │       ├── liphia_core_native/         # core string, list, map and value utilities
 │   │       └── liphia_virtual_machine/     # bytecode VM
 │   │
 │   ├── stdlib/
@@ -73,6 +76,7 @@ liphia/
 │   │       └── src/
 │   │           ├── cdf.rs         # internal CDF / special functions (not exported)
 │   │           ├── http.rs        # HTTP server + client (v1.1.0 — native CORS)
+│   │           ├── json.rs        # JSON encode/decode (v2.0.0 — objects decode to map)
 │   │           ├── math.rs
 │   │           ├── stats.rs
 │   │           └── ...
@@ -81,7 +85,6 @@ liphia/
 │   └── tools/
 │       └── liphia-vscode/         # VS Code extension
 │
-├── CHANGELOG.md
 └── README.md
 ```
 
@@ -120,6 +123,10 @@ that folder to your system `PATH`, or run the official Windows installer which
 handles this automatically.
 
 Once in `PATH`, you can call `liphia` from any terminal in any folder.
+
+> **⚠️ Roadmap note:** pre-built binaries for Windows/Linux/macOS via automated
+> CI releases are not available yet — see [Roadmap](#roadmap). For now, building
+> from source is the only distribution path.
 
 ---
 
@@ -186,6 +193,13 @@ liphia install stats fs json
 
 Downloads the module from the Liphia registry into `liphia_modules/`.
 
+> **⚠️ Note on built-in modules:** all 9 stdlib modules listed below are already
+> compiled into the `liphia` binary you built or downloaded. `liphia install`
+> currently still performs a network fetch even for these — that fetch only
+> retrieves documentation, not functionality that wasn't already present.
+> This is being tightened up (see [Roadmap](#roadmap)) so `install` skips the
+> network call for anything already built-in.
+
 **Install all dependencies from `liphia.toml`:**
 
 ```bash
@@ -209,7 +223,7 @@ import from "stats"
 
 ---
 
-## Current syntax — Engine 0.9.0
+## Current syntax — Engine 0.10.0
 
 ### Comments
 
@@ -223,12 +237,13 @@ print("Hello, world!")
 ### Primitive types
 
 | Type    | Description                             |
-|---------|-----------------------------------------|
+|---------|------------------------------------------|
 | `int`   | 64-bit integer                          |
 | `float` | 64-bit floating-point                   |
 | `str`   | UTF-8 string                            |
 | `bool`  | Boolean: `true` or `false`              |
 | `list`  | Dynamic list                            |
+| `map`   | Associative key → value collection      |
 | `void`  | Return type for functions with no value |
 | `null`  | Null literal                            |
 
@@ -261,7 +276,6 @@ age: int = 20
 height: float = 1.80
 username: str = "Alice"
 active: bool = true
-
 var score = 100
 const MAX: int = 999
 ```
@@ -296,7 +310,7 @@ print("Double:", n * 2)
 **Arithmetic:**
 
 | Operator | Operation                            |
-|----------|--------------------------------------|
+|----------|---------------------------------------|
 | `+`      | Addition (also string concatenation) |
 | `-`      | Subtraction                          |
 | `*`      | Multiplication                       |
@@ -305,7 +319,7 @@ print("Double:", n * 2)
 **Comparison:**
 
 | Operator | Meaning               |
-|----------|-----------------------|
+|----------|------------------------|
 | `==`     | Equal to              |
 | `!=`     | Not equal to          |
 | `>`      | Greater than          |
@@ -338,7 +352,6 @@ else:
 
 ```lph
 age: int = 17
-
 if age >= 18:
     print("Adult")
 elif age == 17:
@@ -419,15 +432,50 @@ print(factorial(10))
 
 ```lph
 var values: list = [1, 2, 3, 4, 5]
-
 print(values[0])    # 1
 print(values[-1])   # 5
-
 values[0] = 99
 append(values, 6)
 var last = pop(values)
 print("length:", len(values))
 ```
+
+> **See also:** for key → value data (JSON-like structures, config, records),
+> use [`map`](#maps) instead of a flat list — this used to be the only
+> option before Engine 0.10.0.
+
+---
+
+### Maps
+
+*(new in Engine 0.10.0)*
+
+```lph
+var user: map = {"name": "Alice", "age": 30}
+print(user["name"])       # Alice
+user["age"] = 31
+user["city"] = "Recife"
+
+print(map_keys(user))     # [name, age, city]
+print(map_values(user))   # [Alice, 31, Recife]
+print(map_has(user, "city"))  # true
+map_remove(user, "city")
+print(len(user))          # 2
+```
+
+Maps can hold any value type, including nested maps and lists:
+
+```lph
+var config: map = {
+    "debug": true,
+    "limits": {"max_users": 100, "timeout": 30}
+}
+print(config["limits"]["max_users"])  # 100
+```
+
+> **Note:** map literals must currently be written on a single line — the
+> lexer doesn't yet support multi-line `{}` literals (the same limitation
+> already applies to multi-line list literals).
 
 ---
 
@@ -441,10 +489,59 @@ enum Direction:
     West
 
 var d = Direction.North
-
 if d == Direction.North:
     print("Going north")
 ```
+
+---
+
+### Error handling — try/catch
+
+*(new in Engine 0.10.0)*
+
+Any runtime error — including from stdlib calls like `db_open`, `http_get`,
+or `json_decode` — can be caught instead of crashing the whole program.
+The caught value is always a `str` containing the error message.
+
+```lph
+fn risky() -> void:
+    try:
+        var conn: int = db_open("some/invalid/path.sqlite")
+        db_exec(conn, "INSERT INTO x VALUES (1)")
+    catch e:
+        print("caught:", e)
+    print("execution continues normally")
+
+risky()
+print("program did not crash")
+```
+
+> **Known limitation:** `break`/`continue` used directly inside a `try` block
+> that sits inside a loop can leave a stale handler active until the
+> enclosing function returns. Avoid combining `try` with `break`/`continue`
+> in the same block for now.
+
+---
+
+### String interpolation — f-strings
+
+*(new in Engine 0.10.0)*
+
+```lph
+var name: str = "Alice"
+var age: int = 30
+
+print(f"Hello {name}, you are {age} years old")
+print(f"{{literal braces}} still work, name is {name}")
+print(f"math: {1 + 2 * 3}")
+```
+
+Any expression is allowed inside `{}` — it's converted with the same rules
+as `to_str()`. Use `{{` and `}}` for a literal `{` / `}`.
+
+> **Known limitation:** an interpolated expression that itself contains a
+> string literal with `"` (e.g. `f"{some_fn(\"x\")}"`) does not parse
+> correctly yet — avoid nested string literals inside `{}` for now.
 
 ---
 
@@ -480,6 +577,30 @@ import "./helpers/math_utils.lph"
 
 Import cycles are detected and skipped automatically.
 
+**Selective import** *(new in Engine 0.10.0)* — only the listed names are
+made available to the importing file:
+
+```lph
+import { format_name } from "./utils.lph"
+```
+
+**Qualified import** *(new in Engine 0.10.0)* — everything from the file is
+imported, but only reachable through the given alias, avoiding name
+collisions between files:
+
+```lph
+import database from "./database.lph"
+import routes from "./routes.lph"
+
+var conn: int = database.connect()
+database.init_schema(conn)
+print(routes.get_users(conn))
+```
+
+If two imported files declare a symbol with the same name without one of
+them being qualified, compilation now fails with a clear collision error
+instead of silently overwriting one with the other.
+
 ---
 
 ### Stdlib modules
@@ -492,7 +613,6 @@ liphia install math
 
 ```lph
 import from "math"
-
 print(sqrt(16.0))
 print(pow(2.0, 10.0))
 print(pi())
@@ -507,8 +627,8 @@ These functions are always available — no import required.
 **String and value:**
 
 | Function                   | Returns | Description                        |
-|----------------------------|---------|------------------------------------|
-| `len(s)`                   | `int`   | Length of string or list           |
+|------------------------------|---------|-------------------------------------|
+| `len(s)`                   | `int`   | Length of string, list, or map     |
 | `to_str(value)`            | `str`   | Convert any value to string        |
 | `to_int(value)`            | `int`   | Parse string or float to int       |
 | `to_float(value)`          | `float` | Parse string or int to float       |
@@ -524,11 +644,20 @@ These functions are always available — no import required.
 **List:**
 
 | Function          | Returns | Description                    |
-|-------------------|---------|--------------------------------|
+|-------------------|---------|----------------------------------|
 | `len(list)`       | `int`   | Number of elements             |
 | `append(list, v)` | `void`  | Add element to end (in-place)  |
 | `pop(list)`       | `any`   | Remove and return last element |
 | `keys(list)`      | `list`  | Returns list of indices [0..n] |
+
+**Map** *(new in Engine 0.10.0)*:
+
+| Function              | Returns | Description                              |
+|-------------------------|---------|--------------------------------------------|
+| `map_keys(map)`       | `list`  | All keys, in insertion order             |
+| `map_values(map)`     | `list`  | All values, in insertion order           |
+| `map_has(map, key)`   | `bool`  | True if `key` exists                     |
+| `map_remove(map, key)`| `void`  | Removes the entry for `key`, if present  |
 
 ---
 
@@ -595,7 +724,7 @@ var resp = http_post("http://api.example.com/data", "{\"key\": \"value\"}")
 **Full function list:**
 
 | Function                             | Returns | Description                          |
-|--------------------------------------|---------|--------------------------------------|
+|-----------------------------------------|---------|-----------------------------------------|
 | `http_listen(port)`                  | `bool`  | Bind server to port                  |
 | `http_accept()`                      | `bool`  | True if a request is ready           |
 | `http_method()`                      | `str`   | Current request method               |
@@ -622,7 +751,6 @@ liphia install math
 
 ```lph
 import from "math"
-
 print(sqrt(16.0))           # 4.0
 print(pow(2.0, 10.0))       # 1024.0
 print(log2(1024.0))         # 10.0
@@ -636,7 +764,7 @@ print(clamp(15.0, 0.0, 10.0)) # 10.0
 **Full function list:**
 
 | Category            | Functions |
-|---------------------|-----------|
+|------------------------|-----------|
 | Basic               | `sqrt`, `pow`, `abs`, `floor`, `ceil`, `round`, `min`, `max` |
 | Constants           | `pi`, `e` |
 | Logarithm / exp     | `log`, `log10`, `log2`, `log_base`, `exp` |
@@ -656,9 +784,7 @@ liphia install stats
 
 ```lph
 import from "stats"
-
 var data: list = [4.0, 7.0, 13.0, 2.0, 1.0]
-
 print(mean(data))             # 5.4
 print(stdev_sample(data))     # 4.827...
 print(percentile(data, 75.0)) # Q3
@@ -669,7 +795,7 @@ print(p_value_t_ind(data, data)) # 1.0
 **Full function list:**
 
 | Category              | Functions |
-|-----------------------|-----------|
+|--------------------------|-----------|
 | Descriptive           | `sum`, `mean`, `median`, `min_list`, `max_list`, `count`, `mode`, `range_stat` |
 | Variance / spread     | `variance`, `stdev`, `variance_sample`, `stdev_sample`, `percentile`, `iqr` |
 | Normalisation         | `zscore`, `covariance` |
@@ -688,11 +814,9 @@ liphia install ai
 
 ```lph
 import from "ai"
-
 print(sigmoid(0.0))           # 0.5
 print(relu(-3.0))             # 0.0
 print(dot([1.0, 2.0], [3.0, 4.0]))  # 11.0
-
 seed(42)
 var w = rand_normal(4, 0.0, 0.1)
 w = sgd_update(w, rand_normal(4, 0.0, 0.01), 0.001)
@@ -719,7 +843,6 @@ liphia install fs
 
 ```lph
 import from "fs"
-
 write_file("hello.txt", "Hello from Liphia!")
 var content = read_file("hello.txt")
 print(content)
@@ -730,6 +853,11 @@ print(file_exists("hello.txt"))  # true
 
 ### `json` — JSON encoding and decoding
 
+> **Version 2.0.0 — ⚠️ breaking change.** `json_decode` used to return a flat
+> list `["key", value, "key", value, ...]` for JSON objects. As of Engine
+> 0.10.0, it returns a real `map` instead. Code written against the old
+> flat-list format needs to be updated.
+
 ```bash
 liphia install json
 ```
@@ -737,13 +865,23 @@ liphia install json
 ```lph
 import from "json"
 
+var original: map = {"name": "Alice", "age": 25, "tags": [1, 2, 3]}
+var text: str = json_encode(original)
+print(text)   # {"name":"Alice","age":25,"tags":[1,2,3]}
+
+var decoded: map = json_decode(text)
+print(decoded["name"])   # Alice
+print(decoded["tags"][1]) # 2
+```
+
+`json_get` / `json_has` are unchanged — they still work directly on the raw
+JSON text and don't require decoding first:
+
+```lph
 var raw = "{\"name\": \"Alice\", \"age\": 30}"
 print(json_get(raw, "name"))   # Alice
 print(json_has(raw, "email"))  # false
 ```
-
-> **Note:** `json_decode` returns a flat list `["key", value, "key", value ...]` for JSON
-> objects. Access fields by index: `list[1]` for the first value, `list[3]` for the second.
 
 ---
 
@@ -764,6 +902,10 @@ print("rows:", len(rows))
 db_close(conn)
 ```
 
+> **⚠️ Also usable now:** with `try`/`catch` (see [above](#error-handling--trycatch)),
+> DB errors no longer have to crash the whole program — wrap risky queries in
+> a `try` block to handle failures gracefully.
+
 ---
 
 ### `ws` — WebSockets
@@ -776,6 +918,7 @@ liphia install ws
 import from "ws"
 
 ws_listen(8081)
+
 async fn accept_loop() -> void:
     var client: int = await ws_accept()
     ws_send(client, "Welcome!")
@@ -837,14 +980,15 @@ var v: list = [1.0, 2.0, 3.0]
 print("norm([1,2,3]) =", norm(v))
 print("sigmoid(1)    =", sigmoid(1.0))
 
-print("Done.")
+var profile: map = {"name": "Alice", "score": x}
+print(f"Done — {profile["name"]} scored {profile["score"]}")
 ```
 
 ---
 
 ## Roadmap
 
-### ✅ Engine 0.9.0 — current
+### ✅ Engine 0.10.0 — current
 
 - [x] Indentation blocks (Indent / Dedent)
 - [x] Typed variables (`name: type = value`), `var`, `const`
@@ -859,12 +1003,17 @@ print("Done.")
 - [x] Stdlib import system (`import from "module"`)
 - [x] Package manager (`liphia init`, `liphia install`, `liphia install --list`)
 - [x] Lists and indexing (`x[0]`, `x[-1]`, `append`, `pop`, `keys`)
+- [x] **Maps / dictionaries** (`map`, `{key: value}` literals, `map_keys`, `map_values`, `map_has`, `map_remove`)
 - [x] Enums and variant matching
-- [x] Structured error messages with line/column and error codes
+- [x] **Recoverable error handling** (`try` / `catch`), no longer crashes the whole process on runtime errors
+- [x] **Real module system** — qualified imports (`import alias from "..."`), selective imports (`import { fn } from "..."`), and compile-time name-collision detection across imported files
+- [x] **String interpolation** (f-strings: `f"{expr}"`, with `{{`/`}}` escaping)
+- [x] Structured error messages with **accurate line/column reporting** (lexer position-tracking fix)
 - [x] Bytecode cache (`.lbc`)
-- [x] Core native functions — string, list, type conversion (always available)
+- [x] Core native functions — string, list, map, type conversion (always available)
 - [x] Standard library: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`
 - [x] `http` module v1.1.0: native CORS headers on all responses
+- [x] `json` module v2.0.0: `json_decode` returns real `map`/`list` values instead of a flat list (**breaking change**)
 - [x] `db` module: SQLite (bundled) + PostgreSQL (pure TCP wire protocol)
 - [x] `ai` module: activations, vectors, matrices, preprocessing, loss, random, optimization, metrics, distances
 - [x] `math` module v1.0.2: trig, inverse trig, hyperbolic, exp/log, number theory, geometry, utilities (35 functions)
@@ -873,12 +1022,13 @@ print("Done.")
 
 ### 🎯 Engine 1.0 — Stable release *(planned)*
 
-- [ ] Maps / dictionaries
-- [ ] Real module system with selective exports (`import { fn } from "module"`)
-- [ ] Better diagnostics with source context and inline suggestions
-- [ ] Null safety / optional types (`T?`)
-- [ ] Stable stdlib API with full documentation
 - [ ] GitHub Actions — automated binary releases for Windows, Linux, macOS
+- [ ] Cargo feature flags per stdlib module (leaner custom builds)
+- [ ] `install` skips network fetch for modules already built into the current binary
+- [ ] Consolidated, versioned stdlib API documentation
+- [ ] Better diagnostics with source context and inline suggestions
+- [ ] Null safety / optional types (`T?`) — polish and enforcement
+- [ ] Real `.lph`-native multi-file packages (beyond stdlib), with a `liphia.toml` `[dependencies]` manifest and a `liphia.lock` for pinned versions
 
 ---
 
