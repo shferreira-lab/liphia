@@ -41,6 +41,10 @@ pub fn register(vm: &mut VM) {
     vm.register_native("append",      native_append);
     vm.register_native("pop",         native_pop);
     vm.register_native("keys",        native_keys);
+    vm.register_native("map_keys",    native_map_keys);
+    vm.register_native("map_values",  native_map_values);
+    vm.register_native("map_has",     native_map_has);
+    vm.register_native("map_remove",  native_map_remove);
 }
 
 // ── String functions ──────────────────────────────────────────────────────────
@@ -50,7 +54,8 @@ fn native_len(args: Vec<Value>) -> VmResult<Value> {
     match &args[0] {
         Value::Str(s)   => Ok(Value::Int(s.chars().count() as i64)),
         Value::List(rc) => Ok(Value::Int(rc.borrow().len() as i64)),
-        _ => Err(VmError::new("len() requires a str or list")),
+        Value::Map(rc)  => Ok(Value::Int(rc.borrow().len() as i64)),
+        _ => Err(VmError::new("len() requires a str, list, or map")),
     }
 }
 
@@ -168,6 +173,60 @@ fn native_append(args: Vec<Value>) -> VmResult<Value> {
             Ok(Value::Null)
         }
         _ => Err(VmError::new("append() requires a list as first argument")),
+    }
+}
+
+// ── Map functions ─────────────────────────────────────────────────────────────
+
+/// map_keys(map) → list
+/// Returns a list with all keys of the map, in insertion order.
+fn native_map_keys(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("map_keys", &args, 1)?;
+    match &args[0] {
+        Value::Map(rc) => {
+            let keys: Vec<Value> = rc.borrow().iter().map(|(k, _)| k.clone()).collect();
+            Ok(Value::List(Rc::new(RefCell::new(keys))))
+        }
+        _ => Err(VmError::new("map_keys() requires a map")),
+    }
+}
+
+/// map_values(map) → list
+/// Returns a list with all values of the map, in insertion order.
+fn native_map_values(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("map_values", &args, 1)?;
+    match &args[0] {
+        Value::Map(rc) => {
+            let values: Vec<Value> = rc.borrow().iter().map(|(_, v)| v.clone()).collect();
+            Ok(Value::List(Rc::new(RefCell::new(values))))
+        }
+        _ => Err(VmError::new("map_values() requires a map")),
+    }
+}
+
+/// map_has(map, key) → bool
+/// Returns true if the given key exists in the map.
+fn native_map_has(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("map_has", &args, 2)?;
+    match &args[0] {
+        Value::Map(rc) => Ok(Value::Bool(rc.borrow().iter().any(|(k, _)| *k == args[1]))),
+        _ => Err(VmError::new("map_has() requires a map as first argument")),
+    }
+}
+
+/// map_remove(map, key) → null
+/// Removes the entry with the given key, if present. No-op if absent.
+fn native_map_remove(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("map_remove", &args, 2)?;
+    match &args[0] {
+        Value::Map(rc) => {
+            let mut items = rc.borrow_mut();
+            if let Some(pos) = items.iter().position(|(k, _)| *k == args[1]) {
+                items.remove(pos);
+            }
+            Ok(Value::Null)
+        }
+        _ => Err(VmError::new("map_remove() requires a map as first argument")),
     }
 }
 
