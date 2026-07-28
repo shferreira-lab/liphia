@@ -4,9 +4,10 @@
 //
 // Functions registered:
 //   json_encode(value: any)    → str    serialize a Liphia value to JSON
-//   json_decode(text: str)     → list   parse JSON object → flat list [k,v,k,v,...]
+//   json_decode(text: str)     → any    parse JSON: object → map, array → list, scalar → value
 //   json_get(text: str, key: str) → str  get a string value from a JSON object
 //   json_has(text: str, key: str) → bool  check if key exists
+
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -46,9 +47,28 @@ fn encode_value(v: &Value) -> String {
             let parts: Vec<String> = items.iter().map(encode_value).collect();
             format!("[{}]", parts.join(","))
         }
+        Value::Map(rc) => {
+            let items = rc.borrow();
+            let parts: Vec<String> = items.iter()
+                .map(|(k, v)| format!("{}:{}", encode_value_as_key(k), encode_value(v)))
+                .collect();
+            format!("{{{}}}", parts.join(","))
+        }
         Value::EnumVariant { variant, .. } => encode_string(variant),
     }
 }
+
+// JSON object keys must be strings. Non-str keys (int, bool, etc.) are
+// coerced to their string representation — same convention JS's
+// JSON.stringify uses for object keys.
+fn encode_value_as_key(k: &Value) -> String {
+    match k {
+        Value::Str(s) => encode_string(s),
+        other         => encode_string(&other.to_string()),
+    }
+}
+
+
 
 fn encode_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len() + 2);
@@ -250,25 +270,25 @@ fn parse_number(chars: &[char], pos: &mut usize) -> Result<Value, String> {
 }
 
 /// JSON object → flat list [key, value, key, value ...]
+/// JSON object → Value::Map
 fn parse_object(chars: &[char], pos: &mut usize) -> Result<Value, String> {
     *pos += 1; // consume '{'
-    let mut items: Vec<Value> = vec![];
+    let mut pairs: Vec<(Value, Value)> = vec![];
     skip_ws(chars, pos);
     if *pos < chars.len() && chars[*pos] == '}' {
         *pos += 1;
-        return Ok(Value::List(Rc::new(RefCell::new(items))));
+        return Ok(Value::Map(Rc::new(RefCell::new(pairs))));
     }
     loop {
         skip_ws(chars, pos);
         let key = parse_string(chars, pos)?;
-        items.push(Value::Str(Rc::new(key)));
         skip_ws(chars, pos);
         if *pos >= chars.len() || chars[*pos] != ':' {
             return Err(format!("expected ':' at pos {}", pos));
         }
         *pos += 1;
         let val = parse_value(chars, pos)?;
-        items.push(val);
+        pairs.push((Value::Str(Rc::new(key)), val));
         skip_ws(chars, pos);
         match chars.get(*pos) {
             Some(',') => { *pos += 1; }
@@ -276,7 +296,7 @@ fn parse_object(chars: &[char], pos: &mut usize) -> Result<Value, String> {
             _ => return Err(format!("expected ',' or '}}' at pos {}", pos)),
         }
     }
-    Ok(Value::List(Rc::new(RefCell::new(items))))
+    Ok(Value::Map(Rc::new(RefCell::new(pairs))))
 }
 
 fn parse_array(chars: &[char], pos: &mut usize) -> Result<Value, String> {
