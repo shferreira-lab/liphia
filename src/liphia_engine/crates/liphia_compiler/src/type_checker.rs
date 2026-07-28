@@ -59,8 +59,13 @@ impl TypeChecker {
         tc.declare_fn("append",      vec![Type::List, any()],             Type::Void);
         tc.declare_fn("pop",         vec![Type::List],                    any());
         tc.declare_fn("keys",        vec![Type::List],                    Type::List);
+        
+        tc.declare_fn("map_keys",   vec![Type::Map],           Type::List);
+        tc.declare_fn("map_values", vec![Type::Map],           Type::List);
+        tc.declare_fn("map_has",    vec![Type::Map, any()],    Type::Bool);
+        tc.declare_fn("map_remove", vec![Type::Map, any()],    Type::Void);
 
-       // ── math ──────────────────────────────────────────────────────────────
+        // ── math ──────────────────────────────────────────────────────────────
         tc.declare_fn("sqrt",       vec![any()],          Type::Float);
         tc.declare_fn("pow",        vec![any(), any()],   Type::Float);
         tc.declare_fn("abs",        vec![any()],          any());
@@ -250,7 +255,7 @@ impl TypeChecker {
 
         // ── json ──────────────────────────────────────────────────────────
         tc.declare_fn("json_encode", vec![any()],                Type::Str);
-        tc.declare_fn("json_decode", vec![Type::Str],            Type::List);
+        tc.declare_fn("json_decode", vec![Type::Str], any());
         tc.declare_fn("json_get",    vec![Type::Str, Type::Str], Type::Str);
         tc.declare_fn("json_has",    vec![Type::Str, Type::Str], Type::Bool);
 
@@ -339,6 +344,7 @@ impl TypeChecker {
             Expr::Bool(_)   => Type::Bool,
             Expr::Null      => Type::Null,
             Expr::List(_)   => Type::List,
+            Expr::MapLiteral(_) => Type::Map,
             Expr::Variable(name) => {
                 self.lookup(name).map(|s| s.ty.clone())
                     .unwrap_or(Type::Named("unknown".into()))
@@ -361,6 +367,7 @@ impl TypeChecker {
                 self.lookup_fn(name).map(|(_, r)| r.clone())
                     .unwrap_or(Type::Named("unknown".into()))
             }
+            Expr::ModuleCall { .. } => Type::Named("unknown".into()),
             Expr::Await(inner) => self.infer(inner),
             Expr::Spawn { .. } => Type::Null,
         }
@@ -498,6 +505,16 @@ impl TypeChecker {
                     }
                 }
             }
+            Stmt::Try { try_block, catch_var, catch_block } => {
+                self.push_scope();
+                for s in try_block { self.check_stmt(s)?; }
+                self.pop_scope();
+
+                self.push_scope();
+                self.declare(catch_var, Type::Str, false);
+                for s in catch_block { self.check_stmt(s)?; }
+                self.pop_scope();
+            }
             Stmt::Enum(def)      => { self.declare_enum(def.clone()); }
             Stmt::ExprStmt(expr) => { self.check_expr(expr)?; }
             Stmt::Break | Stmt::Continue => {}
@@ -533,6 +550,16 @@ impl TypeChecker {
                 for arg in args { self.check_expr(arg)?; }
                 Ok(())
             }
+            Expr::ModuleCall { module, name, args } => {
+                for arg in args { self.check_expr(arg)?; }
+                Err(LiphiaError::new(
+                    ErrorKind::InvalidExpression,
+                    format!(
+                        "internal error: unresolved module call '{}.{}()' reached the type checker — this should have been rewritten by the import resolver",
+                        module, name
+                    ),
+                ))
+            }
             Expr::Await(inner) => {
                 if !self.in_async_fn {
                     return Err(LiphiaError::new(
@@ -558,6 +585,13 @@ impl TypeChecker {
             }
             Expr::List(items) => {
                 for item in items { self.check_expr(item)?; }
+                Ok(())
+            }
+            Expr::MapLiteral(pairs) => {
+                for (k,v) in pairs {
+                    self.check_expr(k)?;
+                    self.check_expr(v)?;
+                }
                 Ok(())
             }
             Expr::Add(a, b) | Expr::Sub(a, b) | Expr::Mul(a, b) | Expr::Div(a, b) |

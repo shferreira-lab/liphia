@@ -130,6 +130,25 @@ impl Compiler {
             }
             Stmt::Enum(_) => {}
 
+            Stmt::Try { try_block, catch_var, catch_block } => {
+                let pos_push = self.instructions.len();
+                self.instructions.push(Opcode::PushHandler(0));
+                for s in try_block { self.compile_stmt(s)?; }
+                self.instructions.push(Opcode::PopHandler);
+                let pos_jmp_end = self.instructions.len();
+                self.instructions.push(Opcode::Jump(0));
+
+                let catch_addr = self.instructions.len();
+                self.instructions[pos_push] = Opcode::PushHandler(catch_addr);
+                
+                let store_op = self.store_new(&catch_var);
+                self.instructions.push(store_op);
+                for s in catch_block { self.compile_stmt(s)?; }
+
+                let end = self.instructions.len();
+                self.instructions[pos_jmp_end] = Opcode::Jump(end);
+            }
+
             Stmt::If { condition, block, branches, else_block } => {
                 self.compile_expr(condition)?;
                 let pos_jif = self.instructions.len();
@@ -248,6 +267,14 @@ impl Compiler {
                 for item in items { self.compile_expr(item)?; }
                 self.instructions.push(Opcode::BuildList(count));
             }
+            Expr::MapLiteral(pairs) => {
+                let count = pairs.len();
+                for (k, v) in pairs {
+                    self.compile_expr(k)?;
+                    self.compile_expr(v)?;
+                }
+                self.instructions.push(Opcode::BuildMap(count));
+            }
             Expr::Index(list_expr, index_expr) => {
                 self.compile_expr(*list_expr)?;
                 self.compile_expr(*index_expr)?;
@@ -317,10 +344,21 @@ impl Compiler {
                     self.instructions.push(Opcode::CallNamed(name, count));
                 }
             }
+            Expr::ModuleCall { module, name, .. } => {
+                Err(LiphiaError::new(
+                    ErrorKind::InvalidExpression,
+                    format!(
+                        "internal error: unresolved module call '{}.{}()' reached the bytecode compiler — this should have been rewritten by the import resolver",
+                        module, name
+                    ),
+                ))?
+            }
         }
         Ok(())
     }
 }
+
+
 
 // ── Public entry ──────────────────────────────────────────────────────────────
 

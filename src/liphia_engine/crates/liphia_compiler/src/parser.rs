@@ -1,3 +1,5 @@
+
+
 // liphia_compiler/src/parser.rs
 use crate::lexer::{Lexer, Token};
 use crate::ast::{EnumDef, Expr, Parameter, Stmt, Type};
@@ -12,16 +14,15 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(mut lexer: Lexer) -> LiphiaResult<Self> {
-        let line    = lexer.line();
-        let column  = lexer.column();
-        let current = lexer.next_token()?;
+        let (current, line, column) = lexer.next_token()?;
         Ok(Self { lexer, current, line, column })
     }
 
     fn advance(&mut self) -> LiphiaResult<()> {
-        self.line   = self.lexer.line();
-        self.column = self.lexer.column();
-        self.current = self.lexer.next_token()?;
+        let (current, line, column) = self.lexer.next_token()?;
+        self.current = current;
+        self.line    = line;
+        self.column  = column;
         Ok(())
     }
 
@@ -99,6 +100,7 @@ impl Parser {
             Token::Ident(n) if n == "const"    => self.parse_const(),
             Token::Ident(n) if n == "enum"     => self.parse_enum(),
             Token::Ident(n) if n == "spawn"    => self.parse_spawn_stmt(),
+            Token::Ident(n) if n == "try"      => self.parse_try(),
             Token::Ident(_)                    => self.parse_ident_stmt(),
             Token::Await => {
                 self.advance()?;
@@ -211,7 +213,6 @@ impl Parser {
 
     fn parse_ident_stmt(&mut self) -> LiphiaResult<Stmt> {
         let name = self.take_ident("expected identifier")?;
-
         // name[index] = value
         if self.current == Token::LBracket {
             self.advance()?;
@@ -221,21 +222,29 @@ impl Parser {
             let value = self.parse_expr()?;
             return Ok(Stmt::AssignIndex { name, index, value });
         }
-
         // name = value  (reassignment)
         if self.current == Token::Eq {
             self.advance()?;
             let value = self.parse_expr()?;
             return Ok(Stmt::Assign { name, value });
         }
-
         // name(args)  — function call as statement, result discarded
         if self.current == Token::LParen {
             self.advance()?;
             let args = self.parse_arg_list()?;
             return Ok(Stmt::ExprStmt(Expr::FunctionCall { name, args }));
         }
-
+        // module.function(args)  — qualified call as statement, result discarded
+        if self.current == Token::Dot {
+            self.advance()?;
+            let second = self.take_ident("expected name after '.'")?;
+            if self.current == Token::LParen {
+                self.advance()?;
+                let args = self.parse_arg_list()?;
+                return Ok(Stmt::ExprStmt(Expr::ModuleCall { module: name, name: second, args }));
+            }
+            return Ok(Stmt::ExprStmt(Expr::EnumVariant { enum_name: name, variant: second }));
+        }
         // name: type = value  (typed declaration)
         self.expect(Token::Colon)?;
         let ty = self.parse_type()?;
@@ -320,6 +329,20 @@ impl Parser {
         Ok(Stmt::If { condition, block, branches, else_block })
     }
 
+    fn parse_try(&mut self) -> LiphiaResult<Stmt> {
+        self.advance()?; // consume 'try'
+        self.expect(Token::Colon)?;
+        self.expect_indent_after_colon()?;
+        let try_block = self.parse_block()?;
+        self.skip_newlines()?;
+        self.expect_kw("catch")?;
+        let catch_var = self.take_ident("expected variable name after 'catch'")?;
+        self.expect(Token::Colon)?;
+        self.expect_indent_after_colon()?;
+        let catch_block = self.parse_block()?;
+        Ok(Stmt::Try { try_block, catch_var, catch_block })
+    }
+
     fn parse_block(&mut self) -> LiphiaResult<Vec<Stmt>> {
         let mut stmts = vec![];
         self.skip_newlines()?;
@@ -343,6 +366,7 @@ impl Parser {
             Token::Ident(n) if n == "bool"  => { self.advance()?; Type::Bool }
             Token::Ident(n) if n == "void"  => { self.advance()?; Type::Void }
             Token::Ident(n) if n == "list"  => { self.advance()?; Type::List }
+            Token::Ident(n) if n == "map"   => { self.advance()?; Type::Map }
             Token::Ident(n) if n == "null"  => { self.advance()?; Type::Null }
             Token::Ident(n) => {
                 let name = n.clone();
@@ -494,8 +518,15 @@ impl Parser {
                 let name = self.take_ident("")?;
                 if self.current == Token::Dot {
                     self.advance()?;
-                    let variant = self.take_ident("expected variant name after '.'")?;
-                    return Ok(Expr::EnumVariant { enum_name: name, variant });
+                    let second = self.take_ident("expected name after '.'")?;
+                    // module.fn(...)  vs  Enum.Variant  — disambiguated by
+                    // whether a '(' follows the second identifier.
+                                if self.current == Token::LParen {
+                        self.advance()?;
+                        let args = self.parse_arg_list()?;
+                        return Ok(Expr::ModuleCall { module: name, name: second, args });
+                    }
+                    return Ok(Expr::EnumVariant { enum_name: name, variant: second });
                 }
                 if self.current == Token::LParen {
                     self.advance()?;
@@ -505,6 +536,14 @@ impl Parser {
                 Ok(Expr::Variable(name))
             }
 
+            Token::FStrLiteral(t)  => {
+                let raw  = t.clone();
+                let line = self.line;
+                let col  = self.column;
+                self.advance()?;
+                self.build_fstring_expr(&raw, line, col)
+            }
+            
             Token::LParen => {
                 self.advance()?;
                 let expr = self.parse_expr()?;
@@ -527,6 +566,27 @@ impl Parser {
                 }
                 self.expect(Token::RBracket)?;
                 Ok(Expr::List(items))
+            }
+
+            // Map literal: { key: value, key: value, ... }
+            Token::LBrace => {
+                self.advance()?;
+                let mut pairs = vec![];
+                while self.current != Token::RBrace {
+                    if self.current == Token::EOF {
+                        return Err(LiphiaError::new(
+                            ErrorKind::UnexpectedToken,
+                            "unclosed map literal — missing '}'",
+                        ).at(self.line, self.column));
+                    }
+                    let key = self.parse_expr()?;
+                    self.expect(Token::Colon)?;
+                    let value = self.parse_expr()?;
+                    pairs.push((key, value));
+                    if self.current == Token::Comma { self.advance()?; }
+                }
+                self.expect(Token::RBrace)?;
+                Ok(Expr::MapLiteral(pairs))
             }
 
             Token::Async => Err(LiphiaError::new(
@@ -585,4 +645,86 @@ impl Parser {
             }
         }
     }
+
+    // ── f-string desugaring ─────────────────────────────────────────────
+    //
+    // f"literal {expr} literal" becomes an Expr tree of Str + Add, with
+    // each {expr} wrapped in to_str(...) so concatenation always sees Str
+    // regardless of the interpolated value's type. No new AST node, no
+    // bytecode/VM changes — this compiles through the existing Add/
+    // FunctionCall machinery.
+    //
+    // Literal braces: {{ and }} escape to a literal '{' / '}'.
+    //
+    // Known limitation: an interpolated expression that itself contains a
+    // string literal with '"' (e.g. f"{some_fn(\"x\")}") will not parse
+    // correctly — the outer read_string() in the lexer has already closed
+    // the f-string at that inner '"' before this function ever sees the
+    // text. Avoid nested string literals inside f-string interpolation
+    // for now.
+    fn build_fstring_expr(&mut self, raw: &str, line: usize, col: usize) -> LiphiaResult<Expr> {
+        let chars: Vec<char> = raw.chars().collect();
+        let mut i = 0;
+        let mut literal = String::new();
+        let mut result: Option<Expr> = None;
+
+        fn append(result: &mut Option<Expr>, next: Expr) {
+            *result = Some(match result.take() {
+                None       => next,
+                Some(prev) => Expr::Add(Box::new(prev), Box::new(next)),
+            });
+        }
+
+        while i < chars.len() {
+            match chars[i] {
+                '{' if chars.get(i + 1) == Some(&'{') => { literal.push('{'); i += 2; }
+                '}' if chars.get(i + 1) == Some(&'}') => { literal.push('}'); i += 2; }
+                '{' => {
+                    if !literal.is_empty() {
+                        append(&mut result, Expr::Str(std::mem::take(&mut literal)));
+                    }
+                    let start = i + 1;
+                    let mut depth = 1;
+                    let mut j = start;
+                    while j < chars.len() && depth > 0 {
+                        match chars[j] {
+                            '{' => depth += 1,
+                            '}' => { depth -= 1; if depth == 0 { break; } }
+                            _   => {}
+                        }
+                        j += 1;
+                    }
+                    if depth != 0 {
+                        return Err(LiphiaError::new(
+                            ErrorKind::UnclosedDelimiter,
+                            "unclosed '{' in f-string interpolation",
+                        ).at(line, col));
+                    }
+                    let inner: String = chars[start..j].iter().collect();
+                    let inner_lexer      = Lexer::new(&inner);
+                    let mut inner_parser = Parser::new(inner_lexer)?;
+                    let inner_expr       = inner_parser.parse_expr()?;
+                    append(&mut result, Expr::FunctionCall {
+                        name: "to_str".to_string(),
+                        args: vec![inner_expr],
+                    });
+                    i = j + 1;
+                }
+                '}' => {
+                    return Err(LiphiaError::new(
+                        ErrorKind::UnexpectedToken,
+                        "unmatched '}' in f-string — use '}}' for a literal '}'",
+                    ).at(line, col));
+                }
+                c => { literal.push(c); i += 1; }
+            }
+        }
+        if !literal.is_empty() {
+            append(&mut result, Expr::Str(literal));
+        }
+
+        Ok(result.unwrap_or(Expr::Str(String::new())))
+    }
+
+
 }

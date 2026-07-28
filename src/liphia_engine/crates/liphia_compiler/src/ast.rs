@@ -8,6 +8,7 @@ pub enum Type {
     Bool,
     Void,
     List,
+    Map,
     Null,
     Optional(Box<Type>),
     Named(String),
@@ -54,9 +55,14 @@ pub enum Expr {
     Not(Box<Expr>),
     // Collections
     List(Vec<Expr>),
+    //Map literal: { key: value, key: value, ...}
+    MapLiteral(Vec<(Expr, Expr)>),
     Index(Box<Expr>, Box<Expr>),
     // Enum variant access: Status.Ok
     EnumVariant { enum_name: String, variant: String },
+    // Qualified call: module.function(args). Only produced by the parser —
+    // resolved into a mangled FunctionCall before type checking ever runs.
+    ModuleCall { module: String, name: String, args: Vec<Expr> },
     // Function call
     FunctionCall { name: String, args: Vec<Expr> },
     /// await <expr>  — only valid inside an async fn
@@ -108,4 +114,5 @@ pub enum Stmt {
     Enum(EnumDef),
     ExprStmt(Expr),
     Return(Expr),
+    Try { try_block: Vec<Stmt>, catch_var: String, catch_block: Vec<Stmt> },
 }
