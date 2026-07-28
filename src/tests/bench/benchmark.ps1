@@ -1,7 +1,7 @@
 ﻿# ===================================================================
 # benchmark.ps1
 # Benchmark fib(30) - Liphia / Python / Java / Node.js
-# Medicao: melhor de 3 execucoes, stopwatch externo
+# Measurement: best of 3 runs, external stopwatch
 # ===================================================================
 
 Write-Host ""
@@ -10,123 +10,123 @@ Write-Host "  Benchmark fib(30) - Liphia / Python / Java / Node.js"
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$resultados = @()
+$results = @()
 
-function Rodar-MelhorDe3 {
+function Run-BestOf3 {
     param(
-        [string]$Nome,
-        [scriptblock]$Cmd
+        [string]$Name,
+        [scriptblock]$Command
     )
 
-    $tempos = @()
-    $ultimaSaida = $null
+    $times = @()
+    $lastOutput = $null
 
     for ($i = 0; $i -lt 3; $i++) {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
-        $ultimaSaida = & $Cmd 2>&1
+        $lastOutput = & $Command 2>&1
         $sw.Stop()
-        $tempos += $sw.Elapsed.TotalMilliseconds
+        $times += $sw.Elapsed.TotalMilliseconds
     }
 
-    $melhor = [math]::Round(($tempos | Measure-Object -Minimum).Minimum, 2)
-    return @{ Melhor = $melhor; Saida = $ultimaSaida }
+    $best = [math]::Round(($times | Measure-Object -Minimum).Minimum, 2)
+    return @{ Best = $best; Output = $lastOutput }
 }
 
 # ===================================================================
 # LIPHiA
 # ===================================================================
-Write-Host "Rodando Liphia..." -ForegroundColor Yellow
+Write-Host "Running Liphia..." -ForegroundColor Yellow
 $liphia_cli = "C:\Dev\liphia\src\target\release\liphia_cli.exe"
-liphia\src\target\release
-if (Test-Path $liphia_cli) {
-    $r = Rodar-MelhorDe3 "Liphia" { & $liphia_cli bench_fib_ai.lph }
-    Write-Host "  $($r.Saida -join ' | ')"
-    Write-Host "  melhor de 3: $($r.Melhor) ms"
 
-    $resultados += [PSCustomObject]@{
-        Linguagem = "Liphia (VM)"
-        Tempo_ms  = $r.Melhor
-        Nota      = "melhor de 3 (externo)"
+if (Test-Path $liphia_cli) {
+    $r = Run-BestOf3 "Liphia" { & $liphia_cli bench_fib_ai.lph }
+    Write-Host "  $($r.Output -join ' | ')"
+    Write-Host "  best of 3: $($r.Best) ms"
+
+    $results += [PSCustomObject]@{
+        Language = "Liphia (VM)"
+        Time_ms  = $r.Best
+        Notes    = "best of 3 (external)"
     }
 } else {
-    Write-Host "  [ERRO] nao encontrado: $liphia_cli" -ForegroundColor Red
+    Write-Host "  [ERROR] Not found: $liphia_cli" -ForegroundColor Red
 }
 
 # ===================================================================
 # PYTHON
 # ===================================================================
-Write-Host "Rodando Python..." -ForegroundColor Yellow
+Write-Host "Running Python..." -ForegroundColor Yellow
 $py = Get-Command python -ErrorAction SilentlyContinue
 
 if ($py) {
-    $r = Rodar-MelhorDe3 "Python" { & python bench_fib_ai.py }
-    Write-Host "  $($r.Saida -join ' | ')"
-    Write-Host "  melhor de 3: $($r.Melhor) ms"
+    $r = Run-BestOf3 "Python" { & python bench_fib_ai.py }
+    Write-Host "  $($r.Output -join ' | ')"
+    Write-Host "  best of 3: $($r.Best) ms"
 
-    $resultados += [PSCustomObject]@{
-        Linguagem = "Python 3"
-        Tempo_ms  = $r.Melhor
-        Nota      = "melhor de 3 (externo)"
+    $results += [PSCustomObject]@{
+        Language = "Python 3"
+        Time_ms  = $r.Best
+        Notes    = "best of 3 (external)"
     }
 } else {
-    Write-Host "  [SKIP] python nao encontrado" -ForegroundColor DarkGray
+    Write-Host "  [SKIP] Python not found" -ForegroundColor DarkGray
 }
 
 # ===================================================================
 # JAVA
 # ===================================================================
-Write-Host "Rodando Java..." -ForegroundColor Yellow
+Write-Host "Running Java..." -ForegroundColor Yellow
 $javac = Get-Command javac -ErrorAction SilentlyContinue
 $java  = Get-Command java  -ErrorAction SilentlyContinue
 
 if ($javac -and $java) {
     & javac BenchFibAI.java 2>&1 | Out-Null
 
-    $r = Rodar-MelhorDe3 "Java" { & java BenchFibAI }
-    Write-Host "  $($r.Saida -join ' | ')"
-    Write-Host "  melhor de 3: $($r.Melhor) ms"
+    $r = Run-BestOf3 "Java" { & java BenchFibAI }
+    Write-Host "  $($r.Output -join ' | ')"
+    Write-Host "  best of 3: $($r.Best) ms"
 
-    $resultados += [PSCustomObject]@{
-        Linguagem = "Java (JVM)"
-        Tempo_ms  = $r.Melhor
-        Nota      = "melhor de 3 (externo)"
+    $results += [PSCustomObject]@{
+        Language = "Java (JVM)"
+        Time_ms  = $r.Best
+        Notes    = "best of 3 (external)"
     }
 } else {
-    Write-Host "  [SKIP] javac/java nao encontrado" -ForegroundColor DarkGray
+    Write-Host "  [SKIP] Java not found" -ForegroundColor DarkGray
 }
 
 # ===================================================================
 # NODE.JS
 # ===================================================================
-Write-Host "Rodando Node.js..." -ForegroundColor Yellow
+Write-Host "Running Node.js..." -ForegroundColor Yellow
 $node = Get-Command node -ErrorAction SilentlyContinue
 
 if ($node) {
-    $r = Rodar-MelhorDe3 "Node.js" { & node bench_fib_ai.js }
-    Write-Host "  $($r.Saida -join ' | ')"
-    Write-Host "  melhor de 3: $($r.Melhor) ms"
+    $r = Run-BestOf3 "Node.js" { & node bench_fib_ai.js }
+    Write-Host "  $($r.Output -join ' | ')"
+    Write-Host "  best of 3: $($r.Best) ms"
 
-    $resultados += [PSCustomObject]@{
-        Linguagem = "Node.js (V8)"
-        Tempo_ms  = $r.Melhor
-        Nota      = "melhor de 3 (externo)"
+    $results += [PSCustomObject]@{
+        Language = "Node.js (V8)"
+        Time_ms  = $r.Best
+        Notes    = "best of 3 (external)"
     }
 } else {
-    Write-Host "  [SKIP] node nao encontrado" -ForegroundColor DarkGray
+    Write-Host "  [SKIP] Node.js not found" -ForegroundColor DarkGray
 }
 
 # ===================================================================
-# RESULTADO FINAL
+# FINAL RESULTS
 # ===================================================================
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Resultado final                       " -ForegroundColor Cyan
+Write-Host "  Final Results"
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-$resultados | Sort-Object Tempo_ms | Format-Table -AutoSize
+$results | Sort-Object Time_ms | Format-Table -AutoSize
 
 Write-Host ""
-Write-Host "Todos os tempos: medicao EXTERNA (Stopwatch)." -ForegroundColor DarkGray
-Write-Host "Metodo: melhor de 3 execucoes." -ForegroundColor DarkGray
+Write-Host "All timings were measured externally using Stopwatch." -ForegroundColor DarkGray
+Write-Host "Method: best of 3 runs." -ForegroundColor DarkGray
 Write-Host ""

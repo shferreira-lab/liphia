@@ -26,3 +26,8 @@ Liphia (VM)     91,69 best of 3 (external)
 Node.js (V8)   125,72 best of 3 (external)
 Java (JVM)     235,15 best of  3 (external)
 Python 3       405,76 best of  3 (external)
+
+
+All timings were measured externally using Stopwatch.
+Method: best of 3 runs.
+

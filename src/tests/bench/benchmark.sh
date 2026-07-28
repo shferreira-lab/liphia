@@ -6,7 +6,7 @@ LIPHIA_CLI="../motor_liphia/target/debug/liphia_cli"
 
 echo ""
 echo "========================================"
-echo "  Benchmark fib(30) — Motor Liphia 0.5 "
+echo "  Benchmark fib(30) — Motor Liphia 0.10.0 "
 echo "========================================"
 echo ""
 

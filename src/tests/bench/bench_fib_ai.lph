@@ -1,6 +1,6 @@
 # bench_fib_ai.lph
 #
-# Liphia Engine 0.9.0 — Benchmark
+# Liphia Engine 0.10.0 — Benchmark
 #
 # Measures:
 #   - Recursive Fibonacci fib(25)
