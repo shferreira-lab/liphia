@@ -1,8 +1,10 @@
 [module]
 name        = "db"
-version     = "1.0.2"
+version     = "1.1.0"
 description = "Database driver for Liphia — SQLite (embedded, zero dependencies) and PostgreSQL (pure TCP wire protocol)"
 native      = true
+entry       = "db.lph"
+files       = ["db.lph"]
 
 [sqlite]
 backend  = "rusqlite"
@@ -39,3 +41,9 @@ pg_commit     = "pg_commit(handle: int) -> bool"
 pg_rollback   = "pg_rollback(handle: int) -> bool"
 pg_close      = "pg_close(handle: int) -> bool"
 pg_error      = "pg_error(handle: int) -> str"
+
+[submodules.postgres]
+files = ["postgres/postgres.lph"]
+
+[submodules.sqlite]
+files = ["sqlite/sqlite.lph"]

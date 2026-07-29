@@ -1,0 +1,8 @@
+# db/postgres/postgres.lph — PostgreSQL driver helpers.
+# pg_* functions themselves are core natives, always available regardless
+# of import. This file adds convenience helpers on top of them.
+
+fn pg_table_exists(conn: int, table: str) -> bool:
+    var sql: str = "SELECT to_regclass('" + table + "') IS NOT NULL AS exists"
+    var rows: list = pg_query_rows(conn, sql)
+    return len(rows) > 0

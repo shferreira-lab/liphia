@@ -1,0 +1,13 @@
+# db/sqlite/sqlite.lph — SQLite driver helpers.
+# db_* functions themselves are core natives, always available regardless
+# of import. db_tables() returns a flat [col, val, col, val, ...] pair list
+# (column name repeats each time), so real table names sit at odd indices.
+
+fn sqlite_table_exists(conn: int, table: str) -> bool:
+    var tables: list = db_tables(conn)
+    var i: int = 0
+    while i < len(tables):
+        if tables[i + 1] == table:
+            return true
+        i = i + 2
+    return false

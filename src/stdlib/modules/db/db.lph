@@ -11,6 +11,20 @@
 # Usage:
 #   import from "db"
 #
+# ── Optional per-driver helpers ───────────────────────────────────────────────
+#
+# The db_*/pg_* functions below are always available once "db" is installed,
+# regardless of import. For extra convenience helpers specific to one driver
+# (e.g. sqlite_table_exists, pg_table_exists), install and import the
+# submodule explicitly:
+#
+#   liphia install db:sqlite
+#   liphia install db:postgres
+#
+#   import { sqlite } from "db"
+#   import { postgres } from "db"
+#
+#
 # ── SQLite ────────────────────────────────────────────────────────────────────
 #
 # db_open(path: str) -> int

@@ -63,8 +63,12 @@ pub fn list_modules() {
 // ── liphia install <mod> [mod2 ...] ──────────────────────────────────────────
 pub fn install_modules(modules: &[&str]) {
     let (mut ok, mut err) = (0usize, 0usize);
-    for &name in modules {
-        if do_install(name) { ok += 1; } else { err += 1; }
+    for &spec in modules {
+        let success = match spec.split_once(':') {
+            Some((module, submodule)) => do_install_submodule(module, submodule),
+            None => do_install(spec),
+        };
+        if success { ok += 1; } else { err += 1; }
     }
     println!();
     if err == 0 {
@@ -73,6 +77,100 @@ pub fn install_modules(modules: &[&str]) {
         println!("[liphia] {} installed, {} failed.", ok, err);
     }
 }
+
+// ── Submodule install: liphia install <module>:<submodule> ───────────────────
+fn do_install_submodule(module: &str, submodule: &str) -> bool {
+    print!("  installing '{}:{}'... ", module, submodule);
+    io::stdout().flush().unwrap();
+
+    if !KNOWN_MODULES.contains(&module) {
+        println!("FAILED");
+        eprintln!("    '{}' is not a known stdlib module.", module);
+        eprintln!("    known: {}", KNOWN_MODULES.join(", "));
+        return false;
+    }
+
+    let toml_url = format!("{}/{}/module.toml", REGISTRY_RAW, module);
+    let module_toml = match http_get(&toml_url) {
+        Ok(body) => body,
+        Err(e) => {
+            println!("FAILED");
+            eprintln!("    could not fetch module.toml for '{}': {}", module, e);
+            return false;
+        }
+    };
+
+    let files = match parse_submodule_files(&module_toml, submodule) {
+        Some(f) => f,
+        None => {
+            println!("FAILED");
+            eprintln!("    '{}' has no submodule '{}' in its module.toml", module, submodule);
+            return false;
+        }
+    };
+
+    let dest_dir = PathBuf::from(MODULES_DIR).join(module);
+    if let Err(e) = fs::create_dir_all(&dest_dir) {
+        println!("FAILED");
+        eprintln!("    could not create {}: {}", dest_dir.display(), e);
+        return false;
+    }
+    let _ = fs::write(dest_dir.join("module.toml"), &module_toml);
+
+    let (mut ok_count, mut err_count) = (0usize, 0usize);
+    for rel_path in &files {
+        let dest_file = dest_dir.join(rel_path);
+        if dest_file.exists() { ok_count += 1; continue; }
+        if let Some(parent) = dest_file.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                println!("FAILED");
+                eprintln!("    could not create {}: {}", parent.display(), e);
+                err_count += 1;
+                continue;
+            }
+        }
+        let url = format!("{}/{}/{}", REGISTRY_RAW, module, rel_path);
+        match http_get(&url) {
+            Ok(body) => match fs::write(&dest_file, &body) {
+                Ok(_)  => ok_count += 1,
+                Err(e) => { println!("FAILED"); eprintln!("    could not write {}: {}", dest_file.display(), e); err_count += 1; }
+            },
+            Err(e) => { println!("FAILED"); eprintln!("    download error fetching '{}': {}", rel_path, e); err_count += 1; }
+        }
+    }
+
+    if err_count > 0 { return false; }
+    add_to_manifest(&format!("{}:{}", module, submodule));
+    println!("ok ({} file(s))", ok_count);
+    true
+}
+
+// Parses `files = [...]` from a `[submodules.<name>]` section of module.toml.
+fn parse_submodule_files(toml: &str, submodule: &str) -> Option<Vec<String>> {
+    let section = format!("[submodules.{}]", submodule);
+    let mut in_section = false;
+    for line in toml.lines() {
+        let t = line.trim();
+        if t.starts_with('[') {
+            in_section = t == section;
+            continue;
+        }
+        if !in_section { continue; }
+        if let Some(rest) = t.strip_prefix("files") {
+            let rest  = rest.trim_start();
+            let rest  = rest.strip_prefix('=')?.trim();
+            let inner = rest.strip_prefix('[')?.strip_suffix(']')?;
+            let list: Vec<String> = inner
+                .split(',')
+                .map(|s| s.trim().trim_matches('"').trim_matches('\'').to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            if !list.is_empty() { return Some(list); }
+        }
+    }
+    None
+}
+
 
 // ── liphia install (reading liphia.toml) ───────────────────────────────
 pub fn install_from_manifest() {

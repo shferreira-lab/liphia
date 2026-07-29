@@ -119,76 +119,76 @@ fn resolve_import_file(base_dir: &Path, import_path: &str) -> Option<PathBuf> {
 //
 // Resolution order:
 //   1. ./liphia_modules/<name>/<name>.lph — installed using `liphia install`
-//   2. LIPHIA_STDLIB_PATH env var         — global install / CI
-//   3. Paths relative to exe              — distributed binary
-//   4. Paths relative to cwd              — development layout
 
-fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Option<PathBuf> {
-    let name     = module_name.trim_end_matches(".lph");
-    let filename = format!("{}.lph", name);
-
-    let source_dir     = source_root.parent().unwrap_or(Path::new("."));
-    let local_modules  = source_dir
-        .join("liphia_modules")
-        .join(name)
-        .join(&filename);
-    if local_modules.exists() {
-        return Some(local_modules);
-    }
+// ── Shared root search for both top-level modules and submodules ─────────────
+//
+// `relative` is the path within a stdlib module tree, e.g.:
+//   "math/math.lph"              (top-level module entry)
+//   "db/postgres/postgres.lph"   (submodule entry)
+fn find_in_stdlib_roots(relative: &Path, source_root: &Path) -> Option<PathBuf> {
+    let source_dir = source_root.parent().unwrap_or(Path::new("."));
+    let mut candidates: Vec<PathBuf> = vec![
+        source_dir.join("liphia_modules").join(relative),
+    ];
 
     if let Ok(cwd) = std::env::current_dir() {
-        let cwd_modules = cwd.join("liphia_modules").join(name).join(&filename);
-        if cwd_modules.exists() {
-            return Some(cwd_modules);
-        }
+        candidates.push(cwd.join("liphia_modules").join(relative));
     }
-
     if let Ok(std_path) = std::env::var("LIPHIA_STDLIB_PATH") {
-        let candidate = PathBuf::from(&std_path).join(&filename);
-        if candidate.exists() {
-            return Some(candidate);
-        }
+        candidates.push(PathBuf::from(&std_path).join(relative));
     }
-
     if let Ok(exe) = std::env::current_exe() {
         let exe_dir = exe.parent();
-        let candidates = [
-            exe_dir.map(|p| p.join("stdlib/lph").join(&filename)),
-            exe_dir.and_then(|p| p.parent()).map(|p| p.join("stdlib/lph").join(&filename)),
-            exe_dir.and_then(|p| p.parent()).and_then(|p| p.parent())
-                   .map(|p| p.join("stdlib/lph").join(&filename)),
-        ];
-        for c in candidates.into_iter().flatten() {
-            if c.exists() { return Some(c); }
+        if let Some(d) = exe_dir {
+            candidates.push(d.join("stdlib/lph").join(relative));
+        }
+        if let Some(d) = exe_dir.and_then(|p| p.parent()) {
+            candidates.push(d.join("stdlib/lph").join(relative));
+        }
+        if let Some(d) = exe_dir.and_then(|p| p.parent()).and_then(|p| p.parent()) {
+            candidates.push(d.join("stdlib/lph").join(relative));
         }
     }
 
     let cwd = std::env::current_dir().unwrap_or_default();
-    let dev_candidates = [
-        cwd.join("stdlib/modules").join(name).join(&filename),
-        cwd.join("../src/stdlib/modules").join(name).join(&filename),
-        cwd.join("../../stdlib/modules").join(name).join(&filename),
-        cwd.join("../../../stdlib/modules").join(name).join(&filename),
-        cwd.join("../../../../stdlib/modules").join(name).join(&filename),
-        cwd.join("liphia_modules").join(name).join(&filename),
-        cwd.join("../../../liphia-stdlib/lph").join(&filename),
-        cwd.join("../../liphia-stdlib/lph").join(&filename),
-        cwd.join("../../stdlib/lph").join(&filename),
-        cwd.join("../../stdlib").join(&filename),
-        cwd.join("../stdlib/lph").join(&filename),
-        cwd.join("stdlib/lph").join(&filename),
-    ];
-    for c in &dev_candidates {
-        if c.exists() { return Some(c.clone()); }
+    for base in [
+        "stdlib/modules",
+        "../src/stdlib/modules",
+        "../../stdlib/modules",
+        "../../../stdlib/modules",
+        "../../../../stdlib/modules",
+        "liphia_modules",
+    ] {
+        candidates.push(cwd.join(base).join(relative));
     }
 
-    eprintln!("[liphia] error: stdlib module '{}' not found.", name);
-    eprintln!("  hint: run 'liphia install {}' to install it.", name);
-    eprintln!("        or set LIPHIA_STDLIB_PATH=/path/to/stdlib/lph");
-    eprintln!("  cwd:  {:?}", std::env::current_dir().unwrap_or_default());
-    None
+    candidates.into_iter().find(|c| c.exists())
 }
 
+// ── Stdlib module resolution ──────────────────────────────────────────────────
+fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Option<PathBuf> {
+    let name = module_name.trim_end_matches(".lph");
+    let rel  = PathBuf::from(name).join(format!("{}.lph", name));
+    let found = find_in_stdlib_roots(&rel, source_root);
+    if found.is_none() {
+        eprintln!("[liphia] error: stdlib module '{}' not found.", name);
+        eprintln!("  hint: run 'liphia install {}' to install it.", name);
+        eprintln!("        or set LIPHIA_STDLIB_PATH=/path/to/stdlib/lph");
+        eprintln!("  cwd:  {:?}", std::env::current_dir().unwrap_or_default());
+    }
+    found
+}
+
+// ── Stdlib submodule resolution ───────────────────────────────────────────────
+//
+// e.g. resolve_stdlib_submodule("db", "postgres", ...) looks for
+// <module_root>/db/postgres/postgres.lph
+fn resolve_stdlib_submodule(module_name: &str, submodule_name: &str, source_root: &Path) -> Option<PathBuf> {
+    let rel = PathBuf::from(module_name)
+        .join(submodule_name)
+        .join(format!("{}.lph", submodule_name));
+    find_in_stdlib_roots(&rel, source_root)
+}
 // ── Per-file parse: strips import lines, records them structurally,
 //    then lexes+parses the remaining source into that file's own AST ───────────
 
@@ -387,9 +387,8 @@ fn resolve_project(
         match &imp.kind {
             ImportKind::BareStdlib => {
                 if let Some(resolved) = resolve_stdlib_module(&imp.target, source_root) {
-                    let (stmts, _) = parse_own_source(&resolved);
-                    merged.extend(stmts);
-                }
+        merged.extend(resolve_project(&resolved, source_root, visited));
+        }
             }
             ImportKind::BareLocal => {
                 let resolved = resolve_import_file(base_dir, &imp.target).unwrap_or_else(|| {
@@ -400,22 +399,43 @@ fn resolve_project(
                 merged.extend(resolve_project(&resolved, source_root, visited));
             }
             ImportKind::Selective(names) => {
-                let resolved = resolve_import_file(base_dir, &imp.target).unwrap_or_else(|| {
-                    eprintln!("error: could not resolve import '{}'", imp.target);
-                    process::exit(1);
-                });
-                let module_stmts = resolve_project(&resolved, source_root, visited);
-                for stmt in module_stmts {
-                    if stmt_name(&stmt).map_or(false, |n| names.contains(&n)) {
-                        merged.push(stmt);
+                if let Some(resolved) = resolve_import_file(base_dir, &imp.target) {
+                    // Local file — behavior unchanged.
+                    let module_stmts = resolve_project(&resolved, source_root, visited);
+                    for stmt in module_stmts {
+                        if stmt_name(&stmt).map_or(false, |n| names.contains(&n)) {
+                            merged.push(stmt);
+                        }
+                    }
+                } else {
+                    // Stdlib module — check each requested name against
+                    // submodule folders first (e.g. "postgres", "sqlite"),
+                    // then fall back to filtering the module's own top-level
+                    // declarations by name (previous behavior).
+                    let mut remaining: Vec<String> = vec![];
+                    for name in names {
+                        if let Some(sub_path) = resolve_stdlib_submodule(&imp.target, name, source_root) {
+                            merged.extend(resolve_project(&sub_path, source_root, visited));
+                        } else {
+                            remaining.push(name.clone());
+                        }
+                    }
+                    if !remaining.is_empty() {
+                        let entry = resolve_stdlib_module(&imp.target, source_root)
+                            .unwrap_or_else(|| process::exit(1));
+                        let module_stmts = resolve_project(&entry, source_root, visited);
+                        for stmt in module_stmts {
+                            if stmt_name(&stmt).map_or(false, |n| remaining.contains(&n)) {
+                                merged.push(stmt);
+                            }
+                        }
                     }
                 }
             }
             ImportKind::Qualified(alias) => {
-                let resolved = resolve_import_file(base_dir, &imp.target).unwrap_or_else(|| {
-                    eprintln!("error: could not resolve import '{}'", imp.target);
-                    process::exit(1);
-                });
+                let resolved = resolve_import_file(base_dir, &imp.target)
+                    .or_else(|| resolve_stdlib_module(&imp.target, source_root))
+                    .unwrap_or_else(|| process::exit(1));
                 let mut module_stmts = resolve_project(&resolved, source_root, visited);
                 for stmt in module_stmts.iter_mut() {
                     mangle_stmt_name(stmt, alias);
