@@ -1,0 +1,12 @@
+# math/summary.lph — helper orquestrado, não é stub.
+# Combina várias funções nativas de stats num resultado único.
+# Prova que os arquivos .lph de um módulo podem ter lógica de verdade,
+# não só comentário.
+
+fn describe(data: list) -> map:
+    var result: map = {}
+    result["mean"]  = mean(data)
+    result["stdev"] = stdev_sample(data)
+    result["min"]   = min_list(data)
+    result["max"]   = max_list(data)
+    return result

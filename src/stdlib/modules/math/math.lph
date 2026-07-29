@@ -1,4 +1,9 @@
 # stdlib/lph/math.lph
+
+
+import "summary.lph"
+
+
 # Mathematical functions — all implemented natively in Rust (stdlib/native/src/math.rs).
 #
 # ── Original functions ────────────────────────────────────────────────────────
