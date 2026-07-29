@@ -110,52 +110,105 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
-    // path: <cwd>/liphia_modules/<name>/<name>.lph
-    let dest_dir  = PathBuf::from(MODULES_DIR).join(name);
-    let dest_file = dest_dir.join(format!("{}.lph", name));
-
-    if dest_file.exists() {
-        println!("already installed.");
-        return true;
-    }
-
+    let dest_dir = PathBuf::from(MODULES_DIR).join(name);
     if let Err(e) = fs::create_dir_all(&dest_dir) {
         println!("FAILED");
         eprintln!("    could not create {}: {}", dest_dir.display(), e);
         return false;
     }
 
-    // download <name>.lph from GitHub
-    let url = format!("{}/{}/{}.lph", REGISTRY_RAW, name, name);
-    match http_get(&url) {
-        Ok(body) => {
-            if let Err(e) = fs::write(&dest_file, &body) {
-                println!("FAILED");
-                eprintln!("    could not write {}: {}", dest_file.display(), e);
-                let _ = fs::remove_dir_all(&dest_dir);
-                return false;
-            }
-        }
-        Err(e) => {
-            println!("FAILED");
-            eprintln!("    download error: {}", e);
-            eprintln!("    url tried: {}", url);
-            let _ = fs::remove_dir_all(&dest_dir);
-            return false;
-        }
-    }
-
-    // download module.toml
-    let toml_url = format!("{}/{}/module.toml", REGISTRY_RAW, name);
-    if let Ok(body) = http_get(&toml_url) {
+    // module.toml first — it tells us which files belong to this module.
+    let toml_url    = format!("{}/{}/module.toml", REGISTRY_RAW, name);
+    let module_toml = http_get(&toml_url).ok();
+    if let Some(ref body) = module_toml {
         let _ = fs::write(dest_dir.join("module.toml"), body);
     }
 
+    // File list from module.toml's `files = [...]` under [module].
+    // Falls back to just "<name>.lph" for modules that haven't published
+    // a file list yet — backward compatible with the old single-file layout.
+    let files = module_toml
+        .as_deref()
+        .and_then(parse_module_files)
+        .unwrap_or_else(|| vec![format!("{}.lph", name)]);
+
+    let mut ok_count  = 0usize;
+    let mut err_count = 0usize;
+
+    for rel_path in &files {
+        let dest_file = dest_dir.join(rel_path);
+        // Skip files already present — lets a re-run pick up NEW files
+        // added to the module's list without re-downloading everything.
+        if dest_file.exists() {
+            ok_count += 1;
+            continue;
+        }
+        if let Some(parent) = dest_file.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                println!("FAILED");
+                eprintln!("    could not create {}: {}", parent.display(), e);
+                err_count += 1;
+                continue;
+            }
+        }
+        let url = format!("{}/{}/{}", REGISTRY_RAW, name, rel_path);
+        match http_get(&url) {
+            Ok(body) => {
+                if let Err(e) = fs::write(&dest_file, &body) {
+                    println!("FAILED");
+                    eprintln!("    could not write {}: {}", dest_file.display(), e);
+                    err_count += 1;
+                } else {
+                    ok_count += 1;
+                }
+            }
+            Err(e) => {
+                println!("FAILED");
+                eprintln!("    download error fetching '{}': {}", rel_path, e);
+                eprintln!("    url tried: {}", url);
+                err_count += 1;
+            }
+        }
+    }
+
+    if err_count > 0 {
+        let _ = fs::remove_dir_all(&dest_dir);
+        return false;
+    }
+
     add_to_manifest(name);
-    println!("ok");
+    println!("ok ({} file(s))", ok_count);
     true
 }
 
+// Parses `files = ["a.lph", "b.lph"]` from the [module] section of a
+// module.toml. Minimal hand-rolled parser — same approach as
+// parse_dependencies below, no external toml crate dependency.
+fn parse_module_files(toml: &str) -> Option<Vec<String>> {
+    let mut in_module = false;
+    for line in toml.lines() {
+        let t = line.trim();
+        if t.starts_with('[') {
+            in_module = t == "[module]";
+            continue;
+        }
+        if !in_module { continue; }
+        if let Some(rest) = t.strip_prefix("files") {
+            let rest  = rest.trim_start();
+            let rest  = rest.strip_prefix('=')?.trim();
+            let inner = rest.strip_prefix('[')?.strip_suffix(']')?;
+            let list: Vec<String> = inner
+                .split(',')
+                .map(|s| s.trim().trim_matches('"').trim_matches('\'').to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            if !list.is_empty() {
+                return Some(list);
+            }
+        }
+    }
+    None
+}
 // ── HTTP GET by curl ─────────────────────────────────────────────────────────
 fn http_get(url: &str) -> Result<String, String> {
     let curl = std::process::Command::new("curl")
