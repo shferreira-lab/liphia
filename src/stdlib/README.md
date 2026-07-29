@@ -1,4 +1,4 @@
-# Liphia Standard Library
+# Liphia Standard Library 0.3.0
 
 Official package registry for the [Liphia](https://github.com/shferreira-lab/liphia) language.
 
