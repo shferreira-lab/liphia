@@ -7,7 +7,7 @@ liphia_modules/
 
 # Rust / Cargo
 target/
-Cargo.lock
+
 
 # Compilers and bin
 *.exe
@@ -23,6 +23,9 @@ Cargo.lock
 dist/
 build/
 out/
+
+Extension:
+*.vsix
 
 # Makefile 
 Makefile

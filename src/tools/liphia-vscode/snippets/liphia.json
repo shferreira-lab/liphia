@@ -14,7 +14,6 @@
     "body": ["${1:name}: str = input(\"${2:Enter}: \")"],
     "description": "Read user input (always returns str)"
   },
-
   "Var inferred": {
     "prefix": "var",
     "body": ["var ${1:name} = ${2:value}"],
@@ -30,7 +29,6 @@
     "body": ["const ${1:NAME} = ${2:value}"],
     "description": "Declare constant"
   },
-
   "Int variable": {
     "prefix": "int",
     "body": ["${1:name}: int = ${2:0}"],
@@ -56,7 +54,31 @@
     "body": ["var ${1:name}: list = [${2:}]"],
     "description": "Declare list variable"
   },
-
+  "Map variable": {
+    "prefix": "map",
+    "body": ["var ${1:name}: map = {${2:\"key\": ${3:value}}}"],
+    "description": "Declare map (dictionary) variable"
+  },
+  "Map keys": {
+    "prefix": "mapkeys",
+    "body": ["map_keys(${1:map})"],
+    "description": "List of all keys in a map, insertion order"
+  },
+  "Map values": {
+    "prefix": "mapvalues",
+    "body": ["map_values(${1:map})"],
+    "description": "List of all values in a map, insertion order"
+  },
+  "Map has": {
+    "prefix": "maphas",
+    "body": ["map_has(${1:map}, ${2:key})"],
+    "description": "True if key exists in map"
+  },
+  "Map remove": {
+    "prefix": "mapremove",
+    "body": ["map_remove(${1:map}, ${2:key})"],
+    "description": "Remove a key from a map, if present"
+  },
   "If": {
     "prefix": "if",
     "body": [
@@ -103,7 +125,6 @@
     ],
     "description": "Else branch"
   },
-
   "While": {
     "prefix": "while",
     "body": [
@@ -138,7 +159,16 @@
     "body": ["continue"],
     "description": "Continue to next iteration"
   },
-
+  "Try/Catch": {
+    "prefix": "try",
+    "body": [
+      "try:",
+      "    ${1:# risky code}",
+      "catch ${2:e}:",
+      "    print(\"error:\", ${2:e})"
+    ],
+    "description": "Catch a runtime error instead of crashing the program"
+  },
   "Function": {
     "prefix": "fn",
     "body": [
@@ -183,7 +213,6 @@
     "body": ["return ${1:value}"],
     "description": "Return value"
   },
-
   "Enum": {
     "prefix": "enum",
     "body": [
@@ -193,11 +222,25 @@
     ],
     "description": "Declare enum"
   },
-
+  "F-string": {
+    "prefix": "fstr",
+    "body": ["f\"${1:text} {${2:expr}}\""],
+    "description": "String interpolation — {expr} is evaluated and converted to str"
+  },
   "Import file": {
     "prefix": "import",
     "body": ["import \"${1:path/to/file.lph}\""],
-    "description": "Import local file"
+    "description": "Import local file (everything, unqualified)"
+  },
+  "Import selective": {
+    "prefix": "importsel",
+    "body": ["import { ${1:name} } from \"${2:./file.lph}\""],
+    "description": "Import only the listed names from a local file or stdlib module"
+  },
+  "Import qualified": {
+    "prefix": "importqual",
+    "body": ["import ${1:alias} from \"${2:./file.lph}\""],
+    "description": "Import everything under an alias — call as alias.function(), avoids name collisions"
   },
   "Import stdlib": {
     "prefix": "importfrom",
@@ -222,14 +265,23 @@
   "Import db": {
     "prefix": "importdb",
     "body": ["import from \"db\""],
-    "description": "Import db stdlib module (SQLite + PostgreSQL)"
+    "description": "Import db stdlib module (SQLite + PostgreSQL natives, always available)"
+  },
+  "Import db submodule sqlite": {
+    "prefix": "importdbsqlite",
+    "body": ["import { sqlite } from \"db\""],
+    "description": "SQLite helper functions — requires 'liphia install db:sqlite' first"
+  },
+  "Import db submodule postgres": {
+    "prefix": "importdbpostgres",
+    "body": ["import { postgres } from \"db\""],
+    "description": "PostgreSQL helper functions — requires 'liphia install db:postgres' first"
   },
   "Import json": {
     "prefix": "importjson",
     "body": ["import from \"json\""],
     "description": "Import json stdlib module"
   },
-
   "HTTP server loop": {
     "prefix": "httpserver",
     "body": [
@@ -257,7 +309,6 @@
     ],
     "description": "HTTP server boilerplate"
   },
-
   "SQLite open and query": {
     "prefix": "sqlite",
     "body": [
@@ -272,7 +323,24 @@
     ],
     "description": "SQLite open, create table and query"
   },
-
+  "DB with try/catch": {
+    "prefix": "dbtry",
+    "body": [
+      "import from \"db\"",
+      "",
+      "try:",
+      "    var conn: int = db_open(\"${1:data.sqlite}\")",
+      "    ${2:# queries here}",
+      "catch e:",
+      "    print(\"db error:\", e)"
+    ],
+    "description": "SQLite/Postgres calls wrapped in try/catch instead of crashing on failure"
+  },
+  "JSON decode to map": {
+    "prefix": "jsondecode",
+    "body": ["var ${1:data}: map = json_decode(${2:text})"],
+    "description": "json_decode now returns a real map for JSON objects (Engine 0.10.0+)"
+  },
   "Neural network forward": {
     "prefix": "nnforward",
     "body": [
@@ -294,7 +362,6 @@
     ],
     "description": "Neural network forward pass (dense layer)"
   },
-
   "SGD update": {
     "prefix": "sgd",
     "body": [
@@ -312,7 +379,6 @@
     ],
     "description": "Adam optimizer update"
   },
-
   "Classify metrics": {
     "prefix": "metrics",
     "body": [
@@ -323,7 +389,6 @@
     ],
     "description": "Print all classification metrics"
   },
-
   "Comment": {
     "prefix": "#",
     "body": ["# ${1:comment}"],

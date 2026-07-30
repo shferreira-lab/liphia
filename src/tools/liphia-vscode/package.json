@@ -2,7 +2,7 @@
   "name": "liphia",
   "displayName": "Liphia Language",
   "description": "Syntax highlighting for the Liphia programming language (.lph)",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "publisher": "liphia",
   "license": "MIT - Apache 2.0",
   "icon": "icone.png",

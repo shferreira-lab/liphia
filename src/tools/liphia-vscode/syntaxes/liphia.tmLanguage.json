@@ -4,10 +4,12 @@
   "name": "Liphia",
   "patterns": [
     { "include": "#comments" },
+    { "include": "#fstrings" },
     { "include": "#strings" },
     { "include": "#numbers" },
     { "include": "#keywords_control" },
     { "include": "#keywords_declaration" },
+    { "include": "#keywords_error" },
     { "include": "#keywords_async" },
     { "include": "#keywords_loop" },
     { "include": "#types" },
@@ -22,10 +24,11 @@
     { "include": "#stdlib_json" },
     { "include": "#stdlib_db" },
     { "include": "#core_functions" },
+    { "include": "#map_functions" },
+    { "include": "#module_call" },
     { "include": "#operators" }
   ],
   "repository": {
-
     "comments": {
       "patterns": [
         {
@@ -34,7 +37,6 @@
         }
       ]
     },
-
     "strings": {
       "patterns": [
         {
@@ -50,7 +52,51 @@
         }
       ]
     },
-
+    "fstrings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.interpolated.liphia",
+          "begin": "f\"",
+          "end": "\"",
+          "beginCaptures": {
+            "0": { "name": "storage.type.string.interpolated.liphia" }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.liphia",
+              "match": "\\{\\{|\\}\\}|\\\\[ntr\\\\\"0]"
+            },
+            {
+              "name": "meta.embedded.expression.liphia",
+              "begin": "\\{(?!\\{)",
+              "end": "(?<!\\})\\}(?!\\})",
+              "beginCaptures": {
+                "0": { "name": "punctuation.definition.template-expression.begin.liphia" }
+              },
+              "endCaptures": {
+                "0": { "name": "punctuation.definition.template-expression.end.liphia" }
+              },
+              "patterns": [
+                { "include": "#stdlib_ai" },
+                { "include": "#stdlib_math" },
+                { "include": "#stdlib_stats" },
+                { "include": "#stdlib_fs" },
+                { "include": "#stdlib_http" },
+                { "include": "#stdlib_ws" },
+                { "include": "#stdlib_net" },
+                { "include": "#stdlib_json" },
+                { "include": "#stdlib_db" },
+                { "include": "#core_functions" },
+                { "include": "#map_functions" },
+                { "include": "#numbers" },
+                { "include": "#constants" },
+                { "include": "#operators" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     "numbers": {
       "patterns": [
         {
@@ -63,16 +109,14 @@
         }
       ]
     },
-
     "keywords_control": {
       "patterns": [
         {
           "name": "keyword.control.liphia",
-          "match": "\\b(if|elif|else|return|import)\\b"
+          "match": "\\b(if|elif|else|return|import|from)\\b"
         }
       ]
     },
-
     "keywords_declaration": {
       "patterns": [
         {
@@ -81,7 +125,14 @@
         }
       ]
     },
-
+    "keywords_error": {
+      "patterns": [
+        {
+          "name": "keyword.control.trycatch.liphia",
+          "match": "\\b(try|catch)\\b"
+        }
+      ]
+    },
     "keywords_async": {
       "patterns": [
         {
@@ -90,7 +141,6 @@
         }
       ]
     },
-
     "keywords_loop": {
       "patterns": [
         {
@@ -99,16 +149,14 @@
         }
       ]
     },
-
     "types": {
       "patterns": [
         {
           "name": "storage.type.liphia",
-          "match": "\\b(int|float|str|bool|void|list|null)\\b"
+          "match": "\\b(int|float|str|bool|void|list|map|null)\\b"
         }
       ]
     },
-
     "constants": {
       "patterns": [
         {
@@ -117,7 +165,6 @@
         }
       ]
     },
-
     "core_functions": {
       "patterns": [
         {
@@ -126,7 +173,27 @@
         }
       ]
     },
-
+    "map_functions": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.map.liphia",
+          "match": "\\b(map_keys|map_values|map_has|map_remove)\\b"
+        }
+      ]
+    },
+    "module_call": {
+      "patterns": [
+        {
+          "comment": "alias.function(...) — qualified import call, e.g. database.connect()",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)(\\.)([a-zA-Z_][a-zA-Z0-9_]*)(?=\\()",
+          "captures": {
+            "1": { "name": "variable.other.readwrite.liphia" },
+            "2": { "name": "punctuation.accessor.liphia" },
+            "3": { "name": "entity.name.function.liphia" }
+          }
+        }
+      ]
+    },
     "stdlib_ai": {
       "patterns": [
         {
@@ -135,25 +202,22 @@
         }
       ]
     },
-
     "stdlib_math": {
       "patterns": [
         {
           "name": "support.function.stdlib.math.liphia",
-          "match": "\\b(sqrt|pow|abs|floor|ceil|round|min|max|pi|e|log|log10|sin|cos|tan)\\b"
+          "match": "\\b(sqrt|pow|abs|floor|ceil|round|min|max|pi|e|log|log10|log2|log_base|exp|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|factorial|gcd|lcm|hypot|deg_to_rad|rad_to_deg|sign|clamp|is_nan|is_inf)\\b"
         }
       ]
     },
-
     "stdlib_stats": {
       "patterns": [
         {
           "name": "support.function.stdlib.stats.liphia",
-          "match": "\\b(sum|mean|median|variance|stdev|min_list|max_list|count)\\b"
+          "match": "\\b(sum|mean|median|variance|stdev|min_list|max_list|count|variance_sample|stdev_sample|percentile|iqr|zscore|covariance|mode|range_stat|pearson_r|spearman_r|kendall_tau|t_stat_independent|t_degrees_of_freedom|t_stat_paired|mann_whitney_u|wilcoxon_w|shapiro_wilk_w|p_value_t_ind|p_value_t_paired|p_value_normal|p_value_mann_whitney)\\b"
         }
       ]
     },
-
     "stdlib_fs": {
       "patterns": [
         {
@@ -162,7 +226,6 @@
         }
       ]
     },
-
     "stdlib_http": {
       "patterns": [
         {
@@ -171,7 +234,6 @@
         }
       ]
     },
-
     "stdlib_ws": {
       "patterns": [
         {
@@ -180,7 +242,6 @@
         }
       ]
     },
-
     "stdlib_net": {
       "patterns": [
         {
@@ -189,7 +250,6 @@
         }
       ]
     },
-
     "stdlib_json": {
       "patterns": [
         {
@@ -198,16 +258,14 @@
         }
       ]
     },
-
     "stdlib_db": {
       "patterns": [
         {
           "name": "support.function.stdlib.db.liphia",
-          "match": "\\b(db_open|db_open_memory|db_close|db_exec|db_query|db_query_rows|db_last_id|db_begin|db_commit|db_rollback|db_error|db_tables|db_columns|pg_connect|pg_exec|pg_query|pg_query_rows|pg_last_id|pg_begin|pg_commit|pg_rollback|pg_close|pg_error)\\b"
+          "match": "\\b(db_open|db_open_memory|db_close|db_exec|db_query|db_query_rows|db_last_id|db_begin|db_commit|db_rollback|db_error|db_tables|db_columns|pg_connect|pg_exec|pg_query|pg_query_rows|pg_last_id|pg_begin|pg_commit|pg_rollback|pg_close|pg_error|sqlite_table_exists|pg_table_exists)\\b"
         }
       ]
     },
-
     "operators": {
       "patterns": [
         {

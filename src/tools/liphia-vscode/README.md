@@ -2,8 +2,8 @@
 
 > Syntax highlighting and snippets for the Liphia programming language (`.lph`).
 
-[![Extension](https://img.shields.io/badge/extension-0.0.2-blueviolet)](https://github.com/shferreira-lab/liphia)
-[![Engine](https://img.shields.io/badge/engine-0.9.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Extension](https://img.shields.io/badge/extension-0.1.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Engine](https://img.shields.io/badge/engine-0.10.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
@@ -14,162 +14,49 @@
 
 - Syntax highlighting for all Liphia keywords, types, operators, and literals
 - Highlighting for all stdlib modules: `ai`, `math`, `stats`, `fs`, `http`, `ws`, `net`, `json`, `db`
+- Interpolated string highlighting (`f"{expr}"`)
 - Code snippets for common patterns
+- Auto-indent after `:` (blocks, `if`/`for`/`fn`/`try`/`catch`)
 - Comment toggling with `#`
 
----
-
-## What's new in 0.0.2
-
-- Added keywords: `var`, `const`, `enum`, `async`, `await`, `spawn`
-- Added types: `list`, `null`
-- Added all stdlib functions as highlighted builtins (grouped by module)
-- Added escape sequence highlighting inside strings
-- Operators split into categories: comparison, arithmetic, assignment, logical
-- New snippets: async fn, HTTP server boilerplate, SQLite, neural network forward pass, Adam/SGD optimizers, classification metrics
+For the language reference, syntax guide, and standard library documentation,
+see the [main repository](https://github.com/shferreira-lab/liphia).
 
 ---
 
 ## Snippets
 
-| Prefix        | Description                              |
-|---------------|------------------------------------------|
-| `print`       | `print(value)`                           |
-| `var`         | Variable (type inferred)                 |
-| `vart`        | Variable (typed)                         |
-| `const`       | Constant declaration                     |
-| `int`         | Integer variable                         |
-| `float`       | Float variable                           |
-| `str`         | String variable                          |
-| `bool`        | Boolean variable                         |
-| `list`        | List variable                            |
-| `if`          | If statement                             |
-| `ifelse`      | If/else                                  |
-| `ifelifelse`  | If/elif/else                             |
-| `while`       | While loop                               |
-| `for`         | For loop                                 |
-| `forstep`     | For loop with step                       |
-| `fn`          | Function declaration                     |
-| `fnr`         | Function with return value               |
-| `async`       | Async function                           |
-| `asyncawait`  | Async function with await                |
-| `spawn`       | Spawn async task                         |
-| `enum`        | Enum declaration                         |
-| `import`      | Import local file                        |
-| `importfrom`  | Import stdlib module                     |
-| `importai`    | `import from "ai"`                       |
-| `importmath`  | `import from "math"`                     |
-| `importhttp`  | `import from "http"`                     |
-| `importdb`    | `import from "db"`                       |
-| `importjson`  | `import from "json"`                     |
-| `httpserver`  | Full HTTP server boilerplate             |
-| `sqlite`      | SQLite open, create, query               |
-| `nnforward`   | Neural network forward pass              |
-| `sgd`         | SGD weight update                        |
-| `adam`        | Adam optimizer update                    |
-| `metrics`     | Print accuracy, precision, recall, f1    |
-| `div`         | Section divider comment                  |
-
----
-
-## Syntax — Engine 0.9.0
-
-### Comments
-
-```lph
-# This is a comment
-print("Hello, world!")
-```
-
-### Types
-
-| Type    | Description                             |
-|---------|-----------------------------------------|
-| `int`   | 64-bit integer                          |
-| `float` | 64-bit floating-point                   |
-| `str`   | UTF-8 string                            |
-| `bool`  | `true` or `false`                       |
-| `list`  | Dynamic list                            |
-| `void`  | Return type for functions with no value |
-| `null`  | Null literal                            |
-
-### Variables
-
-```lph
-age: int = 20
-username: str = "Alice"
-var score = 100
-const MAX = 999
-```
-
-### Functions
-
-```lph
-fn add(a: int, b: int) -> int:
-    return a + b
-
-async fn server_loop() -> void:
-    while true:
-        var got: bool = await http_accept()
-        if got:
-            route()
-```
-
-### Loops
-
-```lph
-while i < 10:
-    i = i + 1
-
-for i from 0 to 10 step 2:
-    print(i)
-```
-
-### Lists
-
-```lph
-var values: list = [1, 2, 3]
-append(values, 4)
-var last = pop(values)
-print(values[0])
-print(values[-1])
-```
-
-### Enums
-
-```lph
-enum Status:
-    Ok
-    Error
-
-var s = Status.Ok
-```
-
-### Async and concurrency
-
-```lph
-async fn worker(id: int) -> void:
-    var data = await http_get("http://api.example.com")
-    print("done", id)
-
-spawn worker(1)
-spawn worker(2)
-```
-
-### Stdlib modules
-
-```lph
-import from "ai"
-import from "math"
-import from "db"
-
-var conn: int = db_open("data.sqlite")
-db_exec(conn, "CREATE TABLE IF NOT EXISTS t (id INTEGER PRIMARY KEY, name TEXT)")
-db_exec(conn, "INSERT INTO t (name) VALUES ('Alice')")
-var rows = db_query_rows(conn, "SELECT * FROM t")
-print(len(rows))
-db_close(conn)
-```
+| Prefix              | Description                                    |
+|----------------------|--------------------------------------------------|
+| `print`             | `print(value)`                                 |
+| `var`               | Variable (type inferred)                       |
+| `vart`              | Variable (typed)                               |
+| `const`             | Constant declaration                           |
+| `int` / `float` / `str` / `bool` | Typed scalar variable            |
+| `list`              | List variable                                  |
+| `map`               | Map (dictionary) variable                      |
+| `mapkeys` / `mapvalues` / `maphas` / `mapremove` | Map helper calls  |
+| `if` / `ifelse` / `ifelifelse` | Conditionals                         |
+| `while` / `for` / `forstep`    | Loops                                 |
+| `try`               | `try` / `catch` block                          |
+| `fn` / `fnr`        | Function declaration (with/without return)     |
+| `async` / `asyncawait` / `spawn` | Async function, await, spawn        |
+| `enum`              | Enum declaration                               |
+| `fstr`              | F-string with interpolation                    |
+| `import`            | Import local file (unqualified)                |
+| `importsel`         | Selective import `{ name }`                    |
+| `importqual`        | Qualified import (alias)                       |
+| `importfrom`        | Import stdlib module                           |
+| `importai` / `importmath` / `importhttp` / `importdb` / `importjson` | Import a specific stdlib module |
+| `importdbsqlite` / `importdbpostgres` | Import a `db` submodule (requires `liphia install db:sqlite` / `db:postgres`) |
+| `httpserver`        | HTTP server boilerplate                        |
+| `sqlite`            | SQLite open, create table, query               |
+| `dbtry`             | DB calls wrapped in `try`/`catch`               |
+| `jsondecode`        | Decode JSON into a `map`                       |
+| `nnforward`         | Neural network forward pass                    |
+| `sgd` / `adam`      | Optimizer update                               |
+| `metrics`           | Print classification metrics                   |
+| `div`               | Section divider comment                        |
 
 ---
 
@@ -188,7 +75,40 @@ Then run any `.lph` file:
 liphia path/to/program.lph
 ```
 
-See the [main repository](https://github.com/shferreira-lab/liphia) for full documentation.
+See the [main repository](https://github.com/shferreira-lab/liphia) for the
+full language reference, standard library documentation, and package manager
+usage.
+
+---
+
+## Changelog
+
+### 0.1.0
+Substantial update following Engine 0.10.0. Too many changes to list as a
+patch — see the [main repository's CHANGELOG](https://github.com/shferreira-lab/liphia)
+for full details on the language and stdlib side.
+
+- Highlighting for `map` type and `map_*` functions
+- Highlighting for `try` / `catch`
+- Interpolated f-string highlighting (`f"{expr}"`)
+- Highlighting for qualified module calls (`alias.function()`)
+- Highlighting for additional `math`/`stats`/`db` functions added since 0.0.2
+- New snippets: map declaration and helpers, try/catch, f-string, selective
+  and qualified imports, db submodule imports, DB calls wrapped in try/catch,
+  JSON decode to map
+- Auto-indent rules after `:` for blocks
+
+### 0.0.2
+- Added keywords: `var`, `const`, `enum`, `async`, `await`, `spawn`
+- Added types: `list`, `null`
+- Added all stdlib functions as highlighted builtins (grouped by module)
+- Added escape sequence highlighting inside strings
+- Operators split into categories: comparison, arithmetic, assignment, logical
+- New snippets: async fn, HTTP server boilerplate, SQLite, neural network
+  forward pass, Adam/SGD optimizers, classification metrics
+
+### 0.0.1
+- Initial release: basic syntax highlighting and snippets
 
 ---
 

@@ -1018,7 +1018,9 @@ print(f"Done — {profile["name"]} scored {profile["score"]}")
 - [x] `ai` module: activations, vectors, matrices, preprocessing, loss, random, optimization, metrics, distances
 - [x] `math` module v1.0.2: trig, inverse trig, hyperbolic, exp/log, number theory, geometry, utilities (35 functions)
 - [x] `stats` module v1.0.3: descriptive, sample statistics, percentiles, correlation (Pearson/Spearman/Kendall), hypothesis tests (t-test, Mann-Whitney, Wilcoxon, Shapiro-Wilk), p-values via pure-Rust CDF (26 functions)
-- [x] VS Code extension v0.0.2 (syntax highlighting + snippets)
+- [x] `db` module: submodules installed SQLite and PostgreSQL
+- [x] VS Code extension v0.1.0 (syntax highlighting + snippets)
+
 
 ### 🎯 Engine 1.0 — Stable release *(planned)*
 
