@@ -1,6 +1,6 @@
 # stdlib/modules/ai/ai.lph
 
-import from "./composed/eval"
+import "composed/eval.lph"
 
 
 # ai — AI and machine learning primitives for Liphia.

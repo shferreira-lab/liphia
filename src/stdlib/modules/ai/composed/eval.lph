@@ -8,12 +8,7 @@ import from "stats"
 # classification_report(pred: list, target: list) -> map
 #   Bundles accuracy, precision, recall and f1_score into one map.
 fn classification_report(pred: list, target: list) -> map:
-    return {
-        "accuracy": accuracy(pred, target),
-        "precision": precision(pred, target),
-        "recall": recall(pred, target),
-        "f1_score": f1_score(pred, target)
-    }
+    return {"accuracy": accuracy(pred, target), "precision": precision(pred, target), "recall": recall(pred, target), "f1_score": f1_score(pred, target)}
 
 # is_better(scores_a: list, scores_b: list) -> map
 #   Compares two sets of scores (e.g. f1 across k-fold runs).
@@ -50,13 +45,6 @@ fn is_better(scores_a: list, scores_b: list) -> map:
         mean_a: float = mean(scores_a)
         mean_b: float = mean(scores_b)
 
-        return {
-            "mean_a": mean_a,
-            "mean_b": mean_b,
-            "test": test,
-            "p_value": p,
-            "significant": p < 0.05,
-            "b_is_better": mean_b > mean_a and p < 0.05
-        }
+        return {"mean_a": mean_a, "mean_b": mean_b, "test": test, "p_value": p, "significant": p < 0.05, "b_is_better": mean_b > mean_a and p < 0.05}
     catch e:
-        return { "error": e }
+        return {"error": e}
