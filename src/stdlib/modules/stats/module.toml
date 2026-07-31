@@ -1,5 +1,7 @@
 [module]
 name        = "stats"
-version     = "1.0.3"
+version     = "1.1.0"
 description = "Statistics and data analysis"
 native      = true
+entry       = "stats.lph"
+files       = ["stats.lph", "composed/report.lph"]

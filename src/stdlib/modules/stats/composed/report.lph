@@ -1,0 +1,45 @@
+# stdlib/lph/stats/composed/report.lph
+#
+# Composed reporting helpers — orchestrates stats natives into ready-made
+# summaries. No import needed: everything here is stats natives, already
+# compiled into the binary.
+
+# describe(data: list) -> map
+#   Bundles the core descriptive statistics for a dataset into one map.
+fn describe(data: list) -> map:
+    return {"mean": mean(data), "median": median(data), "stdev": stdev_sample(data), "min": min_list(data), "max": max_list(data), "q1": percentile(data, 25.0), "q3": percentile(data, 75.0), "iqr": iqr(data)}
+
+# compare_groups(a: list, b: list) -> map
+#   Automates the normal-vs-nonparametric decision guide documented in
+#   stats.lph: checks normality of both groups, then picks Welch's t-test
+#   or Mann-Whitney U accordingly.
+#   When both groups fail normality and min(len(a), len(b)) <= 10, the
+#   normal-approximation p-value for Mann-Whitney isn't reliable — in that
+#   case p_value is returned as -1.0 and test as "mann_whitney_u_table_needed",
+#   signaling the caller to fall back to mann_whitney_u() with a printed
+#   critical-value table instead of trusting a p-value.
+fn compare_groups(a: list, b: list) -> map:
+    try:
+        w_a: float = shapiro_wilk_w(a)
+        w_b: float = shapiro_wilk_w(b)
+        normal: bool = w_a > 0.95 and w_b > 0.95
+
+        test: str = ""
+        p: float = 0.0
+
+        if normal:
+            p = p_value_t_ind(a, b)
+            test = "welch_t"
+        else:
+            n_a: int = count(a)
+            n_b: int = count(b)
+            if n_a > 10 and n_b > 10:
+                p = p_value_mann_whitney(a, b)
+                test = "mann_whitney"
+            else:
+                p = -1.0
+                test = "mann_whitney_u_table_needed"
+
+        return {"mean_a": mean(a), "mean_b": mean(b), "test": test, "p_value": p, "significant": p >= 0.0 and p < 0.05}
+    catch e:
+        return {"error": e}

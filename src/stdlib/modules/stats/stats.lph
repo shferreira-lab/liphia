@@ -1,4 +1,8 @@
 # stdlib/lph/stats.lph
+
+import "composed/report.lph"
+
+
 # Statistical functions for lists — implemented natively in Rust (stdlib/native/src/stats.rs).
 # p-value functions use the internal CDF module (stdlib/native/src/cdf.rs).
 #
