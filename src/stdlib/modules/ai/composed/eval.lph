@@ -1,0 +1,62 @@
+# stdlib/lph/ai/composed/eval.lph
+#
+# Composed evaluation helpers — combines ai natives with stats natives.
+# Requires the ai module (native, always available) plus stats (imported below).
+
+import from "stats"
+
+# classification_report(pred: list, target: list) -> map
+#   Bundles accuracy, precision, recall and f1_score into one map.
+fn classification_report(pred: list, target: list) -> map:
+    return {
+        "accuracy": accuracy(pred, target),
+        "precision": precision(pred, target),
+        "recall": recall(pred, target),
+        "f1_score": f1_score(pred, target)
+    }
+
+# is_better(scores_a: list, scores_b: list) -> map
+#   Compares two sets of scores (e.g. f1 across k-fold runs).
+#   Uses a paired test by default when both lists have equal length
+#   (the common k-fold case), falling back to Mann-Whitney when unpaired —
+#   following the decision guide documented in stats.lph.
+fn is_better(scores_a: list, scores_b: list) -> map:
+    try:
+        n_a: int = count(scores_a)
+        n_b: int = count(scores_b)
+        paired: bool = n_a == n_b
+
+        test: str = ""
+        p: float = 0.0
+
+        if paired:
+            w: float = shapiro_wilk_w(scores_a)
+            if w > 0.95:
+                p = p_value_t_paired(scores_a, scores_b)
+                test = "paired_t"
+            else:
+                p = p_value_mann_whitney(scores_a, scores_b)
+                test = "mann_whitney"
+        else:
+            w_a: float = shapiro_wilk_w(scores_a)
+            w_b: float = shapiro_wilk_w(scores_b)
+            if w_a > 0.95 and w_b > 0.95:
+                p = p_value_t_ind(scores_a, scores_b)
+                test = "welch_t"
+            else:
+                p = p_value_mann_whitney(scores_a, scores_b)
+                test = "mann_whitney"
+
+        mean_a: float = mean(scores_a)
+        mean_b: float = mean(scores_b)
+
+        return {
+            "mean_a": mean_a,
+            "mean_b": mean_b,
+            "test": test,
+            "p_value": p,
+            "significant": p < 0.05,
+            "b_is_better": mean_b > mean_a and p < 0.05
+        }
+    catch e:
+        return { "error": e }

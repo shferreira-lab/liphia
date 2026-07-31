@@ -1,5 +1,8 @@
 # stdlib/modules/ai/ai.lph
-#
+
+import from "./composed/eval"
+
+
 # ai — AI and machine learning primitives for Liphia.
 #
 # All functions are native (implemented in Rust, no external dependencies).
