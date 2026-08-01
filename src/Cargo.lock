@@ -1707,7 +1707,7 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "liphia_cli"
-version = "0.10.1"
+version = "1.0.0"
 dependencies = [
  "liphia_compiler",
  "liphia_core_native",
@@ -1718,7 +1718,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_cli_gui"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "eframe",
  "liphia_compiler",
@@ -1731,28 +1731,28 @@ dependencies = [
 
 [[package]]
 name = "liphia_compiler"
-version = "0.10.0"
+version = "1.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_core_native"
-version = "0.1.1"
+version = "1.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_gui_native"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_pipeline"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "liphia_compiler",
  "liphia_virtual_machine",
@@ -1760,7 +1760,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_stdlib_native"
-version = "0.3.0"
+version = "1.0.0"
 dependencies = [
  "liphia_virtual_machine",
  "rusqlite",
@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_virtual_machine"
-version = "0.10.0"
+version = "1.0.0"
 
 [[package]]
 name = "litemap"

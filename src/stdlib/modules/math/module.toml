@@ -1,6 +1,6 @@
 [module]
 name        = "math"
-version     = "1.0.3"
+version     = "1.1.0"
 description = "Mathematical functions"
 entry = "math.lph"
 files = ["math.lph", "summary.lph"]
