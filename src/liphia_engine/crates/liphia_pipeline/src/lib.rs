@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
-
+use liphia_compiler::ast::Type;
 use liphia_compiler::ast::{Expr, Stmt};
 use liphia_compiler::bytecode::generate_bytecode;
 use liphia_compiler::lexer::Lexer;
@@ -376,7 +376,17 @@ pub fn resolve_project(
 
 // ── Public entry point 2: type-check + generate bytecode ──────────────────
 pub fn compile(stmts: Vec<Stmt>) -> Vec<Opcode> {
+    compile_with_externals(stmts, &[])
+}
+
+pub fn compile_with_externals(
+    stmts: Vec<Stmt>,
+    externals: &[(&str, Vec<Type>, Type)],
+) -> Vec<Opcode> {
     let mut checker = TypeChecker::new();
+    for (name, params, ret) in externals {
+        checker.declare_fn_external(name, params.clone(), ret.clone());
+    }
     if let Err(e) = checker.check(&stmts) {
         eprintln!("\n{}\n", e);
         process::exit(1);

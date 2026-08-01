@@ -1723,6 +1723,7 @@ dependencies = [
  "eframe",
  "liphia_compiler",
  "liphia_core_native",
+ "liphia_gui_native",
  "liphia_pipeline",
  "liphia_stdlib_native",
  "liphia_virtual_machine",
@@ -1738,6 +1739,13 @@ dependencies = [
 [[package]]
 name = "liphia_core_native"
 version = "0.1.1"
+dependencies = [
+ "liphia_virtual_machine",
+]
+
+[[package]]
+name = "liphia_gui_native"
+version = "0.1.0"
 dependencies = [
  "liphia_virtual_machine",
 ]

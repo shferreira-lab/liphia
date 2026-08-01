@@ -6,6 +6,7 @@ members = [
     "liphia_engine/crates/liphia_core_native",
     "liphia_engine/crates/liphia_pipeline",
     "liphia_engine/crates/liphia_cli_gui",
+    "liphia_engine/crates/liphia_gui_native",
     "stdlib/native",
 ]
 default-members = [
