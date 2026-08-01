@@ -1,5 +1,8 @@
 # stdlib/lph/net.lph
 # TCP/UDP networking utilities.
+
+import "composed/stream.lph"
+
 # Status: functions implemented.
 #
 # ── Functions ────────────────────────────────────────────────────────────────

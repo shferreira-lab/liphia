@@ -1,5 +1,8 @@
 # stdlib/lph/ws.lph
 # WebSocket server.
+
+import "composed/json.lph"
+
 # Status: functions implemented where noted.
 #
 # ── Functions ────────────────────────────────────────────────────────────────

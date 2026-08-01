@@ -1,0 +1,18 @@
+# stdlib/modules/net/composed/stream.lph
+#
+# Composed net + json helpers. No import needed: json_encode/json_decode
+# are natives already in the binary.
+
+fn tcp_recv_all(handle: int) -> str:
+    result: str = ""
+    chunk: str = tcp_recv(handle)
+    while chunk != "":
+        result = result + chunk
+        chunk = tcp_recv(handle)
+    return result
+
+fn tcp_send_json(handle: int, data: any) -> bool:
+    return tcp_send(handle, json_encode(data))
+
+fn tcp_recv_json(handle: int) -> any:
+    return json_decode(tcp_recv_all(handle))

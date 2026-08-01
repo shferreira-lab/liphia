@@ -1,5 +1,7 @@
 [module]
 name        = "ws"
-version     = "1.0.0"
-description = "WebSocket server"
+version     = "1.1.0"
+description = "WebSocket server, with composed JSON send/broadcast helpers"
 native      = true
+entry       = "ws.lph"
+files       = ["ws.lph", "composed/json.lph"]

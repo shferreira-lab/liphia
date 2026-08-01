@@ -1,0 +1,10 @@
+# stdlib/modules/ws/composed/json.lph
+#
+# Composed ws + json helpers. No import needed: json_encode is a native
+# already in the binary.
+
+fn ws_send_json(handle: int, data: any) -> bool:
+    return ws_send(handle, json_encode(data))
+
+fn ws_broadcast_json(data: any) -> bool:
+    return ws_broadcast(json_encode(data))

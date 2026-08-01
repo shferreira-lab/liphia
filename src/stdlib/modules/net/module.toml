@@ -1,5 +1,7 @@
 [module]
 name        = "net"
-version     = "1.0.0"
-description = "Low-level TCP/UDP networking"
+version     = "1.1.0"
+description = "TCP/UDP networking, with composed JSON send/recv helpers"
 native      = true
+entry       = "net.lph"
+files       = ["net.lph", "composed/stream.lph"]
