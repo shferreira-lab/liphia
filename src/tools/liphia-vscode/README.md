@@ -2,8 +2,8 @@
 
 > Syntax highlighting and snippets for the Liphia programming language (`.lph`).
 
-[![Extension](https://img.shields.io/badge/extension-0.1.0-blueviolet)](https://github.com/shferreira-lab/liphia)
-[![Engine](https://img.shields.io/badge/engine-0.10.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Extension](https://img.shields.io/badge/extension-1.0.0-blueviolet)](https://github.com/shferreira-lab/liphia)
+[![Engine](https://img.shields.io/badge/engine-1.0.0-blueviolet)](https://github.com/shferreira-lab/liphia)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
 [![Status](https://img.shields.io/badge/status-active%20development-yellow)](https://github.com/shferreira-lab)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
