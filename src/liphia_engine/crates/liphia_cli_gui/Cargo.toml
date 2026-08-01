@@ -1,0 +1,13 @@
+[package]
+name    = "liphia_cli_gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+liphia_pipeline        = { path = "../liphia_pipeline" }
+liphia_compiler         = { path = "../liphia_compiler" }
+liphia_virtual_machine   = { path = "../liphia_virtual_machine" }
+liphia_core_native       = { path = "../liphia_core_native" }
+liphia_stdlib_native     = { path = "../../../stdlib/native" }
+
+eframe = "0.34.3"

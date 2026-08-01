@@ -609,6 +609,46 @@ impl VM {
     }
 }
 
+
+// ── Session (tick-driven, for hosts that own their own loop) ──────────────
+//
+// Wraps a program + its task queue so a host (e.g. a GUI event loop) can
+// advance the VM one "tick" at a time instead of calling run() and blocking
+// until completion. Reuses the exact same step()/StepResult handling as
+// run()'s main loop — minus the CPU-idle sleep, since a host with its own
+// frame rate (e.g. egui at ~60fps) already paces itself.
+pub struct VmSession {
+    program: Rc<Vec<Opcode>>,
+    queue:   VecDeque<Task>,
+}
+
+impl VmSession {
+    pub fn new(program: Vec<Opcode>) -> Self {
+        let program = Rc::new(program);
+        let mut queue = VecDeque::new();
+        queue.push_back(Task::new(0, vec![]));
+        Self { program, queue }
+    }
+
+    /// Runs one task's quantum from the front of the queue.
+    /// Returns Ok(true) if work remains queued (call tick() again next
+    /// frame), Ok(false) once the program has fully halted.
+    pub fn tick(&mut self, vm: &mut VM) -> VmResult<bool> {
+        let Some(mut task) = self.queue.pop_front() else {
+            return Ok(false);
+        };
+        match vm.step(&self.program, &mut task, &mut self.queue)? {
+            StepResult::Halt => {}
+            StepResult::Suspend | StepResult::Continue => {
+                self.queue.push_back(task);
+            }
+        }
+        Ok(!self.queue.is_empty())
+    }
+}
+
+
+
 // ── Internal scheduler signals ─────────────────────────────────────────────────
 
 enum StepResult {

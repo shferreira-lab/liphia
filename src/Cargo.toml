@@ -4,10 +4,19 @@ members = [
     "liphia_engine/crates/liphia_virtual_machine",
     "liphia_engine/crates/liphia_cli",
     "liphia_engine/crates/liphia_core_native",
+    "liphia_engine/crates/liphia_pipeline",
+    "liphia_engine/crates/liphia_cli_gui",
+    "stdlib/native",
+]
+default-members = [
+    "liphia_engine/crates/liphia_compiler",
+    "liphia_engine/crates/liphia_virtual_machine",
+    "liphia_engine/crates/liphia_cli",
+    "liphia_engine/crates/liphia_core_native",
+    "liphia_engine/crates/liphia_pipeline",
     "stdlib/native",
 ]
 resolver = "2"
-
 [profile.release]
 strip = true
 opt-level = "z"

@@ -1,0 +1,8 @@
+[package]
+name    = "liphia_pipeline"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+liphia_compiler        = { path = "../liphia_compiler" }
+liphia_virtual_machine  = { path = "../liphia_virtual_machine" }
