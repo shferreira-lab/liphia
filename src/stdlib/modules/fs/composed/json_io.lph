@@ -1,0 +1,13 @@
+# stdlib/modules/fs/composed/json_io.lph
+#
+# Composed file system + JSON helpers. No import needed: read_file/write_file
+# and json_encode/json_decode are all natives already in the binary.
+
+fn read_json(path: str) -> any:
+    return json_decode(read_file(path))
+
+fn write_json(path: str, data: any) -> bool:
+    return write_file(path, json_encode(data))
+
+fn append_json_line(path: str, data: any) -> bool:
+    return append_file(path, json_encode(data) + "\n")

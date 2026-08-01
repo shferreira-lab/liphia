@@ -1,4 +1,7 @@
 # stdlib/lph/http.lph
+
+import "composed/respond.lph"
+
 # HTTP server and client — Liphia Engine 0.9.0
 #
 # CORS is handled automatically by the runtime (http.rs).

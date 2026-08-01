@@ -1,4 +1,7 @@
 # stdlib/lph/fs.lph
+
+
+import "composed/json_io.lph"
 # File system utilities — implemented natively in Rust (stdlib/native/src/fs.rs).
 
 # ── Available functions ───────────────────────────────────────────────────────

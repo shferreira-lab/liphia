@@ -1,5 +1,7 @@
 [module]
 name        = "fs"
-version     = "1.0.1"
-description = "File system operations"
+version     = "1.1.0"
+description = "File system utilities, with composed JSON read/write helpers"
 native      = true
+entry       = "fs.lph"
+files       = ["fs.lph", "composed/json_io.lph"]

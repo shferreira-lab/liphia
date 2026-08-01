@@ -1,0 +1,23 @@
+# stdlib/modules/http/composed/respond.lph
+#
+# Composed HTTP + JSON response helpers. No import needed: json_encode is a
+# native already in the binary, same pattern as ai/composed/eval.lph calling
+# stats natives directly.
+
+fn ok_json(data: any) -> bool:
+    return http_respond_json(200, json_encode(data))
+
+fn created_json(data: any) -> bool:
+    return http_respond_json(201, json_encode(data))
+
+fn no_content() -> bool:
+    return http_respond_json(204, "{}")
+
+fn error_json(status: int, message: str) -> bool:
+    return http_respond_json(status, json_encode({"error": message}))
+
+fn not_found_json(message: str) -> bool:
+    return http_respond_json(404, json_encode({"error": message}))
+
+fn bad_request_json(message: str) -> bool:
+    return http_respond_json(400, json_encode({"error": message}))
