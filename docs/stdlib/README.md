@@ -11,6 +11,11 @@ functions built on top of the natives) into your project.
 
 ---
 
+## Full function reference
+
+For the complete, per-module function list — native vs. composed, with
+signatures and descriptions — see [`REFERENCE.md`](./REFERENCE.md).
+
 ## Installing modules
 
 ```bash
