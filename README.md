@@ -249,7 +249,7 @@ independently as it's fixed or extended.
 
 ## Changelog
 
-See [`CHANGELOG.md`](./CHANGELOG.md) for what changed in each release,
+See [`CHANGELOG.md`](./docs/language/CHANGELOG.md) for what changed in each release,
 starting with 1.0.0.
 
 ---
