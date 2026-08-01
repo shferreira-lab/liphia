@@ -37,12 +37,13 @@ pub fn start() {
 
     let mut buffer = String::new();
 
-    println!("Welcome to the Liphia Interactive Shell! V.0.3.1");
-    println!("Type 'help' for commands. Ctrl+C or 'exit' to quit.\n");
+    println!("Welcome to the Liphia Interactive Shell! V.0.4.0");
+    println!("Type 'help' for commands. Ctrl+C or 'exit' to quit.");
+    println!("Multi-line input (fn, if, while, try...) accumulates until you type 'run'.\n");
 
     loop {
-        let in_block = is_in_block(&buffer);
-        let prompt = if in_block { "... " } else { ">>> " };
+        let in_progress = !buffer.trim().is_empty();
+        let prompt = if in_progress { "... " } else { ">>> " };
         print!("{}", prompt);
         io::stdout().flush().unwrap();
 
@@ -57,7 +58,13 @@ pub fn start() {
         match trimmed {
             "exit" | "quit" => { println!("Exiting REPL."); break; }
             "help" => {
-                println!("Commands: exit, quit, reload, help");
+                println!("Commands:");
+                println!("  run     — execute the accumulated multi-line buffer");
+                println!("  reload  — clear buffer and forget all declarations");
+                println!("  exit / quit — leave the REPL");
+                println!("Single-line statements that don't open a block (no trailing ':')");
+                println!("run immediately. Anything that opens a block (fn/if/while/try/...)");
+                println!("keeps accumulating — type 'run' when you're done.");
                 continue;
             }
             "reload" => {
@@ -67,25 +74,35 @@ pub fn start() {
                 println!("Session cleared.");
                 continue;
             }
+            "run" => {
+                if buffer.trim().is_empty() {
+                    println!("(nothing to run)");
+                } else {
+                    execute_buffer(&buffer, &mut declarations, &mut state, &mut vm);
+                    buffer.clear();
+                }
+                continue;
+            }
             _ => {}
         }
 
         if trimmed.is_empty() {
-            if buffer.trim().is_empty() { continue; }
-            if !is_in_block(&buffer) {
-                execute_buffer(&buffer, &mut declarations, &mut state, &mut vm);
-                buffer.clear();
-            } else {
-                // Still inside an open block — add blank line and keep waiting
+            // Blank line inside a multi-line buffer: just preserve spacing,
+            // still waiting for an explicit 'run'.
+            if in_progress {
                 buffer.push('\n');
             }
             continue;
         }
 
+        let was_fresh = !in_progress;
         buffer.push_str(&line);
 
-        // Single-line statement (does not open a block) — run immediately
-        if !trimmed.ends_with(':') && !is_in_block(&buffer) {
+        // Only auto-execute when this line is the FIRST line of a fresh
+        // entry (buffer was empty before it) AND it doesn't open a block.
+        // Anything that opens a block, or is typed as a continuation,
+        // waits for an explicit 'run'.
+        if was_fresh && !trimmed.ends_with(':') {
             execute_buffer(&buffer, &mut declarations, &mut state, &mut vm);
             buffer.clear();
         }
@@ -99,8 +116,6 @@ fn execute_buffer(
     state:        &mut ReplState,
     vm:           &mut VM,
 ) {
-    // Prepend all previously accumulated declarations so the compiler
-    // can resolve functions and variables defined in earlier interactions
     let full_source = format!("{}{}", declarations, buffer);
 
     match compile_safe(&full_source, state) {
@@ -109,14 +124,11 @@ fn execute_buffer(
                 eprintln!("Runtime error: {}", e);
                 return;
             }
-            // Only accumulate declarations, not loose expressions/prints
             if is_declaration(buffer.trim()) {
                 declarations.push_str(buffer);
                 if !declarations.ends_with('\n') {
                     declarations.push('\n');
                 }
-                // Register the new symbol in state so future TypeChecker
-                // instances are aware of it without re-parsing declarations
                 register_declaration(buffer.trim(), state);
             }
         }
@@ -134,7 +146,6 @@ fn compile_safe(source: &str, state: &ReplState) -> Result<Vec<Opcode>, String> 
 
     let mut checker = TypeChecker::new();
 
-    // Seed the checker with symbols from previous REPL interactions
     for (name, ty) in &state.known_vars {
         checker.declare_var_external(name, ty.clone());
     }
@@ -164,15 +175,10 @@ fn is_declaration(source: &str) -> bool {
         || first.starts_with("enum ")
         || first.starts_with("var ")
         || first.starts_with("const ")
-        // typed declaration: "name: Type = value"
         || (first.contains(':') && first.contains('=') && !first.starts_with("if"))
 }
 
 // ── Register a new declaration into ReplState ─────────────────────────────────
-//
-// This is a best-effort heuristic so that the TypeChecker can be seeded
-// cheaply without re-parsing the full declarations string each time.
-// Full resolution still happens via the accumulated source string.
 fn register_declaration(source: &str, state: &mut ReplState) {
     let first = source
         .lines()
@@ -180,7 +186,6 @@ fn register_declaration(source: &str, state: &mut ReplState) {
         .unwrap_or("")
         .trim();
 
-    // fn name(...) -> ReturnType:
     if first.starts_with("fn ") || first.starts_with("async fn ") {
         let without_prefix = first
             .trim_start_matches("async ")
@@ -188,12 +193,9 @@ fn register_declaration(source: &str, state: &mut ReplState) {
             .trim();
         if let Some(paren) = without_prefix.find('(') {
             let name = without_prefix[..paren].trim().to_string();
-            // Register with any/unknown types — full resolution is done
-            // via the accumulated declarations source string anyway
             state.known_fns.push((name, vec![], Type::Named("any".into())));
         }
     }
-    // var name = value  or  name: Type = value
     else if first.starts_with("var ") {
         let rest = first.trim_start_matches("var ").trim();
         let name = rest.split(['=', ':']).next().unwrap_or("").trim().to_string();
@@ -201,7 +203,6 @@ fn register_declaration(source: &str, state: &mut ReplState) {
             state.known_vars.push((name, Type::Named("any".into())));
         }
     }
-    // const name = value
     else if first.starts_with("const ") {
         let rest = first.trim_start_matches("const ").trim();
         let name = rest.split(['=', ':']).next().unwrap_or("").trim().to_string();
@@ -209,30 +210,10 @@ fn register_declaration(source: &str, state: &mut ReplState) {
             state.known_vars.push((name, Type::Named("any".into())));
         }
     }
-    // typed declaration: name: Type = value
     else if first.contains(':') && first.contains('=') {
         let name = first.split(':').next().unwrap_or("").trim().to_string();
         if !name.is_empty() {
             state.known_vars.push((name, Type::Named("any".into())));
         }
     }
-}
-
-// ── Detect whether the buffer has an open block ───────────────────────────────
-fn is_in_block(buffer: &str) -> bool {
-    let mut depth = 0i32;
-    for line in buffer.lines() {
-        let s = line.trim_end();
-        if s.trim().is_empty() { continue; }
-        let indent = line.len() - line.trim_start().len();
-        // A non-empty line at column 0 that does not open a new block
-        // implicitly closes whatever block was open
-        if depth > 0 && indent == 0 && !s.ends_with(':') {
-            depth -= 1;
-        }
-        if s.ends_with(':') {
-            depth += 1;
-        }
-    }
-    depth > 0
 }

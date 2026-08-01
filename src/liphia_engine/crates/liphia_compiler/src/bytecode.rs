@@ -24,7 +24,13 @@ impl LoopContext {
 struct Compiler {
     instructions: Vec<Opcode>,
     functions:    HashMap<String, usize>,   // name → address
-    async_fns:    std::collections::HashSet<String>, // which fns are async
+    async_fns:    std::collections::HashSet<String>, // which fns are async —
+                                             // pre-populated BEFORE any
+                                             // compilation starts (see
+                                             // generate_bytecode), so `await`
+                                             // can tell a user async fn call
+                                             // apart from a native call even
+                                             // while compiling the main body.
     local_scope:  Option<HashMap<String, u16>>,
     loop_stack:   Vec<LoopContext>,
     consts:       std::collections::HashSet<String>,
@@ -140,7 +146,7 @@ impl Compiler {
 
                 let catch_addr = self.instructions.len();
                 self.instructions[pos_push] = Opcode::PushHandler(catch_addr);
-                
+
                 let store_op = self.store_new(&catch_var);
                 self.instructions.push(store_op);
                 for s in catch_block { self.compile_stmt(s)?; }
@@ -295,14 +301,30 @@ impl Compiler {
             Expr::Not(e)     => { self.compile_expr(*e)?; self.instructions.push(Opcode::Not); }
 
             // ── await <inner_expr> ────────────────────────────────────────
-            // If inner is a native call (e.g. http_accept()), it stays as
-            // CallNamed.  The VM's Suspend handler will re-run it each tick
-            // until the native returns a non-null/non-false "ready" value.
             //
-            // If inner is a call to a user async fn, it becomes a Call to
-            // that fn's address.  After the call the scheduler sees Suspend
-            // and yields — the callee task runs, and when it returns the
-            // caller is resumed with the result on the stack.
+            // Two fundamentally different cases, which must NOT share the
+            // same Suspend semantics:
+            //
+            //   1. `await <native call>` (e.g. http_accept()) — the native
+            //      always returns immediately, and Null/false is a genuine
+            //      "not ready yet, poll again next tick" signal. This case
+            //      DOES emit Suspend, same as before.
+            //
+            //   2. `await <user async fn call>` (e.g. route()) — Call/Return
+            //      already run the callee to full completion, synchronously,
+            //      within this same step(). There is no "not ready" state:
+            //      by the time execution reaches this point the function has
+            //      already finished. A `void` fn's implicit Null return is
+            //      just "no value", not "try again" — so Suspend must NOT be
+            //      emitted here, or a void async fn would be re-invoked
+            //      forever after it already completed (and possibly already
+            //      mutated/cleaned up state that a second call would see as
+            //      invalid).
+            //
+            // `self.async_fns` is pre-populated with every async fn name
+            // BEFORE any compilation starts (see generate_bytecode), so this
+            // distinction is knowable even while compiling the main body,
+            // before function addresses exist.
             Expr::Await(inner) => {
                 if !self.in_async_fn {
                     return Err(LiphiaError::new(
@@ -310,8 +332,14 @@ impl Compiler {
                         "'await' can only be used inside an 'async fn'",
                     ));
                 }
+                let is_user_async_call = matches!(
+                    &*inner,
+                    Expr::FunctionCall { name, .. } if self.async_fns.contains(name)
+                );
                 self.compile_expr(*inner)?;
-                self.instructions.push(Opcode::Suspend);
+                if !is_user_async_call {
+                    self.instructions.push(Opcode::Suspend);
+                }
             }
 
             // ── spawn name(args) ──────────────────────────────────────────
@@ -375,6 +403,17 @@ pub fn generate_bytecode(stmts: Vec<Stmt>) -> LiphiaResult<BytecodeProgram> {
         }
     }
 
+    // Pre-scan async fn names BEFORE compiling anything. Function bodies
+    // are still compiled in a later pass (addresses aren't known yet), but
+    // *whether* a name refers to an async fn is already knowable from the
+    // AST — and `await` needs that answer while compiling the main body,
+    // which runs before pass 2 below.
+    for stmt in &fn_stmts {
+        if let Stmt::Fn { name, is_async: true, .. } = stmt {
+            c.async_fns.insert(name.clone());
+        }
+    }
+
     // ── 1. Compile main body ──────────────────────────────────────────────
     for stmt in main_stmts { c.compile_stmt(stmt)?; }
     c.instructions.push(Opcode::Halt);
@@ -384,7 +423,7 @@ pub fn generate_bytecode(stmts: Vec<Stmt>) -> LiphiaResult<BytecodeProgram> {
         if let Stmt::Fn { name, params, body, is_async, .. } = stmt {
             let address = c.instructions.len();
             c.functions.insert(name.clone(), address);
-            if is_async { c.async_fns.insert(name.clone()); }
+            // async_fns already contains this name from the pre-scan above.
 
             c.enter_scope();
             let prev_async  = c.in_async_fn;

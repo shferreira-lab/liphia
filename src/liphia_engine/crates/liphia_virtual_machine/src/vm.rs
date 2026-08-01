@@ -496,17 +496,14 @@ impl VM {
             }
 
             // ── Async ─────────────────────────────────────────────────
-            //
-            // Suspend: if top-of-stack is Null or Bool(false) the awaited
-            // value is not ready. DO NOT advance pc — re-queue so the
-            // CallNamed above re-executes on the next tick.
-            // Any other value means ready; advance normally.
+      
 
             Opcode::Suspend => {
                 let top = task.stack.last().cloned().unwrap_or(Value::Null);
                 match top {
                     Value::Null | Value::Bool(false) => {
                         task.stack.pop();
+                        task.pc -= 1;
                         return Ok(InstrFlow::Suspend);
                     }
                     _ => {
