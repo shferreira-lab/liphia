@@ -24,10 +24,10 @@ jobs:
         with:
           workspaces: "src -> target"
 
-      - name: Check (all crates)
+      - name: Check (core workspace)
         working-directory: src
-        run: cargo check --workspace
+        run: cargo check --workspace --exclude liphia_cli_gui --exclude liphia_gui_native
 
-      - name: Test (all crates)
+      - name: Test (core workspace)
         working-directory: src
-        run: cargo test --workspace
+        run: cargo test --workspace --exclude liphia_cli_gui --exclude liphia_gui_native

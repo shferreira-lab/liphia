@@ -1,8 +1,7 @@
 name: Release
 
-
-#   git tag v0.10.0
-#   git push origin v0.10.0
+#   git tag v1.0.0
+#   git push origin v1.0.0
 on:
   push:
     tags:
@@ -22,14 +21,20 @@ jobs:
             name: linux-x86_64
             artifact: liphia_cli
             asset_name: liphia-linux-x86_64
+            gui_artifact: liphia_cli_gui
+            gui_asset_name: liphia-gui-linux-x86_64
           - os: macos-latest
             name: macos-x86_64
             artifact: liphia_cli
             asset_name: liphia-macos-x86_64
+            gui_artifact: liphia_cli_gui
+            gui_asset_name: liphia-gui-macos-x86_64
           - os: windows-latest
             name: windows-x86_64
             artifact: liphia_cli.exe
             asset_name: liphia-windows-x86_64.exe
+            gui_artifact: liphia_cli_gui.exe
+            gui_asset_name: liphia-gui-windows-x86_64.exe
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -43,21 +48,42 @@ jobs:
         with:
           workspaces: "src -> target"
 
+      - name: Install Linux GUI build dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+
       - name: Build liphia_cli (release)
         working-directory: src
         run: cargo build --release -p liphia_cli
 
-      - name: Stage artifact
+      - name: Stage liphia_cli artifact
         shell: bash
         run: |
           mkdir -p dist
           cp "src/target/release/${{ matrix.artifact }}" "dist/${{ matrix.asset_name }}"
 
-      - name: Upload build artifact
+      - name: Build liphia_cli_gui (release, best-effort)
+        working-directory: src
+        continue-on-error: true
+        run: cargo build --release -p liphia_cli_gui
+
+      - name: Stage liphia_cli_gui artifact (if built)
+        shell: bash
+        run: |
+          GUI_BIN="src/target/release/${{ matrix.gui_artifact }}"
+          if [ -f "$GUI_BIN" ]; then
+            cp "$GUI_BIN" "dist/${{ matrix.gui_asset_name }}"
+          else
+            echo "liphia_cli_gui was not built on this platform this run — skipping."
+          fi
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset_name }}
-          path: dist/${{ matrix.asset_name }}
+          name: ${{ matrix.name }}
+          path: dist/*
           if-no-files-found: error
 
   release:
