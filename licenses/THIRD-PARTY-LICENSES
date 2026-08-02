@@ -1,58 +1,124 @@
 # Third-Party Licenses
 
 This file lists the third-party software used by the Liphia engine
-and their respective licenses.
+and their respective licenses. Updated for Engine 1.0.0.
 
 ---
 
 ## Rust Standard Library and Toolchain
-
-The Liphia engine (`liphia_compiler`, `liphia_virtual_machine`,
-`liphia_cli`) is implemented in Rust and compiled using the Rust
-toolchain.
 
 - **Project:** The Rust Programming Language
 - **Website:** https://www.rust-lang.org
 - **Repository:** https://github.com/rust-lang/rust
 - **License:** MIT OR Apache-2.0 (dual license)
 
-The Rust standard library is statically linked into the Liphia
-engine binary. Its use is governed by the MIT and Apache 2.0
-licenses, copies of which are available at:
-
-  - https://github.com/rust-lang/rust/blob/master/LICENSE-MIT
-  - https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE
+The Rust standard library is statically linked into all Liphia
+engine binaries. Covered by:
+- https://github.com/rust-lang/rust/blob/master/LICENSE-MIT
+- https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE
 
 ---
 
-## Standard Library Crates (Rust)
+## Standard Library Modules (Rust std)
 
-The following modules from the Rust standard library are used
-directly in the Liphia engine source code:
+Used directly across `liphia_compiler`, `liphia_virtual_machine`,
+`liphia_cli`, `liphia_pipeline`, and `liphia_stdlib_native`:
 
-| Module            | Usage                                      |
-|-------------------|--------------------------------------------|
-| `std::collections::HashMap` | Global variable storage in the VM  |
-| `std::collections::HashSet` | Import cycle detection in the CLI  |
-| `std::fs`         | Source file reading                        |
-| `std::path`       | File path resolution                       |
-| `std::io`         | stdin/stdout for `input` and `print`       |
-| `std::rc::Rc`     | Reference-counted string values in the VM  |
+| Module | Usage |
+|---|---|
+| `std::collections::HashMap` | Variable storage in the VM |
+| `std::collections::HashSet` | Import cycle detection |
+| `std::fs` | Source file reading |
+| `std::path` | File path resolution |
+| `std::io` | stdin/stdout for `input` and `print` |
+| `std::rc::Rc` | Reference-counted string values in the VM |
 
-All of the above are part of the Rust standard library and are
-covered by the Rust license stated above.
-
----
-
-## No Additional Runtime Dependencies
-
-The Liphia engine has **no external crate dependencies** beyond
-the Rust standard library. The `Cargo.toml` files contain no
-entries in `[dependencies]`.
-
-This means the compiled binary is fully self-contained and does
-not bundle any third-party crates subject to separate licensing.
+All covered by the Rust license above.
 
 ---
 
-*This file will be updated as new dependencies are introduced.*
+## eframe / egui
+
+Used by: `liphia_cli_gui`, `liphia_gui_native`
+
+- **Project:** egui — immediate mode GUI for Rust
+- **Authors:** Emil Ernerfeldt and contributors
+- **Repository:** https://github.com/emilk/egui
+- **Crates:** `eframe`, `egui`
+- **Version used:** eframe 0.34.3
+- **License:** MIT OR Apache-2.0 (dual license)
+
+`eframe` is the application framework and `egui` is the immediate
+mode UI library. Both are dual-licensed MIT/Apache-2.0. These
+crates are only compiled into `liphia_cli_gui` — never into the
+standard `liphia_cli` binary.
+
+License texts:
+- https://github.com/emilk/egui/blob/main/LICENSE-MIT
+- https://github.com/emilk/egui/blob/main/LICENSE-APACHE
+
+---
+
+## rusqlite
+
+Used by: `liphia_stdlib_native`
+
+- **Project:** rusqlite — ergonomic bindings to SQLite for Rust
+- **Repository:** https://github.com/rusqlite/rusqlite
+- **Version used:** 0.31 (with `bundled` feature)
+- **License:** MIT
+
+rusqlite itself is MIT. The `bundled` feature additionally
+compiles and statically links the SQLite source code:
+
+### SQLite (bundled via rusqlite)
+
+- **Project:** SQLite
+- **Website:** https://www.sqlite.org
+- **License:** Public Domain
+
+SQLite is in the public domain. No attribution is legally required,
+but it is acknowledged here. The bundled SQLite source is compiled
+into `liphia_stdlib_native` and is therefore present in all
+standard `liphia_cli` binaries that include the `db` stdlib module.
+
+License reference:
+- https://www.sqlite.org/copyright.html
+
+---
+
+## Workspace Crates (internal — no external license)
+
+The following crates are original Liphia source code and are not
+third-party software:
+
+| Crate | Description |
+|---|---|
+| `liphia_compiler` | Lexer, parser, bytecode compiler |
+| `liphia_virtual_machine` | Stack-based VM (LVM) |
+| `liphia_cli` | Standard command-line interface |
+| `liphia_core_native` | Core native functions |
+| `liphia_pipeline` | Import resolution and compile pipeline |
+| `liphia_cli_gui` | GUI-enabled CLI (opt-in binary) |
+| `liphia_gui_native` | GUI native functions (egui commands) |
+| `liphia_stdlib_native` | Standard library — all stdlib modules |
+
+---
+
+## PostgreSQL driver (internal implementation)
+
+The PostgreSQL support in `liphia_stdlib_native` uses a hand-written
+TCP client implementing the PostgreSQL wire protocol directly,
+with no external crate dependency. No third-party license applies.
+
+---
+## Full dependency list
+
+A complete list of all transitive dependencies and their licenses
+is available in [`licenses/THIRD_PARTY_LICENSES_SUMMARY.txt`](./THIRD_PARTY_LICENSES_SUMMARY.txt),
+generated automatically via `cargo license`.
+
+To regenerate:
+```bash
+cargo license > licenses/THIRD_PARTY_LICENSES_SUMMARY.txt
+```
