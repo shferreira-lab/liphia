@@ -206,13 +206,17 @@ natives + `json`'s).
 > event-callback registration — requires native-side dispatch into a Liphia
 > function, not achievable as a composed `.lph` layer.
 
-### Composed (`composed/json.lph`, via `liphia install ws`)
-
+### Composed (`composed/respond.lph`, via `liphia install http`)
 | Function | Returns | Description |
 |---|---|---|
-| `ws_send_json(handle, data)` | `bool` | `ws_send(handle, json_encode(data))` |
-| `ws_broadcast_json(data)` | `bool` | `ws_broadcast(json_encode(data))` |
+| `ok_json(data)` | `bool` | ... |
+...
 
+> ⚠️ **Naming**: these composed functions land in your project's global
+> scope once installed. Declaring your own function with the same name
+> (`ok_json`, `created_json`, `no_content`, etc.) will collide on
+> `import from "http"`. Either rename your function or import selectively:
+> `import { http_respond_json } from "http"`.
 ---
 
 ## `db` — 1.1.0

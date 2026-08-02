@@ -80,3 +80,8 @@ liphia install db:postgres
 - `json` 2.0.0 (bundled in stdlib 1.0.0) is a breaking change from earlier
   versions: `json_decode` now returns a real `map`/`list` instead of a flat
   `["key", value, ...]` list.
+- Composed functions become part of your project's global scope once a
+  module is installed. If you declare a function with the same name as a
+  module's composed helper, `import from "<module>"` (full import) will
+  fail with a "declared more than once" error. Use `import { name, ... }
+  from "<module>"` to import only specific symbols and avoid the collision.
