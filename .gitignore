@@ -62,3 +62,8 @@ notes/
 # python
 
 .venv/
+
+
+# Android release signing — never commit
+*.jks
+*.keystore

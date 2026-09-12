@@ -42,9 +42,13 @@ fn main() {
     }
 
     let source_path = PathBuf::from(&args[1]);
-    let use_cache   = !args.contains(&"--no-cache".to_string());
+    let use_cache = !args.contains(&"--no-cache".to_string());
     let mut visited = HashSet::new();
-    let stmts = resolve_project(&source_path, &source_path, &mut visited);
+
+    let stmts = resolve_project(&source_path, &source_path, &mut visited).unwrap_or_else(|e| {
+        eprintln!("{}", e);
+        process::exit(1);
+    });
 
     let hash_input = format!("{:?}", stmts);
     let hash = cache::source_hash(&hash_input);
@@ -54,22 +58,34 @@ fn main() {
             Some(cached) => {
                 eprintln!(
                     "[liphia] using cached bytecode ({}.lbc)",
-                    source_path.file_stem().unwrap_or_default().to_string_lossy()
+                    source_path
+                        .file_stem()
+                        .unwrap_or_default()
+                        .to_string_lossy()
                 );
                 cached
             }
             None => {
-                let compiled = compile(stmts);
+                let compiled = compile(stmts).unwrap_or_else(|e| {
+                    eprintln!("{}", e);
+                    process::exit(1);
+                });
                 cache::save_cache(&source_path, hash, &compiled);
                 eprintln!(
                     "[liphia] compiled and cached ({}.lbc)",
-                    source_path.file_stem().unwrap_or_default().to_string_lossy()
+                    source_path
+                        .file_stem()
+                        .unwrap_or_default()
+                        .to_string_lossy()
                 );
                 compiled
             }
         }
     } else {
-        compile(stmts)
+        compile(stmts).unwrap_or_else(|e| {
+            eprintln!("{}", e);
+            process::exit(1);
+        })
     };
 
     let mut vm = VM::new();

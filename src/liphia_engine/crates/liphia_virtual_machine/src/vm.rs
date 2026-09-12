@@ -51,7 +51,11 @@ pub struct VmError {
 }
 
 impl VmError {
-    pub fn new(msg: impl Into<String>) -> Self { Self { message: msg.into() } }
+    pub fn new(msg: impl Into<String>) -> Self {
+        Self {
+            message: msg.into(),
+        }
+    }
 }
 
 impl std::fmt::Display for VmError {
@@ -67,14 +71,14 @@ pub type VmResult<T> = Result<T, VmError>;
 #[derive(Debug, Clone)]
 struct Frame {
     return_pc: usize,
-    base:      usize,
+    base: usize,
 }
 
 // ── Error handler ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
 struct Handler {
-    catch_pc:   usize,
+    catch_pc: usize,
     stack_base: usize,
     frame_base: usize,
 }
@@ -83,10 +87,10 @@ struct Handler {
 
 #[derive(Debug)]
 struct Task {
-    pc:       usize,
-    stack:    Vec<Value>,
-    locals:   Vec<Value>,
-    frames:   Vec<Frame>,
+    pc: usize,
+    stack: Vec<Value>,
+    locals: Vec<Value>,
+    frames: Vec<Frame>,
     handlers: Vec<Handler>,
 }
 
@@ -94,11 +98,19 @@ impl Task {
     fn new(pc: usize, args: Vec<Value>) -> Self {
         let mut stack = args;
         stack.reverse();
-        Self { pc, stack, locals: vec![], frames: vec![], handlers: vec![] }
+        Self {
+            pc,
+            stack,
+            locals: vec![],
+            frames: vec![],
+            handlers: vec![],
+        }
     }
 
     fn pop(&mut self, ctx: &str) -> VmResult<Value> {
-        self.stack.pop().ok_or_else(|| VmError::new(format!("stack underflow in {}", ctx)))
+        self.stack
+            .pop()
+            .ok_or_else(|| VmError::new(format!("stack underflow in {}", ctx)))
     }
 
     fn pop2(&mut self, ctx: &str) -> VmResult<(Value, Value)> {
@@ -111,7 +123,11 @@ impl Task {
     /// Return, so a try/catch that never reached PopHandler because the
     /// function returned early doesn't leak into the caller's scope).
     fn prune_stale_handlers(&mut self) {
-        while self.handlers.last().map_or(false, |h| h.frame_base >= self.frames.len()) {
+        while self
+            .handlers
+            .last()
+            .map_or(false, |h| h.frame_base >= self.frames.len())
+        {
             self.handlers.pop();
         }
     }
@@ -124,16 +140,28 @@ pub type NativeFn = fn(Vec<Value>) -> VmResult<Value>;
 // ── VM ────────────────────────────────────────────────────────────────────────
 
 pub struct VM {
-    globals:    HashMap<String, Value>,
+    globals: HashMap<String, Value>,
     native_fns: HashMap<String, NativeFn>,
+    output_hook: Option<Box<dyn FnMut(&str)>>,
+    // None (default): Print falls back to println! on stdout, exactly as
+    // before — liphia_cli's terminal behavior is unchanged.
+    // Some(hook): used by hosts with no visible stdout (e.g. the GUI/Android
+    // app), to route print() output into their own in-app console instead.
 }
 
 impl VM {
     pub fn new() -> Self {
         Self {
-            globals:    HashMap::new(),
+            globals: HashMap::new(),
             native_fns: HashMap::new(),
+            output_hook: None,
         }
+    }
+
+    /// Redirects print() output to `hook` instead of stdout. Call this
+    /// right after VM::new() on hosts that have no visible terminal.
+    pub fn set_output_hook(&mut self, hook: Box<dyn FnMut(&str)>) {
+        self.output_hook = Some(hook);
     }
 
     pub fn register_native(&mut self, name: &str, f: NativeFn) {
@@ -191,8 +219,8 @@ impl VM {
     fn step(
         &mut self,
         program: &Rc<Vec<Opcode>>,
-        task:    &mut Task,
-        queue:   &mut VecDeque<Task>,
+        task: &mut Task,
+        queue: &mut VecDeque<Task>,
     ) -> VmResult<StepResult> {
         // Global-scope tasks (server loop) use a smaller quantum so they
         // yield faster and keep the event loop responsive.
@@ -205,10 +233,12 @@ impl VM {
 
             let op = program[task.pc].clone();
             match self.exec_instruction(&op, task, queue) {
-                Ok(InstrFlow::Next) => { task.pc += 1; }
+                Ok(InstrFlow::Next) => {
+                    task.pc += 1;
+                }
                 Ok(InstrFlow::Jumped) => {}
                 Ok(InstrFlow::Suspend) => return Ok(StepResult::Suspend),
-                Ok(InstrFlow::Halt)    => return Ok(StepResult::Halt),
+                Ok(InstrFlow::Halt) => return Ok(StepResult::Halt),
                 Err(e) => {
                     if let Some(h) = task.handlers.pop() {
                         task.stack.truncate(h.stack_base);
@@ -229,42 +259,45 @@ impl VM {
 
     fn exec_instruction(
         &mut self,
-        op:    &Opcode,
-        task:  &mut Task,
+        op: &Opcode,
+        task: &mut Task,
         queue: &mut VecDeque<Task>,
     ) -> VmResult<InstrFlow> {
         match op {
-            Opcode::PushInt(v)    => task.stack.push(Value::Int(*v)),
-            Opcode::PushFloat(v)  => task.stack.push(Value::Float(*v)),
+            Opcode::PushInt(v) => task.stack.push(Value::Int(*v)),
+            Opcode::PushFloat(v) => task.stack.push(Value::Float(*v)),
             Opcode::PushString(v) => task.stack.push(Value::Str(Rc::new(v.clone()))),
-            Opcode::PushBool(v)   => task.stack.push(Value::Bool(*v)),
-            Opcode::PushNull      => task.stack.push(Value::Null),
+            Opcode::PushBool(v) => task.stack.push(Value::Bool(*v)),
+            Opcode::PushNull => task.stack.push(Value::Null),
             Opcode::PushEnum(en, vn) => {
                 task.stack.push(Value::EnumVariant {
                     enum_name: Rc::new(en.clone()),
-                    variant:   Rc::new(vn.clone()),
+                    variant: Rc::new(vn.clone()),
                 });
             }
 
             // ── Variables ─────────────────────────────────────────────
-
             Opcode::StoreVar(idx) => {
-                let idx  = *idx as usize;
+                let idx = *idx as usize;
                 let base = task.frames.last().map(|f| f.base).unwrap_or(0);
-                let pos  = base + idx;
-                let val  = task.pop("StoreVar")?;
+                let pos = base + idx;
+                let val = task.pop("StoreVar")?;
                 if pos < task.locals.len() {
                     task.locals[pos] = val;
                 } else {
-                    while task.locals.len() < pos { task.locals.push(Value::Null); }
+                    while task.locals.len() < pos {
+                        task.locals.push(Value::Null);
+                    }
                     task.locals.push(val);
                 }
             }
 
             Opcode::LoadVar(idx) => {
-                let idx  = *idx as usize;
+                let idx = *idx as usize;
                 let base = task.frames.last().map(|f| f.base).unwrap_or(0);
-                let val  = task.locals.get(base + idx)
+                let val = task
+                    .locals
+                    .get(base + idx)
                     .ok_or_else(|| VmError::new(format!("local slot {} out of range", idx)))?
                     .clone();
                 task.stack.push(val);
@@ -276,41 +309,46 @@ impl VM {
             }
 
             Opcode::LoadGlobal(name) => {
-                let val = self.globals.get(name)
+                let val = self
+                    .globals
+                    .get(name)
                     .ok_or_else(|| VmError::new(format!("undefined variable '{}'", name)))?
                     .clone();
                 task.stack.push(val);
             }
 
             // ── Arithmetic ────────────────────────────────────────────
-
-            Opcode::Add  => self.op_add(task)?,
-            Opcode::Sub  => self.op_sub(task)?,
-            Opcode::Mul  => self.op_mul(task)?,
-            Opcode::Div  => self.op_div(task)?,
+            Opcode::Add => self.op_add(task)?,
+            Opcode::Sub => self.op_sub(task)?,
+            Opcode::Mul => self.op_mul(task)?,
+            Opcode::Div => self.op_div(task)?,
 
             // ── Comparison ────────────────────────────────────────────
-
-            Opcode::Eq  => { let (a,b) = task.pop2("Eq")?;  task.stack.push(Value::Bool(a == b)); }
-            Opcode::Neq => { let (a,b) = task.pop2("Neq")?; task.stack.push(Value::Bool(a != b)); }
-            Opcode::Gt  => self.op_cmp(task, |a,b| a>b,  |a,b| a>b)?,
-            Opcode::Lt  => self.op_cmp(task, |a,b| a<b,  |a,b| a<b)?,
-            Opcode::Gte => self.op_cmp(task, |a,b| a>=b, |a,b| a>=b)?,
-            Opcode::Lte => self.op_cmp(task, |a,b| a<=b, |a,b| a<=b)?,
+            Opcode::Eq => {
+                let (a, b) = task.pop2("Eq")?;
+                task.stack.push(Value::Bool(a == b));
+            }
+            Opcode::Neq => {
+                let (a, b) = task.pop2("Neq")?;
+                task.stack.push(Value::Bool(a != b));
+            }
+            Opcode::Gt => self.op_cmp(task, |a, b| a > b, |a, b| a > b)?,
+            Opcode::Lt => self.op_cmp(task, |a, b| a < b, |a, b| a < b)?,
+            Opcode::Gte => self.op_cmp(task, |a, b| a >= b, |a, b| a >= b)?,
+            Opcode::Lte => self.op_cmp(task, |a, b| a <= b, |a, b| a <= b)?,
 
             // ── Logical ───────────────────────────────────────────────
-
             Opcode::And => {
-                let (a,b) = task.pop2("And")?;
-                match (a,b) {
+                let (a, b) = task.pop2("And")?;
+                match (a, b) {
                     (Value::Bool(x), Value::Bool(y)) => task.stack.push(Value::Bool(x && y)),
                     _ => return Err(VmError::new("'and' requires two bool values")),
                 }
             }
 
             Opcode::Or => {
-                let (a,b) = task.pop2("Or")?;
-                match (a,b) {
+                let (a, b) = task.pop2("Or")?;
+                match (a, b) {
                     (Value::Bool(x), Value::Bool(y)) => task.stack.push(Value::Bool(x || y)),
                     _ => return Err(VmError::new("'or' requires two bool values")),
                 }
@@ -325,47 +363,59 @@ impl VM {
             }
 
             // ── I/O ───────────────────────────────────────────────────
-
             Opcode::Input => {
                 let mut buf = String::new();
                 io::stdout().flush().unwrap();
-                io::stdin().read_line(&mut buf)
+                io::stdin()
+                    .read_line(&mut buf)
                     .map_err(|e| VmError::new(format!("failed to read input: {}", e)))?;
-                task.stack.push(Value::Str(Rc::new(buf.trim_end().to_string())));
+                task.stack
+                    .push(Value::Str(Rc::new(buf.trim_end().to_string())));
             }
 
             Opcode::Print(count) => {
                 let count = *count;
                 let mut args = Vec::with_capacity(count);
-                for _ in 0..count { args.push(task.pop("Print")?); }
-                args.reverse();
-                for (i, arg) in args.iter().enumerate() {
-                    if i > 0 { print!(" "); }
-                    print!("{}", arg);
+                for _ in 0..count {
+                    args.push(task.pop("Print")?);
                 }
-                println!();
+                args.reverse();
+
+                let mut line = String::new();
+                for (i, arg) in args.iter().enumerate() {
+                    if i > 0 {
+                        line.push(' ');
+                    }
+                    line.push_str(&arg.to_string());
+                }
+
+                match &mut self.output_hook {
+                    Some(hook) => hook(&line),
+                    None => println!("{}", line),
+                }
             }
-
             // ── Control flow ──────────────────────────────────────────
-
             Opcode::Jump(dest) => {
                 task.pc = *dest;
                 return Ok(InstrFlow::Jumped);
             }
 
-            Opcode::JumpIfFalse(dest) => {
-                match task.pop("JumpIfFalse")? {
-                    Value::Bool(false) => { task.pc = *dest; return Ok(InstrFlow::Jumped); }
-                    Value::Bool(true)  => {}
-                    _ => return Err(VmError::new("condition must be a bool value")),
+            Opcode::JumpIfFalse(dest) => match task.pop("JumpIfFalse")? {
+                Value::Bool(false) => {
+                    task.pc = *dest;
+                    return Ok(InstrFlow::Jumped);
                 }
-            }
+                Value::Bool(true) => {}
+                _ => return Err(VmError::new("condition must be a bool value")),
+            },
 
             // ── Function calls ────────────────────────────────────────
-
             Opcode::Call(address, _) => {
                 let base = task.locals.len();
-                task.frames.push(Frame { return_pc: task.pc + 1, base });
+                task.frames.push(Frame {
+                    return_pc: task.pc + 1,
+                    base,
+                });
                 task.pc = *address;
                 return Ok(InstrFlow::Jumped);
             }
@@ -374,20 +424,25 @@ impl VM {
                 let arg_count = *arg_count;
                 if let Some(&native_fn) = self.native_fns.get(name) {
                     let mut args = Vec::with_capacity(arg_count);
-                    for _ in 0..arg_count { args.push(task.pop("CallNamed")?); }
+                    for _ in 0..arg_count {
+                        args.push(task.pop("CallNamed")?);
+                    }
                     args.reverse();
                     let result = native_fn(args)?;
                     task.stack.push(result);
                 } else {
                     return Err(VmError::new(format!(
-                        "unresolved call to '{}' — not defined and not in stdlib", name
+                        "unresolved call to '{}' — not defined and not in stdlib",
+                        name
                     )));
                 }
             }
 
             Opcode::Return => {
-                let ret   = task.stack.pop().unwrap_or(Value::Null);
-                let frame = task.frames.pop()
+                let ret = task.stack.pop().unwrap_or(Value::Null);
+                let frame = task
+                    .frames
+                    .pop()
                     .ok_or_else(|| VmError::new("return without active call frame"))?;
                 task.locals.truncate(frame.base);
                 task.pc = frame.return_pc;
@@ -397,11 +452,12 @@ impl VM {
             }
 
             // ── Collections ───────────────────────────────────────────
-
             Opcode::BuildList(count) => {
                 let count = *count;
                 let mut items = Vec::with_capacity(count);
-                for _ in 0..count { items.push(task.pop("BuildList")?); }
+                for _ in 0..count {
+                    items.push(task.pop("BuildList")?);
+                }
                 items.reverse();
                 task.stack.push(Value::List(Rc::new(RefCell::new(items))));
             }
@@ -409,7 +465,9 @@ impl VM {
             Opcode::BuildMap(count) => {
                 let count = *count;
                 let mut flat = Vec::with_capacity(count * 2);
-                for _ in 0..count * 2 { flat.push(task.pop("BuildMap")?); }
+                for _ in 0..count * 2 {
+                    flat.push(task.pop("BuildMap")?);
+                }
                 flat.reverse();
                 let mut pairs = Vec::with_capacity(count);
                 let mut it = flat.into_iter();
@@ -421,14 +479,17 @@ impl VM {
 
             Opcode::GetIndex => {
                 let index = task.pop("GetIndex")?;
-                let list  = task.pop("GetIndex")?;
+                let list = task.pop("GetIndex")?;
                 match (list, index) {
                     (Value::List(rc), Value::Int(i)) => {
                         let items = rc.borrow();
                         let i = if i < 0 { items.len() as i64 + i } else { i };
                         if i < 0 || i as usize >= items.len() {
                             return Err(VmError::new(format!(
-                                "index {} out of bounds (list length {})", i, items.len())));
+                                "index {} out of bounds (list length {})",
+                                i,
+                                items.len()
+                            )));
                         }
                         task.stack.push(items[i as usize].clone());
                     }
@@ -437,9 +498,13 @@ impl VM {
                         let i = if i < 0 { chars.len() as i64 + i } else { i };
                         if i < 0 || i as usize >= chars.len() {
                             return Err(VmError::new(format!(
-                                "string index {} out of bounds (length {})", i, chars.len())));
+                                "string index {} out of bounds (length {})",
+                                i,
+                                chars.len()
+                            )));
                         }
-                        task.stack.push(Value::Str(Rc::new(chars[i as usize].to_string())));
+                        task.stack
+                            .push(Value::Str(Rc::new(chars[i as usize].to_string())));
                     }
                     (Value::Map(rc), key) => {
                         let items = rc.borrow();
@@ -448,7 +513,9 @@ impl VM {
                             None => return Err(VmError::new("key not found in map")),
                         }
                     }
-                    (_, Value::Int(_)) => return Err(VmError::new("index operator requires a list or str")),
+                    (_, Value::Int(_)) => {
+                        return Err(VmError::new("index operator requires a list or str"))
+                    }
                     _ => return Err(VmError::new("list index must be an int")),
                 }
             }
@@ -456,14 +523,17 @@ impl VM {
             Opcode::SetIndex => {
                 let value = task.pop("SetIndex")?;
                 let index = task.pop("SetIndex")?;
-                let list  = task.pop("SetIndex")?;
+                let list = task.pop("SetIndex")?;
                 match (list, index) {
                     (Value::List(rc), Value::Int(i)) => {
                         let mut items = rc.borrow_mut();
                         let i = if i < 0 { items.len() as i64 + i } else { i };
                         if i < 0 || i as usize >= items.len() {
                             return Err(VmError::new(format!(
-                                "index {} out of bounds (list length {})", i, items.len())));
+                                "index {} out of bounds (list length {})",
+                                i,
+                                items.len()
+                            )));
                         }
                         items[i as usize] = value;
                     }
@@ -479,13 +549,14 @@ impl VM {
                 }
             }
 
-            Opcode::Pop => { task.stack.pop(); }
+            Opcode::Pop => {
+                task.stack.pop();
+            }
 
             // ── Error handling ────────────────────────────────────────
-
             Opcode::PushHandler(catch_pc) => {
                 task.handlers.push(Handler {
-                    catch_pc:   *catch_pc,
+                    catch_pc: *catch_pc,
                     stack_base: task.stack.len(),
                     frame_base: task.frames.len(),
                 });
@@ -496,8 +567,6 @@ impl VM {
             }
 
             // ── Async ─────────────────────────────────────────────────
-      
-
             Opcode::Suspend => {
                 let top = task.stack.last().cloned().unwrap_or(Value::Null);
                 match top {
@@ -514,8 +583,10 @@ impl VM {
 
             Opcode::Spawn(address, arg_count) => {
                 let arg_count = *arg_count;
-                let mut args  = Vec::with_capacity(arg_count);
-                for _ in 0..arg_count { args.push(task.pop("Spawn")?); }
+                let mut args = Vec::with_capacity(arg_count);
+                for _ in 0..arg_count {
+                    args.push(task.pop("Spawn")?);
+                }
                 args.reverse();
                 let new_task = Task::new(*address, args);
                 queue.push_back(new_task);
@@ -523,7 +594,6 @@ impl VM {
             }
 
             // ── Halt ──────────────────────────────────────────────────
-
             Opcode::Halt => {
                 #[cfg(debug_assertions)]
                 if !task.stack.is_empty() {
@@ -545,70 +615,78 @@ impl VM {
     // ── Arithmetic helpers ────────────────────────────────────────────────
 
     fn op_add(&self, task: &mut Task) -> VmResult<()> {
-        let (a,b) = task.pop2("Add")?;
-        let r = match (a,b) {
-            (Value::Int(x),   Value::Int(y))   => Value::Int(x+y),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x+y),
-            (Value::Str(x),   Value::Str(y))   => Value::Str(Rc::new((*x).clone() + &*y)),
-            (Value::Int(x),   Value::Str(y))   => Value::Str(Rc::new(format!("{}{}", x, y))),
-            (Value::Str(x),   Value::Int(y))   => Value::Str(Rc::new(format!("{}{}", x, y))),
+        let (a, b) = task.pop2("Add")?;
+        let r = match (a, b) {
+            (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
+            (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
+            (Value::Str(x), Value::Str(y)) => Value::Str(Rc::new((*x).clone() + &*y)),
+            (Value::Int(x), Value::Str(y)) => Value::Str(Rc::new(format!("{}{}", x, y))),
+            (Value::Str(x), Value::Int(y)) => Value::Str(Rc::new(format!("{}{}", x, y))),
             _ => return Err(VmError::new("'+' requires int, float, or str values")),
         };
-        task.stack.push(r); Ok(())
+        task.stack.push(r);
+        Ok(())
     }
 
     fn op_sub(&self, task: &mut Task) -> VmResult<()> {
-        let (a,b) = task.pop2("Sub")?;
-        let r = match (a,b) {
-            (Value::Int(x),   Value::Int(y))   => Value::Int(x-y),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x-y),
+        let (a, b) = task.pop2("Sub")?;
+        let r = match (a, b) {
+            (Value::Int(x), Value::Int(y)) => Value::Int(x - y),
+            (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => return Err(VmError::new("'-' requires int or float values")),
         };
-        task.stack.push(r); Ok(())
+        task.stack.push(r);
+        Ok(())
     }
 
     fn op_mul(&self, task: &mut Task) -> VmResult<()> {
-        let (a,b) = task.pop2("Mul")?;
-        let r = match (a,b) {
-            (Value::Int(x),   Value::Int(y))   => Value::Int(x*y),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x*y),
+        let (a, b) = task.pop2("Mul")?;
+        let r = match (a, b) {
+            (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+            (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => return Err(VmError::new("'*' requires int or float values")),
         };
-        task.stack.push(r); Ok(())
+        task.stack.push(r);
+        Ok(())
     }
 
     fn op_div(&self, task: &mut Task) -> VmResult<()> {
-        let (a,b) = task.pop2("Div")?;
-        let r = match (a,b) {
-            (Value::Int(x),   Value::Int(y))   => {
-                if y == 0 { return Err(VmError::new("division by zero")); }
-                Value::Int(x/y)
+        let (a, b) = task.pop2("Div")?;
+        let r = match (a, b) {
+            (Value::Int(x), Value::Int(y)) => {
+                if y == 0 {
+                    return Err(VmError::new("division by zero"));
+                }
+                Value::Int(x / y)
             }
             (Value::Float(x), Value::Float(y)) => {
-                if y == 0.0 { return Err(VmError::new("division by zero")); }
-                Value::Float(x/y)
+                if y == 0.0 {
+                    return Err(VmError::new("division by zero"));
+                }
+                Value::Float(x / y)
             }
             _ => return Err(VmError::new("'/' requires int or float values")),
         };
-        task.stack.push(r); Ok(())
+        task.stack.push(r);
+        Ok(())
     }
 
     fn op_cmp(
         &self,
-        task:      &mut Task,
-        int_cmp:   impl Fn(i64,i64) -> bool,
-        float_cmp: impl Fn(f64,f64) -> bool,
+        task: &mut Task,
+        int_cmp: impl Fn(i64, i64) -> bool,
+        float_cmp: impl Fn(f64, f64) -> bool,
     ) -> VmResult<()> {
-        let (a,b) = task.pop2("cmp")?;
-        let r = match (a,b) {
-            (Value::Int(x),   Value::Int(y))   => Value::Bool(int_cmp(x,y)),
-            (Value::Float(x), Value::Float(y)) => Value::Bool(float_cmp(x,y)),
+        let (a, b) = task.pop2("cmp")?;
+        let r = match (a, b) {
+            (Value::Int(x), Value::Int(y)) => Value::Bool(int_cmp(x, y)),
+            (Value::Float(x), Value::Float(y)) => Value::Bool(float_cmp(x, y)),
             _ => return Err(VmError::new("comparison requires int or float values")),
         };
-        task.stack.push(r); Ok(())
+        task.stack.push(r);
+        Ok(())
     }
 }
-
 
 // ── Session (tick-driven, for hosts that own their own loop) ──────────────
 //
@@ -619,7 +697,7 @@ impl VM {
 // frame rate (e.g. egui at ~60fps) already paces itself.
 pub struct VmSession {
     program: Rc<Vec<Opcode>>,
-    queue:   VecDeque<Task>,
+    queue: VecDeque<Task>,
 }
 
 impl VmSession {
@@ -646,8 +724,6 @@ impl VmSession {
         Ok(!self.queue.is_empty())
     }
 }
-
-
 
 // ── Internal scheduler signals ─────────────────────────────────────────────────
 

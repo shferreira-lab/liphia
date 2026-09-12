@@ -1,11 +1,10 @@
 // Wraps the async file dialog so it can be polled from egui's synchronous
-// update loop without blocking the UI thread while Android's system
-// file picker is open.
+// update loop without blocking the UI thread while the system file picker
+// is open. Desktop uses rfd; Android has no working rfd backend in this
+// version, so it's stubbed out for now — see platforms/android.md.
 use std::sync::{Arc, Mutex};
 
 pub struct FilePicker {
-    // Holds the picked file's raw bytes once the background thread finishes.
-    // None while idle or while a pick is still in progress.
     result: Arc<Mutex<Option<Vec<u8>>>>,
     picking: bool,
 }
@@ -18,11 +17,10 @@ impl FilePicker {
         }
     }
 
-    // Call this from a button's on-click. Spawns a background thread that
-    // opens the system file picker and blocks on it there, not on the UI thread.
+    #[cfg(not(target_os = "android"))]
     pub fn open(&mut self) {
         if self.picking {
-            return; // a pick is already in progress, ignore repeated clicks
+            return;
         }
         self.picking = true;
         let slot = Arc::clone(&self.result);
@@ -43,8 +41,13 @@ impl FilePicker {
         });
     }
 
-    // Call this once per frame from App::ui. Returns Some(source_code) exactly
-    // once, the frame after the background thread finishes reading the file.
+    // Android stub: rfd has no working backend for this target yet.
+    // Known limitation — see platforms/android.md.
+    #[cfg(target_os = "android")]
+    pub fn open(&mut self) {
+        // no-op for now
+    }
+
     pub fn poll(&mut self) -> Option<String> {
         let mut guard = self.result.lock().unwrap();
         if let Some(bytes) = guard.take() {
@@ -56,5 +59,11 @@ impl FilePicker {
 
     pub fn is_picking(&self) -> bool {
         self.picking
+    }
+}
+
+impl Default for FilePicker {
+    fn default() -> Self {
+        Self::new()
     }
 }

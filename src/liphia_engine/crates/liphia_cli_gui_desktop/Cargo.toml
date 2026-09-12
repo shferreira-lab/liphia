@@ -1,0 +1,8 @@
+[package]
+name = "liphia_cli_gui_desktop"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+eframe = "0.34.3"
+liphia_cli_gui = { path = "../liphia_cli_gui" }

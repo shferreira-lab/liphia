@@ -34,6 +34,7 @@ of the engine and standard library. See [Versions](#versions) below.
 
 - [Repository layout](#repository-layout)
 - [How to build](#how-to-build)
+- [Building for Android](#building-for-android)
 - [Where the binaries live](#where-the-binaries-live)
 - [How to run a program](#how-to-run-a-program)
 - [Starting a new project](#starting-a-new-project)
@@ -102,6 +103,18 @@ crates — `liphia_cli_gui` is intentionally excluded from the default build,
 so it never affects the size or dependencies of the main binary.
 
 ---
+
+## Building for Android
+
+`liphia_cli_gui` also compiles to a native Android APK via `cargo-apk`, so
+`.lph` scripts (including plain ones using only `print()`, no GUI natives
+required) can run on a phone through a simple installable app. This is a
+separate build path from the desktop `liphia_cli_gui` above — same source,
+different target. See [`docs/platforms/android.md`](./docs/platforms/android.md)
+for environment setup, build commands, and release signing.
+
+---
+
 
 ## Where the binaries live
 
