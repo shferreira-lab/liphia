@@ -13,7 +13,7 @@ const REGISTRY_RAW: &str =
     "https://raw.githubusercontent.com/shferreira-lab/liphia/main/src/stdlib/modules";
 
 const MODULES_DIR: &str = "liphia_modules";
-const MANIFEST:    &str = "liphia.toml";
+const MANIFEST: &str = "liphia.toml";
 
 const KNOWN_MODULES: &[&str] = &[
     "http", "db", "ws", "net", "fs", "math", "json", "ai", "stats",
@@ -31,7 +31,7 @@ pub fn init_project() {
         .unwrap_or_else(|| "my_project".to_string());
 
     let content = format!(
-r#"[package]
+        r#"[package]
 name    = "{}"
 version = "0.1.0"
 
@@ -57,7 +57,11 @@ pub fn list_modules() {
             .join(m)
             .join(format!("{}.lph", m))
             .exists();
-        let status = if installed { "✓ installed" } else { "  available" };
+        let status = if installed {
+            "✓ installed"
+        } else {
+            "  available"
+        };
         println!("  {}  {}", status, m);
     }
 }
@@ -70,7 +74,11 @@ pub fn install_modules(modules: &[&str]) {
             Some((module, submodule)) => do_install_submodule(module, submodule),
             None => do_install(spec),
         };
-        if success { ok += 1; } else { err += 1; }
+        if success {
+            ok += 1;
+        } else {
+            err += 1;
+        }
     }
     println!();
     if err == 0 {
@@ -81,7 +89,13 @@ pub fn install_modules(modules: &[&str]) {
 }
 
 // ── Submodule install: liphia install <module>:<submodule> ───────────────────
+// Delegates to do_install(module) first, so the module's base files AND its
+// platform-specific prebuilt native lib (see do_install) are guaranteed to
+// exist before we layer the submodule's own files on top.
 fn do_install_submodule(module: &str, submodule: &str) -> bool {
+    if !do_install(module) {
+        return false;
+    }
     print!("  installing '{}:{}'... ", module, submodule);
     io::stdout().flush().unwrap();
 
@@ -106,7 +120,10 @@ fn do_install_submodule(module: &str, submodule: &str) -> bool {
         Some(f) => f,
         None => {
             println!("FAILED");
-            eprintln!("    '{}' has no submodule '{}' in its module.toml", module, submodule);
+            eprintln!(
+                "    '{}' has no submodule '{}' in its module.toml",
+                module, submodule
+            );
             return false;
         }
     };
@@ -122,7 +139,10 @@ fn do_install_submodule(module: &str, submodule: &str) -> bool {
     let (mut ok_count, mut err_count) = (0usize, 0usize);
     for rel_path in &files {
         let dest_file = dest_dir.join(rel_path);
-        if dest_file.exists() { ok_count += 1; continue; }
+        if dest_file.exists() {
+            ok_count += 1;
+            continue;
+        }
         if let Some(parent) = dest_file.parent() {
             if let Err(e) = fs::create_dir_all(parent) {
                 println!("FAILED");
@@ -134,14 +154,24 @@ fn do_install_submodule(module: &str, submodule: &str) -> bool {
         let url = format!("{}/{}/{}", REGISTRY_RAW, module, rel_path);
         match http_get(&url) {
             Ok(body) => match fs::write(&dest_file, &body) {
-                Ok(_)  => ok_count += 1,
-                Err(e) => { println!("FAILED"); eprintln!("    could not write {}: {}", dest_file.display(), e); err_count += 1; }
+                Ok(_) => ok_count += 1,
+                Err(e) => {
+                    println!("FAILED");
+                    eprintln!("    could not write {}: {}", dest_file.display(), e);
+                    err_count += 1;
+                }
             },
-            Err(e) => { println!("FAILED"); eprintln!("    download error fetching '{}': {}", rel_path, e); err_count += 1; }
+            Err(e) => {
+                println!("FAILED");
+                eprintln!("    download error fetching '{}': {}", rel_path, e);
+                err_count += 1;
+            }
         }
     }
 
-    if err_count > 0 { return false; }
+    if err_count > 0 {
+        return false;
+    }
     add_to_manifest(&format!("{}:{}", module, submodule));
     println!("ok ({} file(s))", ok_count);
     true
@@ -157,22 +187,25 @@ fn parse_submodule_files(toml: &str, submodule: &str) -> Option<Vec<String>> {
             in_section = t == section;
             continue;
         }
-        if !in_section { continue; }
+        if !in_section {
+            continue;
+        }
         if let Some(rest) = t.strip_prefix("files") {
-            let rest  = rest.trim_start();
-            let rest  = rest.strip_prefix('=')?.trim();
+            let rest = rest.trim_start();
+            let rest = rest.strip_prefix('=')?.trim();
             let inner = rest.strip_prefix('[')?.strip_suffix(']')?;
             let list: Vec<String> = inner
                 .split(',')
                 .map(|s| s.trim().trim_matches('"').trim_matches('\'').to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
-            if !list.is_empty() { return Some(list); }
+            if !list.is_empty() {
+                return Some(list);
+            }
         }
     }
     None
 }
-
 
 // ── liphia install (reading liphia.toml) ───────────────────────────────
 pub fn install_from_manifest() {
@@ -188,7 +221,11 @@ pub fn install_from_manifest() {
     println!("[liphia] installing {} module(s)...", deps.len());
     let (mut ok, mut err) = (0usize, 0usize);
     for name in deps.keys() {
-        if do_install(name) { ok += 1; } else { err += 1; }
+        if do_install(name) {
+            ok += 1;
+        } else {
+            err += 1;
+        }
     }
     println!();
     if err == 0 {
@@ -218,7 +255,7 @@ fn do_install(name: &str) -> bool {
     }
 
     // module.toml first — it tells us which files belong to this module.
-    let toml_url    = format!("{}/{}/module.toml", REGISTRY_RAW, name);
+    let toml_url = format!("{}/{}/module.toml", REGISTRY_RAW, name);
     let module_toml = http_get(&toml_url).ok();
     if let Some(ref body) = module_toml {
         let _ = fs::write(dest_dir.join("module.toml"), body);
@@ -227,12 +264,20 @@ fn do_install(name: &str) -> bool {
     // File list from module.toml's `files = [...]` under [module].
     // Falls back to just "<name>.lph" for modules that haven't published
     // a file list yet — backward compatible with the old single-file layout.
-    let files = module_toml
+    let mut files = module_toml
         .as_deref()
         .and_then(parse_module_files)
         .unwrap_or_else(|| vec![format!("{}.lph", name)]);
 
-    let mut ok_count  = 0usize;
+    // For external modules (e.g. db), also fetch the prebuilt native lib
+    // for the current platform, declared under [external.libs] in
+    // module.toml. Modules without an [external.libs] section (pure-.lph
+    // stdlib modules) simply get None back here and are unaffected.
+    if let Some(lib_path) = module_toml.as_deref().and_then(parse_external_lib) {
+        files.push(lib_path);
+    }
+
+    let mut ok_count = 0usize;
     let mut err_count = 0usize;
 
     for rel_path in &files {
@@ -263,7 +308,7 @@ fn do_install(name: &str) -> bool {
                     let _ = fs::create_dir_all(parent);
                 }
                 let write_result = match &body {
-                    WriteBody::Text(s)   => fs::write(&dest_file, s),
+                    WriteBody::Text(s) => fs::write(&dest_file, s),
                     WriteBody::Binary(b) => fs::write(&dest_file, b),
                 };
                 if let Err(e) = write_result {
@@ -334,10 +379,12 @@ fn parse_module_files(toml: &str) -> Option<Vec<String>> {
             in_module = t == "[module]";
             continue;
         }
-        if !in_module { continue; }
+        if !in_module {
+            continue;
+        }
         if let Some(rest) = t.strip_prefix("files") {
-            let rest  = rest.trim_start();
-            let rest  = rest.strip_prefix('=')?.trim();
+            let rest = rest.trim_start();
+            let rest = rest.strip_prefix('=')?.trim();
             let inner = rest.strip_prefix('[')?.strip_suffix(']')?;
             let list: Vec<String> = inner
                 .split(',')
@@ -351,6 +398,51 @@ fn parse_module_files(toml: &str) -> Option<Vec<String>> {
     }
     None
 }
+
+// Returns "windows" / "macos" / "linux" depending on the platform this CLI
+// was compiled for — used to pick the right prebuilt lib entry out of
+// module.toml's [external.libs] section.
+fn current_platform_lib_key() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "windows"
+    } else if cfg!(target_os = "macos") {
+        "macos"
+    } else {
+        "linux"
+    }
+}
+
+// Parses a relative lib path (e.g. "lib/liphia_module_db.dll") for the
+// current platform out of a `[external.libs]` section of module.toml:
+//
+//   [external.libs]
+//   linux   = "lib/libliphia_module_db.so"
+//   windows = "lib/liphia_module_db.dll"
+//   macos   = "lib/libliphia_module_db.dylib"
+//
+// Returns None for modules with no such section (pure-.lph stdlib modules),
+// or if this platform has no prebuilt lib listed yet.
+fn parse_external_lib(toml: &str) -> Option<String> {
+    let key = current_platform_lib_key();
+    let mut in_section = false;
+    for line in toml.lines() {
+        let t = line.trim();
+        if t.starts_with('[') {
+            in_section = t == "[external.libs]";
+            continue;
+        }
+        if !in_section {
+            continue;
+        }
+        if let Some((k, v)) = t.split_once('=') {
+            if k.trim() == key {
+                return Some(v.trim().trim_matches('"').trim_matches('\'').to_string());
+            }
+        }
+    }
+    None
+}
+
 // ── HTTP GET by curl ─────────────────────────────────────────────────────────
 fn http_get(url: &str) -> Result<String, String> {
     let curl = std::process::Command::new("curl")
@@ -359,8 +451,7 @@ fn http_get(url: &str) -> Result<String, String> {
 
     match curl {
         Ok(out) if out.status.success() => {
-            String::from_utf8(out.stdout)
-                .map_err(|e| format!("invalid utf-8: {}", e))
+            String::from_utf8(out.stdout).map_err(|e| format!("invalid utf-8: {}", e))
         }
         Ok(out) => {
             let stderr = String::from_utf8_lossy(&out.stderr);
@@ -373,16 +464,15 @@ fn http_get(url: &str) -> Result<String, String> {
                 .output();
             match wget {
                 Ok(out) if out.status.success() => {
-                    String::from_utf8(out.stdout)
-                        .map_err(|e| format!("invalid utf-8: {}", e))
+                    String::from_utf8(out.stdout).map_err(|e| format!("invalid utf-8: {}", e))
                 }
                 Ok(out) => {
                     let stderr = String::from_utf8_lossy(&out.stderr);
                     Err(format!("wget error: {}", stderr.trim()))
                 }
-                Err(_) => Err(
-                    "curl not found. Install from: https://curl.se/download.html".to_string()
-                ),
+                Err(_) => {
+                    Err("curl not found. Install from: https://curl.se/download.html".to_string())
+                }
             }
         }
     }
@@ -401,7 +491,10 @@ fn http_get(url: &str) -> Result<String, String> {
 // functions shouldn't be blocked by db failing to load.
 pub fn load_installed_external_modules(vm: &mut VM) {
     for (name, err) in vm.load_installed_external_modules(MODULES_DIR) {
-        eprintln!("[liphia] warning: failed to load external module '{}': {}", name, err.message);
+        eprintln!(
+            "[liphia] warning: failed to load external module '{}': {}",
+            name, err.message
+        );
     }
 }
 
@@ -429,9 +522,9 @@ fn http_get_binary(url: &str) -> Result<Vec<u8>, String> {
                     let stderr = String::from_utf8_lossy(&out.stderr);
                     Err(format!("wget error: {}", stderr.trim()))
                 }
-                Err(_) => Err(
-                    "curl not found. Install from: https://curl.se/download.html".to_string()
-                ),
+                Err(_) => {
+                    Err("curl not found. Install from: https://curl.se/download.html".to_string())
+                }
             }
         }
     }
@@ -439,7 +532,7 @@ fn http_get_binary(url: &str) -> Result<Vec<u8>, String> {
 
 // ── liphia.toml helpers ───────────────────────────────────────────────────────
 fn parse_dependencies(toml: &str) -> HashMap<String, String> {
-    let mut deps    = HashMap::new();
+    let mut deps = HashMap::new();
     let mut in_deps = false;
     for line in toml.lines() {
         let t = line.trim();
@@ -447,7 +540,9 @@ fn parse_dependencies(toml: &str) -> HashMap<String, String> {
             in_deps = t == "[dependencies]";
             continue;
         }
-        if !in_deps || t.starts_with('#') || t.is_empty() { continue; }
+        if !in_deps || t.starts_with('#') || t.is_empty() {
+            continue;
+        }
         if let Some((k, v)) = t.split_once('=') {
             deps.insert(k.trim().to_string(), v.trim().trim_matches('"').to_string());
         }
@@ -456,13 +551,17 @@ fn parse_dependencies(toml: &str) -> HashMap<String, String> {
 }
 
 fn add_to_manifest(name: &str) {
-    let Ok(content) = fs::read_to_string(MANIFEST) else { return };
+    let Ok(content) = fs::read_to_string(MANIFEST) else {
+        return;
+    };
     let already = content.lines().any(|l| {
         let t = l.trim();
         !t.starts_with('#') && t.starts_with(&format!("{} =", name))
     });
-    if already { return; }
-    let entry       = format!("{} = \"latest\"\n", name);
+    if already {
+        return;
+    }
+    let entry = format!("{} = \"latest\"\n", name);
     let new_content = if content.contains("[dependencies]") {
         content.replacen("[dependencies]\n", &format!("[dependencies]\n{}", entry), 1)
     } else {

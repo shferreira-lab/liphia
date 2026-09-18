@@ -8,15 +8,15 @@ entry       = "db.lph"
 index       = "index.lph"
 files       = ["db.lph", "index.lph"]
 
-[external]
-note = """
-db is NOT compiled into liphia_cli / liphia_cli_gui. `liphia install db`
-downloads db.lph, index.lph, and the prebuilt native library into
-liphia_modules/db/lib/. The host then calls
-vm.load_external_module("liphia_modules/db") once at startup (see
-liphia_virtual_machine::external) to dlopen it and register db_*/pg_*.
-Source: liphia_engine/crates/liphia_module_db.
-"""
+
+
+[external.libs]
+linux   = "lib/libliphia_module_db.so"
+windows = "lib/liphia_module_db.dll"
+macos   = "lib/liphia_module_db.dylib"
+
+
+
 platforms = [
     "lib/libliphia_module_db.so    # Linux",
     "lib/liphia_module_db.dll      # Windows (build from source — not prebuilt yet)",
