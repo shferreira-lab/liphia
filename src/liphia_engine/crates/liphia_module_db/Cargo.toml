@@ -15,3 +15,4 @@ crate-type = ["cdylib"]
 [dependencies]
 liphia_virtual_machine = { path = "../liphia_virtual_machine" }
 rusqlite = { version = "0.31", features = ["bundled"] }
+md-5 = "0.10"
