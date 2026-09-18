@@ -91,6 +91,7 @@ fn main() {
     let mut vm = VM::new();
     liphia_core_native::register(&mut vm);
     liphia_stdlib_native::register_all(&mut vm);
+    installer::load_installed_external_modules(&mut vm);
     if let Err(e) = vm.run(opcodes) {
         eprintln!("\n{}\n", e);
         process::exit(1);

@@ -7,8 +7,14 @@ members = [
     "liphia_engine/crates/liphia_pipeline",
     "liphia_engine/crates/liphia_cli_gui",
     "liphia_engine/crates/liphia_gui_native",
+    "liphia_engine/crates/liphia_module_db",
     "stdlib/native",
 ]
+# liphia_module_db is deliberately NOT a default-member: it's an external
+# module (compiled to a cdylib, dlopen'd at runtime — see
+# liphia_virtual_machine::external), not a dependency of the CLI/GUI
+# binaries. Build it explicitly with:
+#   cargo build -p liphia_module_db --release
 default-members = [
     "liphia_engine/crates/liphia_compiler",
     "liphia_engine/crates/liphia_virtual_machine",

@@ -89,6 +89,13 @@ impl GuiApp {
         liphia_core_native::register(&mut vm);
         liphia_stdlib_native::register_all(&mut vm);
         liphia_gui_native::register(&mut vm);
+        // External modules (e.g. "db") ship as prebuilt native libraries,
+        // not compiled into this binary — see liphia_virtual_machine::external
+        // and stdlib/modules/db/index.lph. Loads whatever the project has
+        // installed under liphia_modules/; harmless no-op if none.
+        for (name, err) in vm.load_installed_external_modules("liphia_modules") {
+            self.console.error(format!("failed to load external module '{}': {}", name, err.message));
+        }
 
         // Route print() into the in-app console instead of stdout — this app has
         // no visible terminal, especially on Android.
@@ -128,6 +135,10 @@ impl eframe::App for GuiApp {
         let commands = liphia_gui_native::take_commands();
 
         egui::Panel::top("toolbar").show_inside(ui, |ui| {
+            // Reserve space for the Android status bar (clock, battery icons),
+            // which the app would otherwise draw underneath. Desktop builds don't
+            // need this, but the extra padding there is harmless.
+            ui.add_space(32.0);
             ui.horizontal(|ui| {
                 let label = if self.file_picker.is_picking() {
                     "Opening..."

@@ -1,0 +1,27 @@
+# stdlib/modules/db/index.lph
+#
+# index.lph — external-load manifest, read by the VM's loader
+# (liphia_virtual_machine::external::VM::load_external_module).
+#
+# Unlike db.lph (the Liphia-facing docs / composed layer), this file is not
+# compiled or executed as Liphia source — it is a small line-oriented
+# manifest telling the VM which prebuilt native library to load for this
+# module's db_*/pg_* functions, instead of finding them statically
+# compiled into the liphia_cli / liphia_cli_gui binary.
+#
+# Syntax: one instruction per line. '#' starts a comment; blank lines are
+# ignored.
+#
+#   external "<library base name>"
+#
+# The named library is expected at:
+#   lib/<platform prefix><name><platform suffix>
+# e.g. lib/libliphia_module_db.so on Linux, lib/liphia_module_db.dll on
+# Windows, lib/libliphia_module_db.dylib on macOS — resolved automatically,
+# no need to list all three.
+#
+# Source of this library: liphia_engine/crates/liphia_module_db
+# (SQLite via rusqlite "bundled" + a pure-TCP PostgreSQL wire-protocol
+# client — see that crate for details).
+
+external "liphia_module_db"

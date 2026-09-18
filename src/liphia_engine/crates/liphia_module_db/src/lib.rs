@@ -1,8 +1,21 @@
-// stdlib/native/src/db.rs
+// liphia_engine/crates/liphia_module_db/src/lib.rs
 //
 // Database driver — SQLite via rusqlite + PostgreSQL via TCP (protocolo v3).
 //
-// ── Cargo.toml (stdlib/native/Cargo.toml) ────────────────────────────────────
+// This crate is compiled as a **cdylib**, not linked into liphia_cli /
+// liphia_cli_gui. It is the "external module" for Liphia's `db` stdlib
+// module: the prebuilt binary it produces ships in
+// stdlib/modules/db/lib/ and is loaded at runtime by the VM's external
+// loader (see liphia_virtual_machine::external), driven by
+// stdlib/modules/db/index.lph. Everything below this point is unchanged
+// from when it lived statically in stdlib/native/src/db.rs — only the
+// registration entry point (`liphia_register_module`, right below) and
+// the crate-type are new.
+//
+// ── Cargo.toml (this crate) ───────────────────────────────────────────────────
+//
+//   [lib]
+//   crate-type = ["cdylib"]
 //
 //   [dependencies]
 //   rusqlite = { version = "0.31", features = ["bundled"] }
@@ -41,8 +54,22 @@ use std::rc::Rc;
 use rusqlite::{Connection as SqliteConnection, types::ValueRef};
 use liphia_virtual_machine::value::Value;
 use liphia_virtual_machine::vm::{VmError, VmResult, VM};
+
+// ── External-module entry point ────────────────────────────────────────────────
+//
+// Called by liphia_virtual_machine::external::VM::load_external_library after
+// it dlopens this library. Must match the `RegisterFn` signature expected by
+// the loader exactly: `unsafe extern "C" fn(*mut VM)`.
+#[no_mangle]
+pub extern "C" fn liphia_register_module(vm: *mut VM) {
+    // SAFETY: the loader guarantees `vm` is a valid, non-null `*mut VM` for
+    // the duration of this call.
+    let vm = unsafe { &mut *vm };
+    register(vm);
+}
+
 // ── Registration ──────────────────────────────────────────────────────────────
-pub fn register(vm: &mut VM) {
+fn register(vm: &mut VM) {
     // SQLite
     vm.register_native("db_open",        native_db_open);
     vm.register_native("db_open_memory", native_db_open_memory);

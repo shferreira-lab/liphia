@@ -7,6 +7,8 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process;
 
+use liphia_virtual_machine::vm::VM;
+
 const REGISTRY_RAW: &str =
     "https://raw.githubusercontent.com/shferreira-lab/liphia/main/src/stdlib/modules";
 
@@ -250,13 +252,29 @@ fn do_install(name: &str) -> bool {
             }
         }
         let url = format!("{}/{}/{}", REGISTRY_RAW, name, rel_path);
-        match http_get(&url) {
+        let fetch_result = if is_binary_file(rel_path) {
+            http_get_binary(&url).map(WriteBody::Binary)
+        } else {
+            http_get(&url).map(WriteBody::Text)
+        };
+        match fetch_result {
             Ok(body) => {
-                if let Err(e) = fs::write(&dest_file, &body) {
+                if let Some(parent) = dest_file.parent() {
+                    let _ = fs::create_dir_all(parent);
+                }
+                let write_result = match &body {
+                    WriteBody::Text(s)   => fs::write(&dest_file, s),
+                    WriteBody::Binary(b) => fs::write(&dest_file, b),
+                };
+                if let Err(e) = write_result {
                     println!("FAILED");
                     eprintln!("    could not write {}: {}", dest_file.display(), e);
                     err_count += 1;
                 } else {
+                    #[cfg(unix)]
+                    if is_binary_file(rel_path) {
+                        make_executable(&dest_file);
+                    }
                     ok_count += 1;
                 }
             }
@@ -277,6 +295,32 @@ fn do_install(name: &str) -> bool {
     add_to_manifest(name);
     println!("ok ({} file(s))", ok_count);
     true
+}
+
+// A downloaded file's body, kept as raw bytes for prebuilt native
+// libraries (.so/.dll/.dylib) so binary content survives the round trip
+// intact — treating it as UTF-8 text (the old behavior) corrupts it.
+enum WriteBody {
+    Text(String),
+    Binary(Vec<u8>),
+}
+
+/// Files that must be downloaded and written as raw bytes rather than
+/// UTF-8 text — currently just the prebuilt native libraries that
+/// external modules (e.g. db, see stdlib/modules/db/index.lph) ship
+/// under their `lib/` directory.
+fn is_binary_file(rel_path: &str) -> bool {
+    rel_path.ends_with(".so") || rel_path.ends_with(".dll") || rel_path.ends_with(".dylib")
+}
+
+#[cfg(unix)]
+fn make_executable(path: &Path) {
+    use std::os::unix::fs::PermissionsExt;
+    if let Ok(meta) = fs::metadata(path) {
+        let mut perms = meta.permissions();
+        perms.set_mode(perms.mode() | 0o111);
+        let _ = fs::set_permissions(path, perms);
+    }
 }
 
 // Parses `files = ["a.lph", "b.lph"]` from the [module] section of a
@@ -332,6 +376,55 @@ fn http_get(url: &str) -> Result<String, String> {
                     String::from_utf8(out.stdout)
                         .map_err(|e| format!("invalid utf-8: {}", e))
                 }
+                Ok(out) => {
+                    let stderr = String::from_utf8_lossy(&out.stderr);
+                    Err(format!("wget error: {}", stderr.trim()))
+                }
+                Err(_) => Err(
+                    "curl not found. Install from: https://curl.se/download.html".to_string()
+                ),
+            }
+        }
+    }
+}
+
+// ── Loading installed external modules ────────────────────────────────────────
+//
+// Modules like "db" ship as prebuilt native libraries rather than being
+// compiled into this binary (see liphia_virtual_machine::external and
+// stdlib/modules/db/index.lph). Once `liphia install db` has downloaded
+// liphia_modules/db/{index.lph,lib/...}, this loads every installed module
+// that has an index.lph into `vm`. Projects that never installed an
+// external module pay nothing — there's nothing under liphia_modules/ to
+// scan. Failures (e.g. an index.lph with no matching prebuilt lib for this
+// platform) are warnings, not fatal — a project that doesn't call db_*
+// functions shouldn't be blocked by db failing to load.
+pub fn load_installed_external_modules(vm: &mut VM) {
+    for (name, err) in vm.load_installed_external_modules(MODULES_DIR) {
+        eprintln!("[liphia] warning: failed to load external module '{}': {}", name, err.message);
+    }
+}
+
+// ── HTTP GET (binary) by curl ─────────────────────────────────────────────────
+// Same as http_get, but returns raw bytes instead of forcing UTF-8 — needed
+// for prebuilt native libraries (.so/.dll/.dylib), which are not text.
+fn http_get_binary(url: &str) -> Result<Vec<u8>, String> {
+    let curl = std::process::Command::new("curl")
+        .args(["-fsSL", "--max-time", "30", url])
+        .output();
+
+    match curl {
+        Ok(out) if out.status.success() => Ok(out.stdout),
+        Ok(out) => {
+            let stderr = String::from_utf8_lossy(&out.stderr);
+            Err(format!("curl error ({}): {}", out.status, stderr.trim()))
+        }
+        Err(_) => {
+            let wget = std::process::Command::new("wget")
+                .args(["-qO-", "--timeout=30", url])
+                .output();
+            match wget {
+                Ok(out) if out.status.success() => Ok(out.stdout),
                 Ok(out) => {
                     let stderr = String::from_utf8_lossy(&out.stderr);
                     Err(format!("wget error: {}", stderr.trim()))

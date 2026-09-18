@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 liphia_virtual_machine = { path = "../../liphia_engine/crates/liphia_virtual_machine" }
-rusqlite = { version = "0.31", features = ["bundled"] }
+# rusqlite lives in liphia_module_db now (db is loaded externally — see
+# liphia_engine/crates/liphia_module_db and stdlib/modules/db/index.lph).

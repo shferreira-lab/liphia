@@ -2,14 +2,31 @@
 name        = "db"
 version     = "1.1.0"
 description = "Database driver for Liphia — SQLite (embedded, zero dependencies) and PostgreSQL (pure TCP wire protocol)"
-native      = true
+native      = false
+external    = true
 entry       = "db.lph"
-files       = ["db.lph"]
+index       = "index.lph"
+files       = ["db.lph", "index.lph"]
+
+[external]
+note = """
+db is NOT compiled into liphia_cli / liphia_cli_gui. `liphia install db`
+downloads db.lph, index.lph, and the prebuilt native library into
+liphia_modules/db/lib/. The host then calls
+vm.load_external_module("liphia_modules/db") once at startup (see
+liphia_virtual_machine::external) to dlopen it and register db_*/pg_*.
+Source: liphia_engine/crates/liphia_module_db.
+"""
+platforms = [
+    "lib/libliphia_module_db.so    # Linux",
+    "lib/liphia_module_db.dll      # Windows (build from source — not prebuilt yet)",
+    "lib/libliphia_module_db.dylib # macOS (build from source — not prebuilt yet)",
+]
 
 [sqlite]
 backend  = "rusqlite"
 features = ["bundled"]
-note     = "SQLite is compiled into the binary. No system installation required."
+note     = "SQLite is compiled into the db external module. No system installation required."
 
 [postgresql]
 backend = "tcp"

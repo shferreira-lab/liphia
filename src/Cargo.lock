@@ -1932,6 +1932,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "liphia_module_db"
+version = "1.1.0"
+dependencies = [
+ "liphia_virtual_machine",
+ "rusqlite",
+]
+
+[[package]]
 name = "liphia_pipeline"
 version = "1.0.0"
 dependencies = [
@@ -1944,12 +1952,14 @@ name = "liphia_stdlib_native"
 version = "1.0.0"
 dependencies = [
  "liphia_virtual_machine",
- "rusqlite",
 ]
 
 [[package]]
 name = "liphia_virtual_machine"
 version = "1.0.0"
+dependencies = [
+ "libloading",
+]
 
 [[package]]
 name = "litemap"
