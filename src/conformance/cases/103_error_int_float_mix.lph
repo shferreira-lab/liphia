@@ -1,0 +1,4 @@
+# Expected to fail at compile time: no implicit int/float coercion.
+var x = 1
+var y = 2.5
+print(x + y)

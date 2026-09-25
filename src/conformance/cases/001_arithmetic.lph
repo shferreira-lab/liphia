@@ -1,0 +1,9 @@
+# Integer and float arithmetic, precedence, int division.
+print(1 + 2 * 3)
+print((1 + 2) * 3)
+print(7 / 2)
+print(7.0 / 2.0)
+print(10 - 4 - 3)
+x: int = 5
+x = x * x
+print(x)

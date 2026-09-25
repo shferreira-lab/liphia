@@ -1,0 +1,10 @@
+# String concatenation, indexing, core string natives, f-strings.
+var s = "Liphia"
+print(s + " VM")
+print(s[0], s[-1])
+print(len(s), upper(s), lower(s))
+print(contains(s, "phi"), starts_with(s, "Li"), ends_with(s, "x"))
+print(replace("a-b-c", "-", "+"))
+print(split("a,b,c", ","))
+var n = 3
+print(f"n = {n}")

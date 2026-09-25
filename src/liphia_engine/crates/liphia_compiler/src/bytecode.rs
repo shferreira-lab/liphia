@@ -296,8 +296,44 @@ impl Compiler {
             Expr::Lt(a,b)    => { self.compile_expr(*a)?; self.compile_expr(*b)?; self.instructions.push(Opcode::Lt); }
             Expr::Gte(a,b)   => { self.compile_expr(*a)?; self.compile_expr(*b)?; self.instructions.push(Opcode::Gte); }
             Expr::Lte(a,b)   => { self.compile_expr(*a)?; self.compile_expr(*b)?; self.instructions.push(Opcode::Lte); }
-            Expr::And(a,b)   => { self.compile_expr(*a)?; self.compile_expr(*b)?; self.instructions.push(Opcode::And); }
-            Expr::Or(a,b)    => { self.compile_expr(*a)?; self.compile_expr(*b)?; self.instructions.push(Opcode::Or); }
+
+            // ── Short-circuit and / or ────────────────────────────────────
+            //
+            // The right side only runs when it can change the result.
+            //   a and b:  a; JumpIfFalse F; b; PushBool(true); And; Jump E; F: PushBool(false); E:
+            //   a or b:   a; JumpIfFalse R; PushBool(true); Jump E; R: b; PushBool(false); Or; E:
+            // JumpIfFalse rejects a non-bool `a`; the trailing And/Or with a
+            // constant rejects a non-bool `b`, so the result is always bool.
+            Expr::And(a,b) => {
+                self.compile_expr(*a)?;
+                let pos_jif = self.instructions.len();
+                self.instructions.push(Opcode::JumpIfFalse(0));
+                self.compile_expr(*b)?;
+                self.instructions.push(Opcode::PushBool(true));
+                self.instructions.push(Opcode::And);
+                let pos_jmp = self.instructions.len();
+                self.instructions.push(Opcode::Jump(0));
+                let false_addr = self.instructions.len();
+                self.instructions.push(Opcode::PushBool(false));
+                let end = self.instructions.len();
+                self.instructions[pos_jif] = Opcode::JumpIfFalse(false_addr);
+                self.instructions[pos_jmp] = Opcode::Jump(end);
+            }
+            Expr::Or(a,b) => {
+                self.compile_expr(*a)?;
+                let pos_jif = self.instructions.len();
+                self.instructions.push(Opcode::JumpIfFalse(0));
+                self.instructions.push(Opcode::PushBool(true));
+                let pos_jmp = self.instructions.len();
+                self.instructions.push(Opcode::Jump(0));
+                let rhs_addr = self.instructions.len();
+                self.compile_expr(*b)?;
+                self.instructions.push(Opcode::PushBool(false));
+                self.instructions.push(Opcode::Or);
+                let end = self.instructions.len();
+                self.instructions[pos_jif] = Opcode::JumpIfFalse(rhs_addr);
+                self.instructions[pos_jmp] = Opcode::Jump(end);
+            }
             Expr::Not(e)     => { self.compile_expr(*e)?; self.instructions.push(Opcode::Not); }
 
             // ── await <inner_expr> ────────────────────────────────────────

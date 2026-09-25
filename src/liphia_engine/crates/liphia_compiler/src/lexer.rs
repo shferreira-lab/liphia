@@ -1,6 +1,5 @@
 // liphia_compiler/src/lexer.rs
 
-
 use crate::error::{ErrorKind, LiphiaError, LiphiaResult};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,20 +48,23 @@ pub enum Token {
 }
 
 pub struct Lexer {
-    lines:           Vec<Vec<char>>,
-    current_line:    usize,
-    pos:             usize,
-    indent_stack:    Vec<usize>,
+    lines: Vec<Vec<char>>,
+    current_line: usize,
+    pos: usize,
+    indent_stack: Vec<usize>,
     pending_dedents: usize,
-    emit_newline:    bool,
+    emit_newline: bool,
+    // Open (, [ and { count. While > 0 the source is inside a bracketed
+    // expression: line breaks and indentation are not significant, so no
+    // Newline/Indent/Dedent tokens are produced (same rule as Python).
+    bracket_depth: usize,
+    // Position of the outermost open bracket, for "unclosed" errors.
+    bracket_open_at: (usize, usize),
 }
 
 impl Lexer {
     pub fn new(source: &str) -> Self {
-        let mut lines: Vec<Vec<char>> = source
-            .lines()
-            .map(|l| l.chars().collect())
-            .collect();
+        let mut lines: Vec<Vec<char>> = source.lines().map(|l| l.chars().collect()).collect();
         lines.push(vec![]);
         Self {
             lines,
@@ -71,16 +73,30 @@ impl Lexer {
             indent_stack: vec![0],
             pending_dedents: 0,
             emit_newline: false,
+            bracket_depth: 0,
+            bracket_open_at: (0, 0),
         }
     }
 
-    pub fn line(&self)   -> usize { self.current_line + 1 }
-    pub fn column(&self) -> usize { self.pos + 1 }
+    pub fn line(&self) -> usize {
+        self.current_line + 1
+    }
+    pub fn column(&self) -> usize {
+        self.pos + 1
+    }
 
-    fn chars(&self) -> &Vec<char> { &self.lines[self.current_line] }
-    fn cur(&self)  -> Option<char> { self.chars().get(self.pos).copied() }
-    fn peek(&self) -> Option<char> { self.chars().get(self.pos + 1).copied() }
-    fn advance(&mut self) { self.pos += 1; }
+    fn chars(&self) -> &Vec<char> {
+        &self.lines[self.current_line]
+    }
+    fn cur(&self) -> Option<char> {
+        self.chars().get(self.pos).copied()
+    }
+    fn peek(&self) -> Option<char> {
+        self.chars().get(self.pos + 1).copied()
+    }
+    fn advance(&mut self) {
+        self.pos += 1;
+    }
     fn advance_line(&mut self) {
         self.current_line += 1;
         self.pos = 0;
@@ -91,9 +107,9 @@ impl Lexer {
         let mut n = 0;
         for c in line {
             match c {
-                ' '  => n += 1,
+                ' ' => n += 1,
                 '\t' => n += 4,
-                _    => break,
+                _ => break,
             }
         }
         n
@@ -119,6 +135,28 @@ impl Lexer {
             let (l, c) = (self.line(), self.column());
             return Ok((Token::Newline, l, c));
         }
+        // Continuation lines inside brackets: skip blank/comment lines and
+        // leading whitespace, never touch the indent stack.
+        if self.bracket_depth > 0 {
+            while self.current_line < self.lines.len() && self.pos == 0 {
+                let line = self.chars().clone();
+                if Self::is_blank_or_comment(&line) {
+                    self.advance_line();
+                    continue;
+                }
+                self.pos = Self::count_indent(&line);
+                break;
+            }
+            if self.current_line >= self.lines.len() {
+                let (l, c) = self.bracket_open_at;
+                return Err(LiphiaError::new(
+                    ErrorKind::UnclosedDelimiter,
+                    "bracket was opened here but never closed",
+                )
+                .at(l, c));
+            }
+        }
+
         if self.current_line >= self.lines.len() {
             if self.indent_stack.len() > 1 {
                 self.indent_stack.pop();
@@ -129,7 +167,7 @@ impl Lexer {
             return Ok((Token::EOF, l, c));
         }
 
-        if self.pos == 0 {
+        if self.pos == 0 && self.bracket_depth == 0 {
             let line = self.chars().clone();
             if Self::is_blank_or_comment(&line) {
                 let (l, c) = (self.line(), self.column());
@@ -137,7 +175,7 @@ impl Lexer {
                 return Ok((Token::Newline, l, c));
             }
             let indent = Self::count_indent(&line);
-            let top    = *self.indent_stack.last().unwrap();
+            let top = *self.indent_stack.last().unwrap();
             if indent > top {
                 let (l, c) = (self.line(), 1);
                 self.indent_stack.push(indent);
@@ -169,26 +207,71 @@ impl Lexer {
 
             match c {
                 '#' => {
-                    self.emit_newline = true;
                     self.advance_line();
+                    // Inside brackets a comment just ends the physical line.
+                    if self.bracket_depth > 0 {
+                        return self.next_token();
+                    }
+                    self.emit_newline = true;
                     return Ok((Token::Newline, tok_line, tok_col));
                 }
-                ':' => { self.advance(); return Ok((Token::Colon, tok_line, tok_col)); }
-                ',' => { self.advance(); return Ok((Token::Comma, tok_line, tok_col)); }
-                '.' => { self.advance(); return Ok((Token::Dot, tok_line, tok_col)); }
-                '(' => { self.advance(); return Ok((Token::LParen, tok_line, tok_col)); }
-                ')' => { self.advance(); return Ok((Token::RParen, tok_line, tok_col)); }
-                '[' => { self.advance(); return Ok((Token::LBracket, tok_line, tok_col)); }
-                ']' => { self.advance(); return Ok((Token::RBracket, tok_line, tok_col)); }
-                '{' => { self.advance(); return Ok((Token::LBrace, tok_line, tok_col)); }
-                '}' => { self.advance(); return Ok((Token::RBrace, tok_line, tok_col)); }
-                '+' => { self.advance(); return Ok((Token::Plus, tok_line, tok_col)); }
-                '*' => { self.advance(); return Ok((Token::Star, tok_line, tok_col)); }
-                '/' => { self.advance(); return Ok((Token::Slash, tok_line, tok_col)); }
-                '?' => { self.advance(); return Ok((Token::Question, tok_line, tok_col)); }
+                ':' => {
+                    self.advance();
+                    return Ok((Token::Colon, tok_line, tok_col));
+                }
+                ',' => {
+                    self.advance();
+                    return Ok((Token::Comma, tok_line, tok_col));
+                }
+                '.' => {
+                    self.advance();
+                    return Ok((Token::Dot, tok_line, tok_col));
+                }
+                '(' | '[' | '{' => {
+                    self.advance();
+                    if self.bracket_depth == 0 {
+                        self.bracket_open_at = (tok_line, tok_col);
+                    }
+                    self.bracket_depth += 1;
+                    let tok = match c {
+                        '(' => Token::LParen,
+                        '[' => Token::LBracket,
+                        _ => Token::LBrace,
+                    };
+                    return Ok((tok, tok_line, tok_col));
+                }
+                ')' | ']' | '}' => {
+                    self.advance();
+                    // saturating_sub: a stray closer is reported by the
+                    // parser, the lexer just must not underflow.
+                    self.bracket_depth = self.bracket_depth.saturating_sub(1);
+                    let tok = match c {
+                        ')' => Token::RParen,
+                        ']' => Token::RBracket,
+                        _ => Token::RBrace,
+                    };
+                    return Ok((tok, tok_line, tok_col));
+                }
+                '+' => {
+                    self.advance();
+                    return Ok((Token::Plus, tok_line, tok_col));
+                }
+                '*' => {
+                    self.advance();
+                    return Ok((Token::Star, tok_line, tok_col));
+                }
+                '/' => {
+                    self.advance();
+                    return Ok((Token::Slash, tok_line, tok_col));
+                }
+                '?' => {
+                    self.advance();
+                    return Ok((Token::Question, tok_line, tok_col));
+                }
                 '-' => {
                     if self.peek() == Some('>') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::Arrow, tok_line, tok_col));
                     }
                     self.advance();
@@ -196,7 +279,8 @@ impl Lexer {
                 }
                 '=' => {
                     if self.peek() == Some('=') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::EqEq, tok_line, tok_col));
                     }
                     self.advance();
@@ -204,7 +288,8 @@ impl Lexer {
                 }
                 '!' => {
                     if self.peek() == Some('=') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::NotEq, tok_line, tok_col));
                     }
                     self.advance();
@@ -212,29 +297,34 @@ impl Lexer {
                 }
                 '&' => {
                     if self.peek() == Some('&') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::AmpAmp, tok_line, tok_col));
                     }
                     self.advance();
                     return Err(LiphiaError::new(
                         ErrorKind::UnexpectedChar,
                         "single '&' is not valid — did you mean '&&'?",
-                    ).at(tok_line, tok_col));
+                    )
+                    .at(tok_line, tok_col));
                 }
                 '|' => {
                     if self.peek() == Some('|') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::PipePipe, tok_line, tok_col));
                     }
                     self.advance();
                     return Err(LiphiaError::new(
                         ErrorKind::UnexpectedChar,
                         "single '|' is not valid — did you mean '||'?",
-                    ).at(tok_line, tok_col));
+                    )
+                    .at(tok_line, tok_col));
                 }
                 '>' => {
                     if self.peek() == Some('=') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::Gte, tok_line, tok_col));
                     }
                     self.advance();
@@ -242,7 +332,8 @@ impl Lexer {
                 }
                 '<' => {
                     if self.peek() == Some('=') {
-                        self.advance(); self.advance();
+                        self.advance();
+                        self.advance();
                         return Ok((Token::Lte, tok_line, tok_col));
                     }
                     self.advance();
@@ -255,7 +346,9 @@ impl Lexer {
                 'f' if self.peek() == Some('"') => {
                     self.advance(); // consume 'f'
                     match self.read_string()? {
-                        Token::StrLiteral(s) => return Ok((Token::FStrLiteral(s), tok_line, tok_col)),
+                        Token::StrLiteral(s) => {
+                            return Ok((Token::FStrLiteral(s), tok_line, tok_col))
+                        }
                         _ => unreachable!(),
                     }
                 }
@@ -276,13 +369,19 @@ impl Lexer {
                     return Err(LiphiaError::new(
                         ErrorKind::UnexpectedChar,
                         format!("unexpected character '{}'", c),
-                    ).at(tok_line, tok_col));
+                    )
+                    .at(tok_line, tok_col));
                 }
             }
         }
 
+        // End of physical line. Inside brackets it is not a logical line
+        // end, so continue with the next line instead of emitting Newline.
         let (l, c) = (self.line(), self.column());
         self.advance_line();
+        if self.bracket_depth > 0 {
+            return self.next_token();
+        }
         Ok((Token::Newline, l, c))
     }
 
@@ -292,28 +391,62 @@ impl Lexer {
         let mut text = String::new();
         loop {
             match self.cur() {
-                Some('"')  => { self.advance(); return Ok(Token::StrLiteral(text)); }
+                Some('"') => {
+                    self.advance();
+                    return Ok(Token::StrLiteral(text));
+                }
                 Some('\\') => {
                     self.advance();
                     match self.cur() {
-                        Some('n')  => { text.push('\n'); self.advance(); }
-                        Some('t')  => { text.push('\t'); self.advance(); }
-                        Some('r')  => { text.push('\r'); self.advance(); }
-                        Some('\\') => { text.push('\\'); self.advance(); }
-                        Some('"')  => { text.push('"');  self.advance(); }
-                        Some('0')  => { text.push('\0'); self.advance(); }
-                        Some(c) => { text.push('\\'); text.push(c); self.advance(); }
-                        None => return Err(LiphiaError::new(
-                            ErrorKind::UnterminatedString,
-                            "string ends after backslash",
-                        ).at(sl, sc)),
+                        Some('n') => {
+                            text.push('\n');
+                            self.advance();
+                        }
+                        Some('t') => {
+                            text.push('\t');
+                            self.advance();
+                        }
+                        Some('r') => {
+                            text.push('\r');
+                            self.advance();
+                        }
+                        Some('\\') => {
+                            text.push('\\');
+                            self.advance();
+                        }
+                        Some('"') => {
+                            text.push('"');
+                            self.advance();
+                        }
+                        Some('0') => {
+                            text.push('\0');
+                            self.advance();
+                        }
+                        Some(c) => {
+                            text.push('\\');
+                            text.push(c);
+                            self.advance();
+                        }
+                        None => {
+                            return Err(LiphiaError::new(
+                                ErrorKind::UnterminatedString,
+                                "string ends after backslash",
+                            )
+                            .at(sl, sc))
+                        }
                     }
                 }
-                Some(c)   => { text.push(c); self.advance(); }
-                None      => return Err(LiphiaError::new(
-                    ErrorKind::UnterminatedString,
-                    "string was opened but never closed",
-                ).at(sl, sc)),
+                Some(c) => {
+                    text.push(c);
+                    self.advance();
+                }
+                None => {
+                    return Err(LiphiaError::new(
+                        ErrorKind::UnterminatedString,
+                        "string was opened but never closed",
+                    )
+                    .at(sl, sc))
+                }
             }
         }
     }
@@ -321,13 +454,17 @@ impl Lexer {
     fn read_ident(&mut self) -> Token {
         let mut name = String::new();
         while let Some(c) = self.cur() {
-            if c.is_alphanumeric() || c == '_' { name.push(c); self.advance(); }
-            else { break; }
+            if c.is_alphanumeric() || c == '_' {
+                name.push(c);
+                self.advance();
+            } else {
+                break;
+            }
         }
         match name.as_str() {
             "async" => Token::Async,
             "await" => Token::Await,
-            _       => Token::Ident(name),
+            _ => Token::Ident(name),
         }
     }
 
@@ -335,11 +472,21 @@ impl Lexer {
         let mut s = String::new();
         let mut has_dot = false;
         while let Some(c) = self.cur() {
-            if c.is_ascii_digit()            { s.push(c); self.advance(); }
-            else if c == '.' && !has_dot     { has_dot = true; s.push(c); self.advance(); }
-            else                             { break; }
+            if c.is_ascii_digit() {
+                s.push(c);
+                self.advance();
+            } else if c == '.' && !has_dot {
+                has_dot = true;
+                s.push(c);
+                self.advance();
+            } else {
+                break;
+            }
         }
-        if has_dot { Ok(Token::FloatLiteral(s.parse().unwrap_or(0.0))) }
-        else       { Ok(Token::IntLiteral(s.parse().unwrap_or(0))) }
+        if has_dot {
+            Ok(Token::FloatLiteral(s.parse().unwrap_or(0.0)))
+        } else {
+            Ok(Token::IntLiteral(s.parse().unwrap_or(0)))
+        }
     }
 }

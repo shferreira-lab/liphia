@@ -76,6 +76,8 @@ impl TypeChecker {
         tc.declare_fn("max",        vec![any(), any()],   any());
         tc.declare_fn("pi",         vec![],               Type::Float);
         tc.declare_fn("e",          vec![],               Type::Float);
+        tc.declare_fn("inf",        vec![],               Type::Float);
+        tc.declare_fn("nan",        vec![],               Type::Float);
         tc.declare_fn("log",        vec![any()],          Type::Float);
         tc.declare_fn("log10",      vec![any()],          Type::Float);
         tc.declare_fn("sin",        vec![any()],          Type::Float);
@@ -594,9 +596,27 @@ impl TypeChecker {
                 }
                 Ok(())
             }
+            // No implicit int/float coercion: when both operand types are
+            // known, mixing them is a compile error. Unknown types (e.g.
+            // values read from a list or map) are left to the VM check.
             Expr::Add(a, b) | Expr::Sub(a, b) | Expr::Mul(a, b) | Expr::Div(a, b) |
+            Expr::Gt(a, b)  | Expr::Lt(a, b) | Expr::Gte(a, b) | Expr::Lte(a, b) => {
+                self.check_expr(a)?;
+                self.check_expr(b)?;
+                let (ta, tb) = (self.infer(a), self.infer(b));
+                let mixed = matches!(
+                    (&ta, &tb),
+                    (Type::Int, Type::Float) | (Type::Float, Type::Int)
+                );
+                if mixed {
+                    return Err(LiphiaError::new(
+                        ErrorKind::TypeError,
+                        "cannot mix int and float in an arithmetic or comparison expression",
+                    ).with_context("convert one side with to_float() or to_int()"));
+                }
+                Ok(())
+            }
             Expr::Eq(a, b)  | Expr::NotEq(a, b) |
-            Expr::Gt(a, b)  | Expr::Lt(a, b) | Expr::Gte(a, b) | Expr::Lte(a, b) |
             Expr::And(a, b) | Expr::Or(a, b) => {
                 self.check_expr(a)?;
                 self.check_expr(b)

@@ -1,0 +1,5 @@
+# Float division by zero is an error, same as int (no silent inf/nan).
+try:
+    print(1.0 / 0.0)
+catch e:
+    print("caught:", e)

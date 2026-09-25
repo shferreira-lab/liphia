@@ -1,0 +1,3 @@
+# Expected to fail at runtime: uncaught integer overflow.
+var big = 9223372036854775807
+print(big * 2)

@@ -1,0 +1,13 @@
+# Functions, recursion, multi-line call arguments.
+fn fib(n: int) -> int:
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+fn add3(a: int, b: int, c: int) -> int:
+    return a + b + c
+
+print(fib(15))
+print(add3(1,
+           2,
+           3))

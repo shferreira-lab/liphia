@@ -1922,9 +1922,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
+name = "liphia_bytecode"
+version = "1.0.0"
+dependencies = [
+ "liphia_virtual_machine",
+]
+
+[[package]]
 name = "liphia_cli"
 version = "1.0.0"
 dependencies = [
+ "liphia_bytecode",
  "liphia_compiler",
  "liphia_core_native",
  "liphia_pipeline",
@@ -1934,9 +1942,8 @@ dependencies = [
 
 [[package]]
 name = "liphia_cli_gui"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
- "android-activity",
  "eframe",
  "liphia_compiler",
  "liphia_core_native",
@@ -1946,7 +1953,6 @@ dependencies = [
  "liphia_virtual_machine",
  "pollster 0.3.0",
  "rfd",
- "winit",
 ]
 
 [[package]]

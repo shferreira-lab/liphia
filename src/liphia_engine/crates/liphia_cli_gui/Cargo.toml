@@ -1,54 +1,22 @@
-# Uncomment and fill in before a release build, then remove again after
-# building — see platforms/android.md. Never commit real values here.
-# [package.metadata.android.signing.release]
-# path = "PATH_TO_YOUR_KEYSTORE/liphia-release.jks"
-# keystore_password = "TYPE_YOUR_PASSWORD_HERE_THEN_DELETE_AFTER_BUILD"
-
-
-
 [package]
-name = "liphia_cli_gui"
-version = "0.1.0"
+name    = "liphia_cli_gui"
+version = "1.0.0"
 edition = "2021"
 
-[lib]
+# Desktop-only GUI host. Not a default-member: build explicitly with
+#   cargo build -p liphia_cli_gui --release
+[[bin]]
 name = "liphia_cli_gui"
-crate-type = ["cdylib", "rlib"]
-# cdylib: required for Android (cargo-apk loads this as a native library)
-# rlib: lets the desktop binary below link against this same code
-
+path = "src/main.rs"
 
 [dependencies]
-eframe = "0.34.3"
+eframe   = "0.34.3"
 pollster = "0.3"
-liphia_compiler = { path = "../liphia_compiler" }
-liphia_pipeline = { path = "../liphia_pipeline" }
+rfd      = { version = "0.15", default-features = false, features = ["async-std", "gtk3"] }
+
+liphia_compiler        = { path = "../liphia_compiler" }
+liphia_pipeline        = { path = "../liphia_pipeline" }
 liphia_virtual_machine = { path = "../liphia_virtual_machine" }
-liphia_gui_native = { path = "../liphia_gui_native" }
-liphia_core_native = { path = "../liphia_core_native" }
-liphia_stdlib_native = { path = "../../../stdlib/native" }
-
-[target.'cfg(not(target_os = "android"))'.dependencies]
-rfd = { version = "0.15", default-features = false, features = ["async-std", "gtk3"] }
-
-[target.'cfg(target_os = "android")'.dependencies]
-winit = { version = "0.30", features = ["android-native-activity"] }
-android-activity = { version = "0.6", features = ["native-activity"] }
-# eframe already depends on winit; this target-specific line just forces
-# the "native-activity" backend to be selected when building for Android
-# (as opposed to "game-activity", which is for games using GameActivity).
-# Without this, android-activity doesn't know which implementation to
-# compile and fails with the cascading errors seen above.
-
-[package.metadata.android]
-package = "com.shferreira.liphia"
-label = "Liphia"
-
-[package.metadata.android.sdk]
-min_sdk_version = 26
-target_sdk_version = 36
-
-
-[package.metadata.android.signing.release]
-path = "PATH_TO_YOUR_KEYSTORE/liphia-release.jks"
-keystore_password = "TYPE_YOUR_PASSWORD_HERE_THEN_DELETE_AFTER_BUILD"
+liphia_gui_native      = { path = "../liphia_gui_native" }
+liphia_core_native     = { path = "../liphia_core_native" }
+liphia_stdlib_native   = { path = "../../../stdlib/native" }

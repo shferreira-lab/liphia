@@ -1,0 +1,9 @@
+# and/or only evaluate the right side when it can change the result.
+fn side(tag: str, v: bool) -> bool:
+    print("eval", tag)
+    return v
+
+print(false and side("a", true))
+print(true or side("b", false))
+print(true and side("c", false))
+print(false or side("d", true))

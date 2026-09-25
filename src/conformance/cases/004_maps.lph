@@ -1,0 +1,12 @@
+# Map literals (single and multi-line), get/set, core map natives.
+var m = {"a": 1, "b": 2}
+print(m["a"])
+m["c"] = 3
+print(m)
+print(map_has(m, "b"), map_has(m, "z"))
+var nested = {
+    "name": "api",
+    "ports": [80,
+              443],
+}
+print(nested["ports"][1])

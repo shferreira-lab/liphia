@@ -1,0 +1,4 @@
+# Expected to fail at compile time: bracket never closed.
+var xs = [1,
+    2
+print(xs)

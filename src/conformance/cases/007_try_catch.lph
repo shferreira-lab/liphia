@@ -1,0 +1,12 @@
+# Runtime errors caught by try/catch; execution continues after.
+try:
+    var z = 1 / 0
+catch err:
+    print("caught:", err)
+fn risky(xs: list) -> int:
+    try:
+        return xs[10]
+    catch e:
+        return -1
+print(risky([1, 2]))
+print("after")

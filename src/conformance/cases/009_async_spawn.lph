@@ -1,0 +1,11 @@
+# Cooperative tasks: spawn is fire-and-forget, await of a user async fn
+# completes synchronously.
+async fn worker(name: str) -> void:
+    print("worker", name)
+
+async fn main() -> void:
+    spawn worker("a")
+    await worker("b")
+    print("main done")
+
+spawn main()

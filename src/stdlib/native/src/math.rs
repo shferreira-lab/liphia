@@ -67,6 +67,8 @@ pub fn register(vm: &mut VM) {
     vm.register_native("max",        native_max);
     vm.register_native("pi",         native_pi);
     vm.register_native("e",          native_e);
+    vm.register_native("inf",        native_inf);
+    vm.register_native("nan",        native_nan);
     vm.register_native("log",        native_log);
     vm.register_native("log10",      native_log10);
     vm.register_native("sin",        native_sin);
@@ -201,6 +203,18 @@ fn native_pi(args: Vec<Value>) -> VmResult<Value> {
 fn native_e(args: Vec<Value>) -> VmResult<Value> {
     expect_args("e", &args, 0)?;
     Ok(Value::Float(std::f64::consts::E))
+}
+
+// Float division by zero is an error, so infinity and NaN are only
+// reachable explicitly through these two constants.
+fn native_inf(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("inf", &args, 0)?;
+    Ok(Value::Float(f64::INFINITY))
+}
+
+fn native_nan(args: Vec<Value>) -> VmResult<Value> {
+    expect_args("nan", &args, 0)?;
+    Ok(Value::Float(f64::NAN))
 }
 
 fn native_log(args: Vec<Value>) -> VmResult<Value> {

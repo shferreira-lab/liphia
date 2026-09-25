@@ -1,0 +1,4 @@
+caught: integer overflow in '+'
+caught: integer overflow in '/'
+caught: integer overflow in '-'
+after

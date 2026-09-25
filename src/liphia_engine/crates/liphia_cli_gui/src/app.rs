@@ -1,14 +1,12 @@
-// liphia_cli_gui/src/lib.rs
+// liphia_cli_gui/src/app.rs
 //
-// All app logic lives here so it can be compiled two ways from the same
-// source: as a cdylib for Android (entry point: android_main) and as an
-// rlib linked into the thin desktop binary in main.rs (entry point: run()).
+// App state and egui rendering. The VM runs tick-by-tick inside the
+// window's own event loop (see VmSession), so neither blocks the other.
 
-#[cfg(target_os = "android")]
-use android_activity::AndroidApp;
-
+use std::cell::RefCell;
 use std::collections::HashSet;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 use eframe::egui;
 use liphia_compiler::ast::Type;
@@ -16,10 +14,8 @@ use liphia_gui_native::GuiCommand;
 use liphia_pipeline::{compile_with_externals, resolve_project};
 use liphia_virtual_machine::vm::{VmSession, VM};
 
-mod console;
-mod file_picker;
-use console::Console;
-use file_picker::FilePicker;
+use crate::console::{self, Console};
+use crate::file_picker::FilePicker;
 
 fn gui_externals() -> Vec<(&'static str, Vec<Type>, Type)> {
     vec![
@@ -33,10 +29,19 @@ fn gui_externals() -> Vec<(&'static str, Vec<Type>, Type)> {
 
 /// Holds the compiled program + running VM state, only present once a
 /// script has actually been loaded (either via CLI arg on desktop, or
-/// via the file picker on Android/desktop alike).
+/// via the file picker).
 struct RunningProgram {
     vm: VM,
     session: VmSession,
+}
+
+/// Bridge between the script's input() and the console's text field.
+/// The VM's input hook sets `waiting` while it has no answer; the UI shows
+/// the field while `waiting` is true and stores the typed line in `answer`.
+#[derive(Default)]
+struct InputState {
+    waiting: bool,
+    answer: Option<String>,
 }
 
 #[derive(Default)]
@@ -44,13 +49,15 @@ pub struct GuiApp {
     program: Option<RunningProgram>,
     file_picker: FilePicker,
     console: Console,
+    input: Rc<RefCell<InputState>>,
+    input_text: String,
 }
 
 impl GuiApp {
     /// Compiles `source` and, on success, replaces the currently running
     /// program with a fresh VM/session. `origin_path` is only used for
-    /// resolving relative imports on desktop; pass None when the source
-    /// came from a picker without a real filesystem path (Android).
+    /// resolving relative imports; pass None when the source came from the
+    /// file picker, which only returns the file's bytes, not its path.
     pub fn load_program(&mut self, source: &str, origin_path: Option<PathBuf>) {
         self.console.clear();
 
@@ -97,11 +104,30 @@ impl GuiApp {
             self.console.error(format!("failed to load external module '{}': {}", name, err.message));
         }
 
-        // Route print() into the in-app console instead of stdout — this app has
-        // no visible terminal, especially on Android.
+        // Route print() into the in-app console instead of stdout.
         let console_for_vm = self.console.clone();
         vm.set_output_hook(Box::new(move |line: &str| {
             console_for_vm.log(line.to_string());
+        }));
+
+        // Answer input() from the console's text field instead of stdin,
+        // which the GUI does not have. Returning None makes the task yield
+        // and retry, so the window keeps redrawing while it waits.
+        *self.input.borrow_mut() = InputState::default();
+        self.input_text.clear();
+        let input_for_vm = Rc::clone(&self.input);
+        vm.set_input_hook(Box::new(move || {
+            let mut state = input_for_vm.borrow_mut();
+            match state.answer.take() {
+                Some(line) => {
+                    state.waiting = false;
+                    Some(line)
+                }
+                None => {
+                    state.waiting = true;
+                    None
+                }
+            }
         }));
 
         let session = VmSession::new(opcodes);
@@ -135,10 +161,6 @@ impl eframe::App for GuiApp {
         let commands = liphia_gui_native::take_commands();
 
         egui::Panel::top("toolbar").show_inside(ui, |ui| {
-            // Reserve space for the Android status bar (clock, battery icons),
-            // which the app would otherwise draw underneath. Desktop builds don't
-            // need this, but the extra padding there is harmless.
-            ui.add_space(32.0);
             ui.horizontal(|ui| {
                 let label = if self.file_picker.is_picking() {
                     "Opening..."
@@ -155,6 +177,32 @@ impl eframe::App for GuiApp {
             .resizable(true)
             .default_size(150.0)
             .show_inside(ui, |ui| {
+                // Text field shown only while the script is blocked in input().
+                if self.input.borrow().waiting {
+                    ui.horizontal(|ui| {
+                        ui.label("input:");
+                        let field = ui.add(
+                            egui::TextEdit::singleline(&mut self.input_text)
+                                .hint_text("type and press Enter"),
+                        );
+                        let enter = field.lost_focus()
+                            && ui.input(|i| i.key_pressed(egui::Key::Enter));
+                        // Keep the cursor in the field without fighting the
+                        // Enter key, which makes the field lose focus.
+                        if !enter {
+                            field.request_focus();
+                        }
+                        if enter || ui.button("Send").clicked() {
+                            let line = std::mem::take(&mut self.input_text);
+                            self.console.log(format!("> {}", line));
+                            let mut state = self.input.borrow_mut();
+                            state.answer = Some(line);
+                            state.waiting = false;
+                        }
+                    });
+                    ui.separator();
+                }
+
                 egui::ScrollArea::vertical()
                     .stick_to_bottom(true)
                     .show(ui, |ui| {
@@ -192,7 +240,7 @@ impl eframe::App for GuiApp {
     }
 }
 
-/// Desktop entry point, called from main.rs.
+/// Entry point, called from main.rs.
 pub fn run(initial_path: Option<PathBuf>) -> eframe::Result<()> {
     let mut app = GuiApp::default();
     if let Some(path) = initial_path {
@@ -207,21 +255,4 @@ pub fn run(initial_path: Option<PathBuf>) -> eframe::Result<()> {
         eframe::NativeOptions::default(),
         Box::new(|_cc| Ok(Box::new(app))),
     )
-}
-
-/// Android entry point, called by the Android runtime via cargo-apk.
-#[cfg(target_os = "android")]
-#[no_mangle]
-fn android_main(app: AndroidApp) {
-    let options = eframe::NativeOptions {
-        android_app: Some(app),
-        ..Default::default()
-    };
-
-    eframe::run_native(
-        "Liphia GUI",
-        options,
-        Box::new(|_cc| Ok(Box::new(GuiApp::default()))),
-    )
-    .unwrap();
 }

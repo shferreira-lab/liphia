@@ -1,0 +1,18 @@
+# if/elif/else, while, for with step, break/continue.
+var i = 0
+while i < 5:
+    i = i + 1
+    if i == 2:
+        continue
+    if i == 4:
+        break
+    print(i)
+for j from 0 to 10 step 3:
+    print(j)
+var g = 75
+if g >= 90:
+    print("A")
+elif g >= 70:
+    print("B")
+else:
+    print("C")

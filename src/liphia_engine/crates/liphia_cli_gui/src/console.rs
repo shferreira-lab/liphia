@@ -1,5 +1,5 @@
-// Shared, thread-safe log buffer used as an in-app substitute for stdout/stderr,
-// since Android builds have no visible terminal for the running program.
+// Shared, thread-safe log buffer shown in the app's console panel, so
+// script output and errors are visible inside the window.
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Default)]

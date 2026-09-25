@@ -1,0 +1,2 @@
+# Expected to fail at runtime: uncaught division by zero.
+print(1 / 0)

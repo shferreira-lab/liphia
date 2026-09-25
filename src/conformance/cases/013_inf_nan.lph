@@ -1,0 +1,3 @@
+# inf() and nan() are the only way to get non-finite floats.
+print(is_inf(inf()), is_nan(nan()), is_nan(1.0))
+print(inf() > 1000000.0)

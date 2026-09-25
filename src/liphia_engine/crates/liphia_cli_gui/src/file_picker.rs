@@ -1,7 +1,6 @@
 // Wraps the async file dialog so it can be polled from egui's synchronous
 // update loop without blocking the UI thread while the system file picker
-// is open. Desktop uses rfd; Android has no working rfd backend in this
-// version, so it's stubbed out for now — see platforms/android.md.
+// is open. Uses rfd's async dialog on a background thread.
 use std::sync::{Arc, Mutex};
 
 pub struct FilePicker {
@@ -17,7 +16,6 @@ impl FilePicker {
         }
     }
 
-    #[cfg(not(target_os = "android"))]
     pub fn open(&mut self) {
         if self.picking {
             return;
@@ -39,13 +37,6 @@ impl FilePicker {
                 *slot.lock().unwrap() = Some(bytes);
             }
         });
-    }
-
-    // Android stub: rfd has no working backend for this target yet.
-    // Known limitation — see platforms/android.md.
-    #[cfg(target_os = "android")]
-    pub fn open(&mut self) {
-        // no-op for now
     }
 
     pub fn poll(&mut self) -> Option<String> {

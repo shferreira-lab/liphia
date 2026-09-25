@@ -143,9 +143,14 @@ pub struct VM {
     globals: HashMap<String, Value>,
     native_fns: HashMap<String, NativeFn>,
     output_hook: Option<Box<dyn FnMut(&str)>>,
+    // None (default): input() blocks on stdin, as in the terminal CLI.
+    // Some(hook): hosts without a terminal (the GUI) answer input() here.
+    // The hook returns None while no line is available yet; the task then
+    // yields and retries the same Input instruction on its next quantum.
+    input_hook: Option<Box<dyn FnMut() -> Option<String>>>,
     // None (default): Print falls back to println! on stdout, exactly as
     // before — liphia_cli's terminal behavior is unchanged.
-    // Some(hook): used by hosts with no visible stdout (e.g. the GUI/Android
+    // Some(hook): used by hosts with no visible stdout (e.g. the GUI
     // app), to route print() output into their own in-app console instead.
 }
 
@@ -155,6 +160,7 @@ impl VM {
             globals: HashMap::new(),
             native_fns: HashMap::new(),
             output_hook: None,
+            input_hook: None,
         }
     }
 
@@ -162,6 +168,12 @@ impl VM {
     /// right after VM::new() on hosts that have no visible terminal.
     pub fn set_output_hook(&mut self, hook: Box<dyn FnMut(&str)>) {
         self.output_hook = Some(hook);
+    }
+
+    /// Answers input() from `hook` instead of stdin. The hook must not
+    /// block: return None until a line is ready.
+    pub fn set_input_hook(&mut self, hook: Box<dyn FnMut() -> Option<String>>) {
+        self.input_hook = Some(hook);
     }
 
     pub fn register_native(&mut self, name: &str, f: NativeFn) {
@@ -364,6 +376,17 @@ impl VM {
 
             // ── I/O ───────────────────────────────────────────────────
             Opcode::Input => {
+                if let Some(hook) = &mut self.input_hook {
+                    match hook() {
+                        Some(line) => {
+                            task.stack.push(Value::Str(Rc::new(line)));
+                            return Ok(InstrFlow::Next);
+                        }
+                        // Not answered yet: yield without advancing pc, so
+                        // this same Input runs again on the next quantum.
+                        None => return Ok(InstrFlow::Suspend),
+                    }
+                }
                 let mut buf = String::new();
                 io::stdout().flush().unwrap();
                 io::stdin()
@@ -439,6 +462,16 @@ impl VM {
             }
 
             Opcode::Return => {
+                // A spawned task starts directly at the function's address
+                // with no caller frame, so returning from its bottom frame
+                // ends the task. (Return at top level is rejected by the
+                // compiler, so an empty frame stack only happens here.)
+                if task.frames.is_empty() {
+                    task.stack.clear();
+                    task.locals.clear();
+                    task.handlers.clear();
+                    return Ok(InstrFlow::Halt);
+                }
                 let ret = task.stack.pop().unwrap_or(Value::Null);
                 let frame = task
                     .frames
@@ -613,11 +646,16 @@ impl VM {
     }
 
     // ── Arithmetic helpers ────────────────────────────────────────────────
+    //
+    // Integer overflow is a runtime error (catchable by try/catch), never a
+    // silent wrap-around: debug and release builds behave the same.
 
     fn op_add(&self, task: &mut Task) -> VmResult<()> {
         let (a, b) = task.pop2("Add")?;
         let r = match (a, b) {
-            (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
+            (Value::Int(x), Value::Int(y)) => Value::Int(
+                x.checked_add(y).ok_or_else(|| VmError::new("integer overflow in '+'"))?,
+            ),
             (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             (Value::Str(x), Value::Str(y)) => Value::Str(Rc::new((*x).clone() + &*y)),
             (Value::Int(x), Value::Str(y)) => Value::Str(Rc::new(format!("{}{}", x, y))),
@@ -631,7 +669,9 @@ impl VM {
     fn op_sub(&self, task: &mut Task) -> VmResult<()> {
         let (a, b) = task.pop2("Sub")?;
         let r = match (a, b) {
-            (Value::Int(x), Value::Int(y)) => Value::Int(x - y),
+            (Value::Int(x), Value::Int(y)) => Value::Int(
+                x.checked_sub(y).ok_or_else(|| VmError::new("integer overflow in '-'"))?,
+            ),
             (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => return Err(VmError::new("'-' requires int or float values")),
         };
@@ -642,7 +682,9 @@ impl VM {
     fn op_mul(&self, task: &mut Task) -> VmResult<()> {
         let (a, b) = task.pop2("Mul")?;
         let r = match (a, b) {
-            (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+            (Value::Int(x), Value::Int(y)) => Value::Int(
+                x.checked_mul(y).ok_or_else(|| VmError::new("integer overflow in '*'"))?,
+            ),
             (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => return Err(VmError::new("'*' requires int or float values")),
         };
@@ -657,7 +699,9 @@ impl VM {
                 if y == 0 {
                     return Err(VmError::new("division by zero"));
                 }
-                Value::Int(x / y)
+                // checked_div also rejects i64::MIN / -1, whose result
+                // does not fit in i64.
+                Value::Int(x.checked_div(y).ok_or_else(|| VmError::new("integer overflow in '/'"))?)
             }
             (Value::Float(x), Value::Float(y)) => {
                 if y == 0.0 {

@@ -1,0 +1,7 @@
+# Enum declaration, variant values and comparison.
+enum Status:
+    Ok
+    Fail
+var s = Status.Ok
+print(s)
+print(s == Status.Ok, s == Status.Fail)
