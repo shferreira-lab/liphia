@@ -1,0 +1,12 @@
+[package]
+name    = "packages"
+version = "0.1.0"
+
+[dependencies]
+db:sqlite = "latest"
+db = "latest"
+learn = "latest"
+stats = "latest"
+num = "latest"
+wire = "latest"
+# liphia install <module> adds entries here automatically

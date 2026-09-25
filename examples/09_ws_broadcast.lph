@@ -2,14 +2,14 @@
 # connected clients.
 #
 #   liphia 09_ws_broadcast.lph
-#   then connect with any WebSocket client to ws://localhost:8090
+#   then connect with any WebSocket client to ws://localhost:8787
 #
 # ws_accept() returns 0 and ws_recv() returns "" when nothing is pending,
 # so the loop polls. Core has no sleep yet, so this loop keeps a CPU core
 # busy; fine for a demo.
 
-ws_listen(8090)
-print("listening on ws://localhost:8090")
+ws_listen(8787)
+print("listening on ws://localhost:8787")
 
 while true:
     var client: int = ws_accept()
