@@ -1,0 +1,13 @@
+# 08_http_client.lph — HTTP client (plain http:// only).
+#
+# Start 07_http_server.lph first, then:
+#   liphia 08_http_client.lph
+
+var body: str = http_get("http://localhost:8080/hello")
+print(http_status(), json_decode(body))
+
+var echoed: str = http_post("http://localhost:8080/echo", json_encode({"x": 1}))
+print(http_status(), echoed)
+
+var missing: str = http_get("http://localhost:8080/nope")
+print(http_status(), missing)

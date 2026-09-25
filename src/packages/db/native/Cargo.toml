@@ -1,0 +1,16 @@
+[package]
+name    = "liphia_package_db"
+version = "2.0.0"
+edition = "2021"
+
+# Native library of the `db` package. Built as a cdylib and copied to
+# packages/db/lib/ by packages/build.ps1 (or build.sh). Not a default
+# member of the workspace: build it with `cargo build -p liphia_package_db --release`.
+[lib]
+name       = "liphia_package_db"
+crate-type = ["cdylib"]
+
+[dependencies]
+liphia_virtual_machine = { path = "../../../liphia_engine/crates/liphia_virtual_machine" }
+rusqlite = { version = "0.31", features = ["bundled"] }
+md-5     = "0.10"

@@ -1,0 +1,5 @@
+# sum/min_list/max_list keep the element type; mean is always float.
+print(sum([1, 2, 3]), sum([]), sum([1.5, 2.5]))
+print(mean([1, 2, 3, 4]))
+print(min_list([3, 1, 2]), max_list([3, 1, 2]))
+print(min_list([0.5, -1.5]), max_list([0.5, -1.5]))

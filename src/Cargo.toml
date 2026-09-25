@@ -8,14 +8,18 @@ members = [
     "liphia_engine/crates/liphia_pipeline",
     "liphia_engine/crates/liphia_cli_gui",
     "liphia_engine/crates/liphia_gui_native",
-    "liphia_engine/crates/liphia_module_db",
-    "stdlib/native",
+    "packages/db/native",
+    "packages/num/native",
+    "packages/stats/native",
+    "packages/learn/native",
 ]
 # Not default-members (build explicitly with -p):
-#   liphia_cli_gui   — desktop GUI, pulls eframe/winit (~236 crates)
+#   liphia_cli_gui    — desktop GUI, pulls eframe/winit (~236 crates)
 #   liphia_gui_native — only used by liphia_cli_gui
-#   liphia_module_db — external module, compiled to a cdylib and dlopen'd
-#                      at runtime (see liphia_virtual_machine::external)
+#   packages/*/native — native packages, compiled to cdylibs and dlopen'd
+#                       at runtime (see liphia_virtual_machine::external).
+#                       Build and copy them into packages/<name>/lib/ with
+#                       packages/build.ps1 (Windows) or packages/build.sh.
 default-members = [
     "liphia_engine/crates/liphia_compiler",
     "liphia_engine/crates/liphia_virtual_machine",
@@ -23,7 +27,6 @@ default-members = [
     "liphia_engine/crates/liphia_cli",
     "liphia_engine/crates/liphia_core_native",
     "liphia_engine/crates/liphia_pipeline",
-    "stdlib/native",
 ]
 resolver = "2"
 

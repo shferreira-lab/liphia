@@ -1,9 +1,0 @@
-[package]
-name    = "liphia_stdlib_native"
-version = "1.0.0"
-edition = "2021"
-
-[dependencies]
-liphia_virtual_machine = { path = "../../liphia_engine/crates/liphia_virtual_machine" }
-# rusqlite lives in liphia_module_db now (db is loaded externally — see
-# liphia_engine/crates/liphia_module_db and stdlib/modules/db/index.lph).

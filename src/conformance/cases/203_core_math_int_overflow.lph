@@ -1,0 +1,3 @@
+# Integer results that do not fit in i64 are errors, never wrapped.
+var smallest: int = -9223372036854775807 - 1
+print(abs(smallest))

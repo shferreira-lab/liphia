@@ -1,0 +1,8 @@
+# Scalar math natives keep int results as int and float results as float.
+print(abs(-4), abs(-2.5))
+print(floor(2.7), ceil(2.1), round(2.5), round(-2.5))
+print(min(2, 3), max(2.5, 1.0), clamp(15, 0, 10), clamp(-1.0, 0.0, 1.0))
+print(sign(-3), sign(0.0), sign(7))
+print(gcd(12, 18), gcd(-4, 6), lcm(4, 6), lcm(0, 5), factorial(0), factorial(5))
+print(sqrt(16), pow(2, 10), log2(8), round(log_base(1000, 10)))
+print(is_nan(nan()), is_inf(inf()), is_nan(1))

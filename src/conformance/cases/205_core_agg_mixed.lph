@@ -1,0 +1,2 @@
+# A list mixing int and float is rejected by the aggregation natives.
+print(sum([1, 2.0]))

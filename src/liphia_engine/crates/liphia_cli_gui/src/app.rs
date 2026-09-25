@@ -94,14 +94,12 @@ impl GuiApp {
 
         let mut vm = VM::new();
         liphia_core_native::register(&mut vm);
-        liphia_stdlib_native::register_all(&mut vm);
         liphia_gui_native::register(&mut vm);
-        // External modules (e.g. "db") ship as prebuilt native libraries,
-        // not compiled into this binary — see liphia_virtual_machine::external
-        // and stdlib/modules/db/index.lph. Loads whatever the project has
-        // installed under liphia_modules/; harmless no-op if none.
+        // Native packages (db, num, stats, learn) ship as prebuilt libraries
+        // under liphia_modules/<name>/lib/, loaded through
+        // liphia_virtual_machine::external. Harmless no-op if none installed.
         for (name, err) in vm.load_installed_external_modules("liphia_modules") {
-            self.console.error(format!("failed to load external module '{}': {}", name, err.message));
+            self.console.error(format!("failed to load package '{}': {}", name, err.message));
         }
 
         // Route print() into the in-app console instead of stdout.

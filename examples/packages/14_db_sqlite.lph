@@ -1,0 +1,23 @@
+# 14_db_sqlite.lph — SQLite with the db package.
+#
+#   liphia install db
+#   liphia 14_db_sqlite.lph
+
+import from "db"
+
+var conn: int = db_open_memory()
+db_exec(conn, "CREATE TABLE notes (id INTEGER PRIMARY KEY, title TEXT, done INTEGER)")
+
+db_begin(conn)
+db_exec(conn, "INSERT INTO notes (title, done) VALUES ('write spec', 1)")
+db_exec(conn, "INSERT INTO notes (title, done) VALUES ('ship packages', 0)")
+db_commit(conn)
+print("last id", db_last_id(conn))
+
+# Each row is a flat [column, value, column, value, ...] list.
+var rows: list = db_query_rows(conn, "SELECT id, title, done FROM notes ORDER BY id")
+for i from 0 to len(rows):
+    print(rows[i])
+
+print("tables", db_tables(conn))
+db_close(conn)

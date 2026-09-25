@@ -1,7 +1,0 @@
-[module]
-name        = "http"
-version     = "1.2.0"
-description = "HTTP server and client, with composed JSON response helpers"
-native      = true
-entry       = "http.lph"
-files       = ["http.lph", "composed/respond.lph"]

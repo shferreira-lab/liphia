@@ -1,0 +1,7 @@
+# json_encode/json_decode round-trip: floats keep their type, objects become maps.
+var text: str = json_encode({"i": 1, "f": 1.0, "s": "q\"t", "l": [true, null]})
+print(text)
+var back: map = json_decode(text)
+print(back["i"] + 1, back["f"] + 0.5, back["s"], back["l"])
+print(json_decode("\"\\ud83d\\ude00\"") == json_decode("\"\\ud83d\\ude00\""))
+print(json_decode("{\"k\": 1, \"k\": 2}")["k"])

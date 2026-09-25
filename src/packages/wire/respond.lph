@@ -1,0 +1,23 @@
+# packages/wire/respond.lph
+#
+# JSON response helpers over the core http natives. The error shape
+# {"error": message} is a wire convention, not part of the core.
+
+fn ok_json(data: any) -> bool:
+    return http_respond_json(200, json_encode(data))
+
+fn created_json(data: any) -> bool:
+    return http_respond_json(201, json_encode(data))
+
+# 204 must not carry a body, so it goes out as an empty plain response.
+fn no_content() -> bool:
+    return http_respond(204, "")
+
+fn error_json(status: int, message: str) -> bool:
+    return http_respond_json(status, json_encode({"error": message}))
+
+fn not_found_json(message: str) -> bool:
+    return error_json(404, message)
+
+fn bad_request_json(message: str) -> bool:
+    return error_json(400, message)

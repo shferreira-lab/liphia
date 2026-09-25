@@ -1,7 +1,12 @@
 // liphia_cli/src/installer.rs
 // Package manager for Liphia.
+//
+// Packages are downloaded from src/packages/<name>/ of the Liphia repo into
+// liphia_modules/<name>/ of the project. The file list comes from the
+// package's module.toml; native packages also fetch the prebuilt library
+// for the current platform, declared under [external.libs].
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -10,14 +15,14 @@ use std::process;
 use liphia_virtual_machine::vm::VM;
 
 const REGISTRY_RAW: &str =
-    "https://raw.githubusercontent.com/shferreira-lab/liphia/main/src/stdlib/modules";
+    "https://raw.githubusercontent.com/shferreira-lab/liphia/main/src/packages";
 
 const MODULES_DIR: &str = "liphia_modules";
 const MANIFEST: &str = "liphia.toml";
 
-const KNOWN_MODULES: &[&str] = &[
-    "http", "db", "ws", "net", "fs", "math", "json", "ai", "stats",
-];
+// Official packages. Everything else Liphia offers is a core native,
+// compiled into the binary and never installed.
+const KNOWN_MODULES: &[&str] = &["db", "learn", "num", "stats", "wire"];
 
 // ── liphia init ───────────────────────────────────────────────────────────────
 pub fn init_project() {
@@ -36,7 +41,7 @@ name    = "{}"
 version = "0.1.0"
 
 [dependencies]
-# liphia install <module> adds entries here automatically
+# liphia install <package> adds entries here automatically
 "#,
         project_name
     );
@@ -46,12 +51,12 @@ version = "0.1.0"
         process::exit(1);
     });
     println!("[liphia] created liphia.toml");
-    println!("[liphia] run 'liphia install <module>' to add dependencies.");
+    println!("[liphia] run 'liphia install <package>' to add dependencies.");
 }
 
 // ── liphia install --list ─────────────────────────────────────────────────────
 pub fn list_modules() {
-    println!("[liphia] available stdlib modules:");
+    println!("[liphia] available packages:");
     for m in KNOWN_MODULES {
         let installed = PathBuf::from(MODULES_DIR)
             .join(m)
@@ -82,7 +87,7 @@ pub fn install_modules(modules: &[&str]) {
     }
     println!();
     if err == 0 {
-        println!("[liphia] {} module(s) installed.", ok);
+        println!("[liphia] {} package(s) installed.", ok);
     } else {
         println!("[liphia] {} installed, {} failed.", ok, err);
     }
@@ -101,7 +106,7 @@ fn do_install_submodule(module: &str, submodule: &str) -> bool {
 
     if !KNOWN_MODULES.contains(&module) {
         println!("FAILED");
-        eprintln!("    '{}' is not a known stdlib module.", module);
+        eprintln!("    '{}' is not a known package.", module);
         eprintln!("    known: {}", KNOWN_MODULES.join(", "));
         return false;
     }
@@ -218,7 +223,7 @@ pub fn install_from_manifest() {
         println!("[liphia] no dependencies declared in liphia.toml.");
         return;
     }
-    println!("[liphia] installing {} module(s)...", deps.len());
+    println!("[liphia] installing {} package(s)...", deps.len());
     let (mut ok, mut err) = (0usize, 0usize);
     for name in deps.keys() {
         if do_install(name) {
@@ -229,20 +234,32 @@ pub fn install_from_manifest() {
     }
     println!();
     if err == 0 {
-        println!("[liphia] all {} module(s) installed.", ok);
+        println!("[liphia] all {} package(s) installed.", ok);
     } else {
         println!("[liphia] {} installed, {} failed.", ok, err);
     }
 }
 
-// ── install a module ─────────────────────────────────────────────────────────
+// ── install a package ────────────────────────────────────────────────────────
+// Installs a package the user asked for: recorded in liphia.toml.
 fn do_install(name: &str) -> bool {
+    install_package(name, true, &mut HashSet::new())
+}
+
+// Installs `name` and, first, every package listed under [dependencies] in
+// its module.toml. Only direct installs are recorded in liphia.toml;
+// dependencies are pulled in again from each package's own module.toml.
+// `seen` stops cycles and repeated work within one install command.
+fn install_package(name: &str, direct: bool, seen: &mut HashSet<String>) -> bool {
+    if !seen.insert(name.to_string()) {
+        return true;
+    }
     print!("  installing '{}'... ", name);
     io::stdout().flush().unwrap();
 
     if !KNOWN_MODULES.contains(&name) {
         println!("FAILED");
-        eprintln!("    '{}' is not a known stdlib module.", name);
+        eprintln!("    '{}' is not a known package.", name);
         eprintln!("    known: {}", KNOWN_MODULES.join(", "));
         return false;
     }
@@ -259,6 +276,18 @@ fn do_install(name: &str) -> bool {
     let module_toml = http_get(&toml_url).ok();
     if let Some(ref body) = module_toml {
         let _ = fs::write(dest_dir.join("module.toml"), body);
+        let deps: Vec<String> = parse_dependencies(body).into_keys().collect();
+        if !deps.is_empty() {
+            println!("needs {}", deps.join(", "));
+            for dep in &deps {
+                if !install_package(dep, false, seen) {
+                    eprintln!("    dependency '{}' of '{}' failed", dep, name);
+                    return false;
+                }
+            }
+            print!("  installing '{}'... ", name);
+            io::stdout().flush().unwrap();
+        }
     }
 
     // File list from module.toml's `files = [...]` under [module].
@@ -269,10 +298,9 @@ fn do_install(name: &str) -> bool {
         .and_then(parse_module_files)
         .unwrap_or_else(|| vec![format!("{}.lph", name)]);
 
-    // For external modules (e.g. db), also fetch the prebuilt native lib
-    // for the current platform, declared under [external.libs] in
-    // module.toml. Modules without an [external.libs] section (pure-.lph
-    // stdlib modules) simply get None back here and are unaffected.
+    // Native packages (db, num, stats, learn) also fetch the prebuilt
+    // library for the current platform, declared under [external.libs] in
+    // module.toml. Pure packages have no such section and get None here.
     if let Some(lib_path) = module_toml.as_deref().and_then(parse_external_lib) {
         files.push(lib_path);
     }
@@ -337,7 +365,9 @@ fn do_install(name: &str) -> bool {
         return false;
     }
 
-    add_to_manifest(name);
+    if direct {
+        add_to_manifest(name);
+    }
     println!("ok ({} file(s))", ok_count);
     true
 }
@@ -352,8 +382,7 @@ enum WriteBody {
 
 /// Files that must be downloaded and written as raw bytes rather than
 /// UTF-8 text — currently just the prebuilt native libraries that
-/// external modules (e.g. db, see stdlib/modules/db/index.lph) ship
-/// under their `lib/` directory.
+/// native packages ship under their `lib/` directory.
 fn is_binary_file(rel_path: &str) -> bool {
     rel_path.ends_with(".so") || rel_path.ends_with(".dll") || rel_path.ends_with(".dylib")
 }
@@ -420,7 +449,7 @@ fn current_platform_lib_key() -> &'static str {
 //   windows = "lib/liphia_module_db.dll"
 //   macos   = "lib/libliphia_module_db.dylib"
 //
-// Returns None for modules with no such section (pure-.lph stdlib modules),
+// Returns None for packages with no such section (pure packages),
 // or if this platform has no prebuilt lib listed yet.
 fn parse_external_lib(toml: &str) -> Option<String> {
     let key = current_platform_lib_key();
@@ -478,21 +507,16 @@ fn http_get(url: &str) -> Result<String, String> {
     }
 }
 
-// ── Loading installed external modules ────────────────────────────────────────
+// ── Loading installed native packages ─────────────────────────────────────────
 //
-// Modules like "db" ship as prebuilt native libraries rather than being
-// compiled into this binary (see liphia_virtual_machine::external and
-// stdlib/modules/db/index.lph). Once `liphia install db` has downloaded
-// liphia_modules/db/{index.lph,lib/...}, this loads every installed module
-// that has an index.lph into `vm`. Projects that never installed an
-// external module pay nothing — there's nothing under liphia_modules/ to
-// scan. Failures (e.g. an index.lph with no matching prebuilt lib for this
-// platform) are warnings, not fatal — a project that doesn't call db_*
-// functions shouldn't be blocked by db failing to load.
-pub fn load_installed_external_modules(vm: &mut VM) {
+// Native packages ship prebuilt libraries (see liphia_virtual_machine::
+// external). This loads every installed package under liphia_modules/ that
+// has an index.lph. Failures are warnings, not fatal: a project that never
+// calls a package's natives should not be blocked by it failing to load.
+pub fn load_installed_packages(vm: &mut VM) {
     for (name, err) in vm.load_installed_external_modules(MODULES_DIR) {
         eprintln!(
-            "[liphia] warning: failed to load external module '{}': {}",
+            "[liphia] warning: failed to load package '{}': {}",
             name, err.message
         );
     }

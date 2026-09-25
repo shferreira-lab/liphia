@@ -1,0 +1,55 @@
+# packages/stats/stats.lph
+#
+# stats — inferential statistics: hypothesis tests and p-values.
+#
+# Install:  liphia install stats      (installs num as a dependency)
+# Usage:    import from "stats"
+#
+# Descriptive statistics (median, stdev, percentile, correlation...) are in
+# num. The natives below come from lib/, loaded once the package is
+# installed.
+#
+# ── Test statistics ───────────────────────────────────────────────────────────
+#
+# t_stat_independent(a: list, b: list) -> float     Welch's t (unequal variances)
+# t_degrees_of_freedom(a: list, b: list) -> float   Welch-Satterthwaite df
+# t_stat_paired(a: list, b: list) -> float          paired t, same length
+# mann_whitney_u(a: list, b: list) -> float         U statistic (smaller of U1, U2)
+# wilcoxon_w(a: list, b: list) -> float             signed-rank W, same length
+#
+# ── Normality ─────────────────────────────────────────────────────────────────
+#
+# shapiro_wilk_w(v: list) -> float
+#   W statistic, n in [3, 50]. W > 0.95 is a common rule of thumb for
+#   "close enough to normal" to use a t-test.
+#
+# ── p-values (two-tailed) ─────────────────────────────────────────────────────
+#
+# p_value_t_ind(a: list, b: list) -> float          Welch t-test
+# p_value_t_paired(a: list, b: list) -> float       paired t-test
+# p_value_normal(z: float) -> float                 standard normal
+# p_value_mann_whitney(a: list, b: list) -> float   normal approximation,
+#   requires min(n1, n2) > 10; smaller samples need mann_whitney_u() and a
+#   critical-value table
+# p_value_wilcoxon(a: list, b: list) -> float       normal approximation,
+#   requires more than 20 non-zero differences; smaller samples need
+#   wilcoxon_w() and a critical-value table
+#
+# ── Choosing a test ───────────────────────────────────────────────────────────
+#
+#   independent groups, both normal      -> p_value_t_ind
+#   independent groups, not normal       -> p_value_mann_whitney
+#   paired samples, differences normal   -> p_value_t_paired
+#   paired samples, differences not normal -> p_value_wilcoxon
+#
+# compare_groups() below applies this guide automatically.
+#
+# ── Composed (composed/compare.lph) ───────────────────────────────────────────
+#
+# compare_groups(a: list, b: list, paired: bool) -> map
+#   Keys: mean_a, mean_b, test, p_value, significant (p < 0.05).
+#   p_value is -1.0 when the sample is too small for the normal
+#   approximation; test then ends in "_table_needed".
+#   On failure returns {"error": message}.
+
+import "composed/compare.lph"

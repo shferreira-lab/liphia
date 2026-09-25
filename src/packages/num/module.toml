@@ -1,0 +1,15 @@
+[module]
+name        = "num"
+version     = "1.0.0"
+description = "Vectors, matrices and descriptive statistics over lists"
+native      = true
+entry       = "num.lph"
+files       = ["num.lph", "composed/describe.lph", "index.lph"]
+
+[dependencies]
+
+
+[external.libs]
+windows = "lib/liphia_package_num.dll"
+linux   = "lib/libliphia_package_num.so"
+macos   = "lib/libliphia_package_num.dylib"

@@ -1,0 +1,45 @@
+# packages/stats/composed/compare.lph
+#
+# Automates the test-selection guide in stats.lph: checks normality, then
+# picks a parametric or non-parametric test for paired or independent
+# samples. Uses vec_sub from num (a dependency of stats).
+#
+# Normality is checked with Shapiro-Wilk, which supports n <= 50; larger
+# samples return {"error": ...}.
+
+fn compare_groups(a: list, b: list, paired: bool) -> map:
+    try:
+        var test: str = ""
+        var p: float = 0.0
+
+        # Paired: normality of the differences decides the test.
+        if paired:
+            var diffs: list = vec_sub(a, b)
+            if shapiro_wilk_w(diffs) > 0.95:
+                p = p_value_t_paired(a, b)
+                test = "paired_t"
+            else:
+                if len(a) > 20:
+                    p = p_value_wilcoxon(a, b)
+                    test = "wilcoxon"
+                else:
+                    p = -1.0
+                    test = "wilcoxon_table_needed"
+
+        # Independent: both groups must look normal for Welch's t-test.
+        else:
+            var normal: bool = shapiro_wilk_w(a) > 0.95 and shapiro_wilk_w(b) > 0.95
+            if normal:
+                p = p_value_t_ind(a, b)
+                test = "welch_t"
+            else:
+                if len(a) > 10 and len(b) > 10:
+                    p = p_value_mann_whitney(a, b)
+                    test = "mann_whitney"
+                else:
+                    p = -1.0
+                    test = "mann_whitney_table_needed"
+
+        return {"mean_a": mean(a), "mean_b": mean(b), "test": test, "p_value": p, "significant": p >= 0.0 and p < 0.05}
+    catch e:
+        return {"error": e}

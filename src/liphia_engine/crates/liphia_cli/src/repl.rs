@@ -8,7 +8,6 @@ use liphia_compiler::parser::Parser;
 use liphia_compiler::bytecode::generate_bytecode;
 use liphia_compiler::type_checker::TypeChecker;
 use liphia_core_native;
-use liphia_stdlib_native;
 use crate::installer;
 
 // ── Known symbols carried across REPL executions ─────────────────────────────
@@ -27,8 +26,7 @@ impl ReplState {
 pub fn start() {
     let mut vm = VM::new();
     liphia_core_native::register(&mut vm);
-    liphia_stdlib_native::register_all(&mut vm);
-    installer::load_installed_external_modules(&mut vm);
+    installer::load_installed_packages(&mut vm);
 
     // Accumulated source of declarations only (fn, enum, var, const)
     // so that previously defined functions are visible in future compilations

@@ -1,0 +1,26 @@
+# 02_collections.lph — strings, lists and maps.
+
+var name: str = "  Liphia Language  "
+var clean: str = trim(name)
+print(upper(clean), lower(clean), len(clean))
+print(contains(clean, "Lang"), starts_with(clean, "Li"), replace(clean, " ", "_"))
+
+var words: list = split("a,b,c", ",")
+append(words, "d")
+print(words, len(words))
+print("last:", pop(words), "remaining:", words)
+
+# Iterating a list by index.
+for i from 0 to len(words):
+    print(i, words[i])
+
+# Maps keep insertion order.
+var user: map = {"name": "ana", "age": 31}
+user["city"] = "recife"
+print(map_keys(user), map_values(user))
+print(map_has(user, "age"), user["name"])
+map_remove(user, "age")
+print(user)
+
+# Conversions.
+print(to_int("42") + 1, to_float("2.5") * 2.0, to_str(7) + "!")

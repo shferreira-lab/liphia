@@ -1,0 +1,8 @@
+# String, list and map natives.
+print(upper("abc"), lower("ABC"), trim("  x  "), replace("a-b-c", "-", "+"))
+print(split("a,b,c", ","), contains("hello", "ell"), starts_with("hello", "he"))
+var m: map = {"a": 1}
+m["b"] = 2
+print(map_keys(m), map_values(m), map_has(m, "b"))
+map_remove(m, "a")
+print(len(m), to_int("42") + 1, to_str(3.5))

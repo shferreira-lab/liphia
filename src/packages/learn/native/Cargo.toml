@@ -1,0 +1,14 @@
+[package]
+name    = "liphia_package_learn"
+version = "1.0.0"
+edition = "2021"
+
+# Native library of the `learn` package. Built as a cdylib and copied to
+# packages/learn/lib/ by packages/build.ps1 (or build.sh). Not a default
+# member of the workspace: build it with `cargo build -p liphia_package_learn --release`.
+[lib]
+name       = "liphia_package_learn"
+crate-type = ["cdylib"]
+
+[dependencies]
+liphia_virtual_machine = { path = "../../../liphia_engine/crates/liphia_virtual_machine" }

@@ -1,0 +1,48 @@
+# 01_basics.lph — variables, functions, control flow, enums.
+#
+#   liphia 01_basics.lph
+
+const GREETING: str = "hello"
+
+enum Level:
+    Low
+    Medium
+    High
+
+# Typed variable, and `var` without a type (inferred).
+var count: int = 3
+var ratio = 0.75
+
+fn classify(score: int) -> Level:
+    if score >= 80:
+        return Level.High
+    elif score >= 50:
+        return Level.Medium
+    else:
+        return Level.Low
+
+fn label(level: Level) -> str:
+    if level == Level.High:
+        return "high"
+    elif level == Level.Medium:
+        return "medium"
+    return "low"
+
+print(GREETING, "liphia")
+print("count:", count, "ratio:", ratio)
+
+# for runs from the start value up to, but not including, the end value.
+for i from 0 to count:
+    print("step", i)
+
+var n: int = 10
+while n > 0:
+    n = n - 4
+print("n after loop:", n)
+
+# and / or short-circuit, not negates.
+var ok: bool = count > 0 and not (ratio > 1.0)
+print("ok:", ok)
+
+for s from 40 to 100 step 30:
+    print(s, "->", label(classify(s)))

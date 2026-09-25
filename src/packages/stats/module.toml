@@ -1,0 +1,15 @@
+[module]
+name        = "stats"
+version     = "1.0.0"
+description = "Inferential statistics: hypothesis tests, p-values, distributions"
+native      = true
+entry       = "stats.lph"
+files       = ["stats.lph", "composed/compare.lph", "index.lph"]
+
+[dependencies]
+num = "^1.0.0"
+
+[external.libs]
+windows = "lib/liphia_package_stats.dll"
+linux   = "lib/libliphia_package_stats.so"
+macos   = "lib/libliphia_package_stats.dylib"

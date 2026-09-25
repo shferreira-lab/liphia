@@ -1,0 +1,56 @@
+# packages/learn/learn.lph
+#
+# learn — machine learning primitives.
+#
+# Install:  liphia install learn      (installs num as a dependency)
+# Usage:    import from "learn"
+#
+# Vector and matrix math (dot, vec_add, matrix_mul, normalize...) is in
+# num. Random numbers (seed, rand_normal, shuffle...) are core natives.
+# The natives below come from lib/, loaded once the package is installed.
+#
+# ── Activations (scalar) ──────────────────────────────────────────────────────
+#
+# sigmoid(x: float) -> float
+# relu(x: float) -> float
+# leaky_relu(x: float, alpha: float) -> float
+# tanh_act(x: float) -> float
+# elu(x: float, alpha: float) -> float
+# gelu(x: float) -> float
+# swish(x: float) -> float
+# softmax(v: list) -> list            probabilities that sum to 1
+#
+# ── Losses (pred, target: same length) ────────────────────────────────────────
+#
+# mse(pred: list, target: list) -> float
+# mae(pred: list, target: list) -> float
+# cross_entropy(pred: list, target: list) -> float
+# binary_cross_entropy(pred: list, target: list) -> float
+#
+# ── Optimization ──────────────────────────────────────────────────────────────
+#
+# gradient_clip(grads: list, max_norm: float) -> list
+#   rescales grads so their L2 norm is at most max_norm
+# sgd_update(weights: list, grads: list, lr: float) -> list
+#   weights - lr * grads
+# adam_update(weights, grads, m, v, t: int, lr, beta1, beta2, eps) -> list
+#   returns the updated weights; m and v (moment vectors) are kept by the
+#   caller between steps, t starts at 1. Common defaults: lr 0.001,
+#   beta1 0.9, beta2 0.999, eps 1e-8.
+#
+# ── Binary classification metrics (pred >= 0.5 counts as positive) ────────────
+#
+# accuracy(pred: list, target: list) -> float
+# precision(pred: list, target: list) -> float
+# recall(pred: list, target: list) -> float
+# f1_score(pred: list, target: list) -> float
+#
+# ── Composed (composed/eval.lph) ──────────────────────────────────────────────
+#
+# classification_report(pred: list, target: list) -> map
+#   accuracy, precision, recall and f1_score in one map.
+#
+# To compare two models' scores (e.g. f1 across k-fold runs), use
+# compare_groups(scores_a, scores_b, true) from the stats package.
+
+import "composed/eval.lph"

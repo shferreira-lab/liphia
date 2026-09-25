@@ -4,7 +4,6 @@ mod installer;
 mod repl;
 
 use liphia_core_native;
-use liphia_stdlib_native;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process;
@@ -90,8 +89,7 @@ fn main() {
 
     let mut vm = VM::new();
     liphia_core_native::register(&mut vm);
-    liphia_stdlib_native::register_all(&mut vm);
-    installer::load_installed_external_modules(&mut vm);
+    installer::load_installed_packages(&mut vm);
     if let Err(e) = vm.run(opcodes) {
         eprintln!("\n{}\n", e);
         process::exit(1);

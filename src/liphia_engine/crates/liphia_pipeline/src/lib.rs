@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Clone)]
 enum ImportKind {
     BareLocal,
-    BareStdlib,
+    BarePackage,
     Qualified(String),
     Selective(Vec<String>),
 }
@@ -65,7 +65,7 @@ fn parse_import_line(trimmed: &str) -> Option<ImportDirective> {
             return None;
         }
         return Some(ImportDirective {
-            kind: ImportKind::BareStdlib,
+            kind: ImportKind::BarePackage,
             target,
         });
     }
@@ -106,60 +106,46 @@ fn resolve_import_file(base_dir: &Path, import_path: &str) -> Option<PathBuf> {
     }
     None
 }
-fn find_in_stdlib_roots(relative: &Path, source_root: &Path) -> Option<PathBuf> {
+// Where `import from "<name>"` looks for a package, in order:
+//   1. liphia_modules/ next to the entry file (installed with `liphia install`)
+//   2. liphia_modules/ in the current directory
+//   3. $LIPHIA_PACKAGES_PATH (a directory with one folder per package)
+//   4. src/packages/ of the Liphia repo, found by walking up from the current
+//      directory (lets the repo's own tests and examples use packages
+//      without installing them)
+fn find_in_package_roots(relative: &Path, source_root: &Path) -> Option<PathBuf> {
     let source_dir = source_root.parent().unwrap_or(Path::new("."));
     let mut candidates: Vec<PathBuf> = vec![source_dir.join("liphia_modules").join(relative)];
-    if let Ok(cwd) = std::env::current_dir() {
-        candidates.push(cwd.join("liphia_modules").join(relative));
-    }
-    if let Ok(std_path) = std::env::var("LIPHIA_STDLIB_PATH") {
-        candidates.push(PathBuf::from(&std_path).join(relative));
-    }
-    if let Ok(exe) = std::env::current_exe() {
-        let exe_dir = exe.parent();
-        if let Some(d) = exe_dir {
-            candidates.push(d.join("stdlib/lph").join(relative));
-        }
-        if let Some(d) = exe_dir.and_then(|p| p.parent()) {
-            candidates.push(d.join("stdlib/lph").join(relative));
-        }
-        if let Some(d) = exe_dir.and_then(|p| p.parent()).and_then(|p| p.parent()) {
-            candidates.push(d.join("stdlib/lph").join(relative));
-        }
-    }
     let cwd = std::env::current_dir().unwrap_or_default();
-    for base in [
-        "stdlib/modules",
-        "../src/stdlib/modules",
-        "../../stdlib/modules",
-        "../../../stdlib/modules",
-        "../../../../stdlib/modules",
-        "liphia_modules",
-    ] {
-        candidates.push(cwd.join(base).join(relative));
+    candidates.push(cwd.join("liphia_modules").join(relative));
+    if let Ok(path) = std::env::var("LIPHIA_PACKAGES_PATH") {
+        candidates.push(PathBuf::from(path).join(relative));
+    }
+    for dir in cwd.ancestors() {
+        candidates.push(dir.join("src/packages").join(relative));
+        candidates.push(dir.join("packages").join(relative));
     }
     candidates.into_iter().find(|c| c.exists())
 }
-// Now returns Result instead of printing the diagnostic itself and returning
-// None — the hint text travels with the error so a GUI host can show it too,
-// not just a terminal's stderr.
-fn resolve_stdlib_module(module_name: &str, source_root: &Path) -> Result<PathBuf, String> {
-    let name = module_name.trim_end_matches(".lph");
+
+fn resolve_package(package_name: &str, source_root: &Path) -> Result<PathBuf, String> {
+    let name = package_name.trim_end_matches(".lph");
     let rel = PathBuf::from(name).join(format!("{}.lph", name));
-    find_in_stdlib_roots(&rel, source_root).ok_or_else(|| format!(
-        "[liphia] error: stdlib module '{}' not found.\n  hint: run 'liphia install {}' to install it.\n        or set LIPHIA_STDLIB_PATH=/path/to/stdlib/lph\n  cwd:  {:?}",
+    find_in_package_roots(&rel, source_root).ok_or_else(|| format!(
+        "[liphia] error: package '{}' not found.\n  hint: run 'liphia install {}' to install it,\n        or set LIPHIA_PACKAGES_PATH to a folder containing it.\n  cwd:  {:?}",
         name, name, std::env::current_dir().unwrap_or_default()
     ))
 }
-fn resolve_stdlib_submodule(
-    module_name: &str,
-    submodule_name: &str,
+
+fn resolve_subpackage(
+    package_name: &str,
+    subpackage_name: &str,
     source_root: &Path,
 ) -> Option<PathBuf> {
-    let rel = PathBuf::from(module_name)
-        .join(submodule_name)
-        .join(format!("{}.lph", submodule_name));
-    find_in_stdlib_roots(&rel, source_root)
+    let rel = PathBuf::from(package_name)
+        .join(subpackage_name)
+        .join(format!("{}.lph", subpackage_name));
+    find_in_package_roots(&rel, source_root)
 }
 fn parse_own_source(path: &Path) -> Result<(Vec<Stmt>, Vec<ImportDirective>), String> {
     let source =
@@ -385,8 +371,8 @@ pub fn resolve_project(
     let mut aliases: HashMap<String, String> = HashMap::new();
     for imp in &imports {
         match &imp.kind {
-            ImportKind::BareStdlib => {
-                let resolved = resolve_stdlib_module(&imp.target, source_root)?;
+            ImportKind::BarePackage => {
+                let resolved = resolve_package(&imp.target, source_root)?;
                 merged.extend(resolve_project(&resolved, source_root, visited)?);
             }
             ImportKind::BareLocal => {
@@ -408,7 +394,7 @@ pub fn resolve_project(
                     let mut remaining: Vec<String> = vec![];
                     for name in names {
                         if let Some(sub_path) =
-                            resolve_stdlib_submodule(&imp.target, name, source_root)
+                            resolve_subpackage(&imp.target, name, source_root)
                         {
                             merged.extend(resolve_project(&sub_path, source_root, visited)?);
                         } else {
@@ -416,7 +402,7 @@ pub fn resolve_project(
                         }
                     }
                     if !remaining.is_empty() {
-                        let entry = resolve_stdlib_module(&imp.target, source_root)?;
+                        let entry = resolve_package(&imp.target, source_root)?;
                         let module_stmts = resolve_project(&entry, source_root, visited)?;
                         for stmt in module_stmts {
                             if stmt_name(&stmt).map_or(false, |n| remaining.contains(&n)) {
@@ -429,7 +415,7 @@ pub fn resolve_project(
             ImportKind::Qualified(alias) => {
                 let resolved = match resolve_import_file(base_dir, &imp.target) {
                     Some(p) => p,
-                    None => resolve_stdlib_module(&imp.target, source_root)?,
+                    None => resolve_package(&imp.target, source_root)?,
                 };
                 let mut module_stmts = resolve_project(&resolved, source_root, visited)?;
                 for stmt in module_stmts.iter_mut() {

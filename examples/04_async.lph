@@ -1,0 +1,16 @@
+# 04_async.lph — tasks with async fn and spawn.
+#
+# All tasks run on one thread, in round-robin. spawn starts a task and
+# returns immediately; `await expr` suspends the task until expr is ready
+# (anything other than null or false).
+
+async fn worker(name: str, steps: int) -> void:
+    var i: int = 0
+    while i < steps:
+        print(name, "step", i)
+        i = i + 1
+    print(name, "done")
+
+spawn worker("a", 2)
+spawn worker("b", 3)
+print("main finished spawning")

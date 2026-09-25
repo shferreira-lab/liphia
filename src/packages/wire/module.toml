@@ -1,0 +1,9 @@
+[module]
+name        = "wire"
+version     = "0.1.0"
+description = "Application layer over the core http and ws natives: JSON responses (request, router, client and realtime come next)"
+native      = false
+entry       = "wire.lph"
+files       = ["wire.lph", "respond.lph"]
+
+[dependencies]

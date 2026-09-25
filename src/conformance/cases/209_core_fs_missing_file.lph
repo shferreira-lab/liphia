@@ -1,0 +1,6 @@
+# I/O failures surface as runtime errors (catchable with try/catch).
+try:
+    read_file("this/file/does/not/exist.txt")
+catch e:
+    print("caught")
+print(read_json("this/file/does/not/exist.json"))

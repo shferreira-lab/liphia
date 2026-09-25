@@ -1,0 +1,6 @@
+# packages/learn/composed/eval.lph
+#
+# Evaluation helpers built on the learn metric natives.
+
+fn classification_report(pred: list, target: list) -> map:
+    return {"accuracy": accuracy(pred, target), "precision": precision(pred, target), "recall": recall(pred, target), "f1_score": f1_score(pred, target)}

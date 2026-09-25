@@ -1,0 +1,8 @@
+# packages/stats/index.lph
+#
+# Load manifest read by the VM (liphia_virtual_machine::external), not
+# compiled as Liphia source. Names the prebuilt library in lib/ that holds
+# this package's natives; the platform prefix and suffix are added by the
+# loader (liphia_package_stats.dll, libliphia_package_stats.so, ...).
+
+external "liphia_package_stats"

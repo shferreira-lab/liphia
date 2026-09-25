@@ -1,0 +1,12 @@
+# seed(n) makes the sequence reproducible; values stay inside their range.
+seed(7)
+var a: int = rand_int(0, 1000)
+var xs: list = rand_uniform(3, 0.0, 1.0)
+seed(7)
+var b: int = rand_int(0, 1000)
+var ys: list = rand_uniform(3, 0.0, 1.0)
+print(a == b, xs == ys)
+print(a >= 0 and a < 1000)
+print(len(rand_normal(5, 0.0, 1.0)))
+var deck: list = shuffle(["a", "b", "c", "d"])
+print(len(deck), contains(json_encode(deck), "\"c\""))

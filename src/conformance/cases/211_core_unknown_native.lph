@@ -1,0 +1,2 @@
+# A package native is not available unless the package is loaded.
+print(dot([1.0], [1.0]))

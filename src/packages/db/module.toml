@@ -1,0 +1,21 @@
+[module]
+name        = "db"
+version     = "2.0.0"
+description = "SQLite (embedded) and PostgreSQL (pure TCP wire protocol)"
+native      = true
+entry       = "db.lph"
+files       = ["db.lph", "index.lph"]
+
+[dependencies]
+
+
+[external.libs]
+windows = "lib/liphia_package_db.dll"
+linux   = "lib/libliphia_package_db.so"
+macos   = "lib/libliphia_package_db.dylib"
+
+[submodules.sqlite]
+files = ["sqlite/sqlite.lph"]
+
+[submodules.postgres]
+files = ["postgres/postgres.lph"]

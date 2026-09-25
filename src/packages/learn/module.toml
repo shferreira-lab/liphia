@@ -1,0 +1,15 @@
+[module]
+name        = "learn"
+version     = "1.0.0"
+description = "Machine learning primitives: activations, losses, optimizers, metrics"
+native      = true
+entry       = "learn.lph"
+files       = ["learn.lph", "composed/eval.lph", "index.lph"]
+
+[dependencies]
+num = "^1.0.0"
+
+[external.libs]
+windows = "lib/liphia_package_learn.dll"
+linux   = "lib/libliphia_package_learn.so"
+macos   = "lib/libliphia_package_learn.dylib"

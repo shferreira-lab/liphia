@@ -43,191 +43,111 @@ impl TypeChecker {
         // ── builtins ──────────────────────────────────────────────────────
         tc.declare_fn("input", vec![Type::Str], Type::Str);
 
-        // ── core native ───────────────────────────────────────────────────
-        tc.declare_fn("len",         vec![any()],                         Type::Int);
-        tc.declare_fn("to_int",      vec![any()],                         Type::Int);
-        tc.declare_fn("to_float",    vec![any()],                         Type::Float);
-        tc.declare_fn("to_str",      vec![any()],                         Type::Str);
-        tc.declare_fn("trim",        vec![Type::Str],                     Type::Str);
-        tc.declare_fn("upper",       vec![Type::Str],                     Type::Str);
-        tc.declare_fn("lower",       vec![Type::Str],                     Type::Str);
-        tc.declare_fn("contains",    vec![Type::Str, Type::Str],          Type::Bool);
-        tc.declare_fn("starts_with", vec![Type::Str, Type::Str],          Type::Bool);
-        tc.declare_fn("ends_with",   vec![Type::Str, Type::Str],          Type::Bool);
+        // ── Core natives ──────────────────────────────────────────────────
+        // Signatures of everything registered by liphia_core_native. Keep in
+        // sync with that crate and with docs/core.md. Package natives are
+        // not declared here: calls to them type-check as "unknown", and the
+        // VM resolves them at runtime once the package is loaded.
+
+        // strings and conversions
+        tc.declare_fn("len",         vec![any()],                           Type::Int);
+        tc.declare_fn("to_int",      vec![any()],                           Type::Int);
+        tc.declare_fn("to_float",    vec![any()],                           Type::Float);
+        tc.declare_fn("to_str",      vec![any()],                           Type::Str);
+        tc.declare_fn("trim",        vec![Type::Str],                       Type::Str);
+        tc.declare_fn("upper",       vec![Type::Str],                       Type::Str);
+        tc.declare_fn("lower",       vec![Type::Str],                       Type::Str);
+        tc.declare_fn("contains",    vec![Type::Str, Type::Str],            Type::Bool);
+        tc.declare_fn("starts_with", vec![Type::Str, Type::Str],            Type::Bool);
+        tc.declare_fn("ends_with",   vec![Type::Str, Type::Str],            Type::Bool);
         tc.declare_fn("replace",     vec![Type::Str, Type::Str, Type::Str], Type::Str);
-        tc.declare_fn("split",       vec![Type::Str, Type::Str],          Type::List);
-        tc.declare_fn("append",      vec![Type::List, any()],             Type::Void);
-        tc.declare_fn("pop",         vec![Type::List],                    any());
-        tc.declare_fn("keys",        vec![Type::List],                    Type::List);
-        
-        tc.declare_fn("map_keys",   vec![Type::Map],           Type::List);
-        tc.declare_fn("map_values", vec![Type::Map],           Type::List);
-        tc.declare_fn("map_has",    vec![Type::Map, any()],    Type::Bool);
-        tc.declare_fn("map_remove", vec![Type::Map, any()],    Type::Void);
+        tc.declare_fn("split",       vec![Type::Str, Type::Str],            Type::List);
 
-        // ── math ──────────────────────────────────────────────────────────────
-        tc.declare_fn("sqrt",       vec![any()],          Type::Float);
-        tc.declare_fn("pow",        vec![any(), any()],   Type::Float);
-        tc.declare_fn("abs",        vec![any()],          any());
-        tc.declare_fn("floor",      vec![any()],          Type::Int);
-        tc.declare_fn("ceil",       vec![any()],          Type::Int);
-        tc.declare_fn("round",      vec![any()],          Type::Int);
-        tc.declare_fn("min",        vec![any(), any()],   any());
-        tc.declare_fn("max",        vec![any(), any()],   any());
-        tc.declare_fn("pi",         vec![],               Type::Float);
-        tc.declare_fn("e",          vec![],               Type::Float);
-        tc.declare_fn("inf",        vec![],               Type::Float);
-        tc.declare_fn("nan",        vec![],               Type::Float);
-        tc.declare_fn("log",        vec![any()],          Type::Float);
-        tc.declare_fn("log10",      vec![any()],          Type::Float);
-        tc.declare_fn("sin",        vec![any()],          Type::Float);
-        tc.declare_fn("cos",        vec![any()],          Type::Float);
-        tc.declare_fn("tan",        vec![any()],          Type::Float);
-        // inverse trig
-        tc.declare_fn("asin",       vec![any()],          Type::Float);
-        tc.declare_fn("acos",       vec![any()],          Type::Float);
-        tc.declare_fn("atan",       vec![any()],          Type::Float);
-        tc.declare_fn("atan2",      vec![any(), any()],   Type::Float);
-        // hyperbolic
-        tc.declare_fn("sinh",       vec![any()],          Type::Float);
-        tc.declare_fn("cosh",       vec![any()],          Type::Float);
-        tc.declare_fn("tanh",       vec![any()],          Type::Float);
-        // exponential / logarithm
-        tc.declare_fn("exp",        vec![any()],          Type::Float);
-        tc.declare_fn("log2",       vec![any()],          Type::Float);
-        tc.declare_fn("log_base",   vec![any(), any()],   Type::Float);
-        // number theory
-        tc.declare_fn("factorial",  vec![any()],          Type::Int);
-        tc.declare_fn("gcd",        vec![any(), any()],   Type::Int);
-        tc.declare_fn("lcm",        vec![any(), any()],   Type::Int);
-        // geometry
-        tc.declare_fn("hypot",      vec![any(), any()],   Type::Float);
-        tc.declare_fn("deg_to_rad", vec![any()],          Type::Float);
-        tc.declare_fn("rad_to_deg", vec![any()],          Type::Float);
-        // utilities
-        tc.declare_fn("sign",       vec![any()],          Type::Int);
+        // lists and maps
+        tc.declare_fn("append",     vec![Type::List, any()], Type::Void);
+        tc.declare_fn("pop",        vec![Type::List],        any());
+        tc.declare_fn("keys",       vec![Type::List],        Type::List);
+        tc.declare_fn("map_keys",   vec![Type::Map],         Type::List);
+        tc.declare_fn("map_values", vec![Type::Map],         Type::List);
+        tc.declare_fn("map_has",    vec![Type::Map, any()],  Type::Bool);
+        tc.declare_fn("map_remove", vec![Type::Map, any()],  Type::Void);
+
+        // math
+        tc.declare_fn("sqrt",       vec![any()],               Type::Float);
+        tc.declare_fn("pow",        vec![any(), any()],        Type::Float);
+        tc.declare_fn("exp",        vec![any()],               Type::Float);
+        tc.declare_fn("log",        vec![any()],               Type::Float);
+        tc.declare_fn("log10",      vec![any()],               Type::Float);
+        tc.declare_fn("log2",       vec![any()],               Type::Float);
+        tc.declare_fn("log_base",   vec![any(), any()],        Type::Float);
+        tc.declare_fn("sin",        vec![any()],               Type::Float);
+        tc.declare_fn("cos",        vec![any()],               Type::Float);
+        tc.declare_fn("tan",        vec![any()],               Type::Float);
+        tc.declare_fn("asin",       vec![any()],               Type::Float);
+        tc.declare_fn("acos",       vec![any()],               Type::Float);
+        tc.declare_fn("atan",       vec![any()],               Type::Float);
+        tc.declare_fn("atan2",      vec![any(), any()],        Type::Float);
+        tc.declare_fn("sinh",       vec![any()],               Type::Float);
+        tc.declare_fn("cosh",       vec![any()],               Type::Float);
+        tc.declare_fn("tanh",       vec![any()],               Type::Float);
+        tc.declare_fn("hypot",      vec![any(), any()],        Type::Float);
+        tc.declare_fn("deg_to_rad", vec![any()],               Type::Float);
+        tc.declare_fn("rad_to_deg", vec![any()],               Type::Float);
+        tc.declare_fn("pi",         vec![],                    Type::Float);
+        tc.declare_fn("e",          vec![],                    Type::Float);
+        tc.declare_fn("inf",        vec![],                    Type::Float);
+        tc.declare_fn("nan",        vec![],                    Type::Float);
+        tc.declare_fn("abs",        vec![any()],               any());
+        tc.declare_fn("floor",      vec![any()],               Type::Int);
+        tc.declare_fn("ceil",       vec![any()],               Type::Int);
+        tc.declare_fn("round",      vec![any()],               Type::Int);
+        tc.declare_fn("min",        vec![any(), any()],        any());
+        tc.declare_fn("max",        vec![any(), any()],        any());
         tc.declare_fn("clamp",      vec![any(), any(), any()], any());
-        tc.declare_fn("is_nan",     vec![any()],          Type::Bool);
-        tc.declare_fn("is_inf",     vec![any()],          Type::Bool);
+        tc.declare_fn("sign",       vec![any()],               Type::Int);
+        tc.declare_fn("factorial",  vec![Type::Int],           Type::Int);
+        tc.declare_fn("gcd",        vec![Type::Int, Type::Int], Type::Int);
+        tc.declare_fn("lcm",        vec![Type::Int, Type::Int], Type::Int);
+        tc.declare_fn("is_nan",     vec![any()],               Type::Bool);
+        tc.declare_fn("is_inf",     vec![any()],               Type::Bool);
 
-        // ── stats ─────────────────────────────────────────────────────────────
-        tc.declare_fn("sum",                  vec![Type::List],             Type::Float);
-        tc.declare_fn("mean",                 vec![Type::List],             Type::Float);
-        tc.declare_fn("min_list",             vec![Type::List],             Type::Float);
-        tc.declare_fn("max_list",             vec![Type::List],             Type::Float);
-        tc.declare_fn("median",               vec![Type::List],             Type::Float);
-        tc.declare_fn("variance",             vec![Type::List],             Type::Float);
-        tc.declare_fn("stdev",                vec![Type::List],             Type::Float);
-        tc.declare_fn("count",                vec![Type::List],             Type::Int);
-        // sample
-        tc.declare_fn("variance_sample",      vec![Type::List],             Type::Float);
-        tc.declare_fn("stdev_sample",         vec![Type::List],             Type::Float);
-        // descriptive
-        tc.declare_fn("percentile",           vec![Type::List, any()],      Type::Float);
-        tc.declare_fn("iqr",                  vec![Type::List],             Type::Float);
-        tc.declare_fn("zscore",               vec![Type::List],             Type::List);
-        tc.declare_fn("covariance",           vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("mode",                 vec![Type::List],             Type::Float);
-        tc.declare_fn("range_stat",           vec![Type::List],             Type::Float);
-        // correlation
-        tc.declare_fn("pearson_r",            vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("spearman_r",           vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("kendall_tau",          vec![Type::List, Type::List], Type::Float);
-        // test statistics
-        tc.declare_fn("t_stat_independent",   vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("t_degrees_of_freedom", vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("t_stat_paired",        vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("mann_whitney_u",       vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("wilcoxon_w",           vec![Type::List, Type::List], Type::Float);
-        // normality
-        tc.declare_fn("shapiro_wilk_w",       vec![Type::List],             Type::Float);
-        // p-values
-        tc.declare_fn("p_value_t_ind",        vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("p_value_t_paired",     vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("p_value_normal",       vec![any()],                  Type::Float);
-        tc.declare_fn("p_value_mann_whitney", vec![Type::List, Type::List], Type::Float);
+        // random
+        tc.declare_fn("seed",         vec![Type::Int],               Type::Void);
+        tc.declare_fn("rand_int",     vec![Type::Int, Type::Int],    Type::Int);
+        tc.declare_fn("rand_uniform", vec![Type::Int, any(), any()], Type::List);
+        tc.declare_fn("rand_normal",  vec![Type::Int, any(), any()], Type::List);
+        tc.declare_fn("shuffle",      vec![Type::List],              Type::List);
 
-        // ── fs ────────────────────────────────────────────────────────────
-        tc.declare_fn("read_file",   vec![Type::Str],            Type::Str);
-        tc.declare_fn("write_file",  vec![Type::Str, Type::Str], Type::Bool);
-        tc.declare_fn("append_file", vec![Type::Str, Type::Str], Type::Bool);
-        tc.declare_fn("file_exists", vec![Type::Str],            Type::Bool);
+        // aggregation (int or float, following the list's element type)
+        tc.declare_fn("sum",      vec![Type::List], any());
+        tc.declare_fn("mean",     vec![Type::List], Type::Float);
+        tc.declare_fn("min_list", vec![Type::List], any());
+        tc.declare_fn("max_list", vec![Type::List], any());
 
-        // ── ai — activation functions ─────────────────────────────────────
-        tc.declare_fn("sigmoid",    vec![any()],          Type::Float);
-        tc.declare_fn("relu",       vec![any()],          Type::Float);
-        tc.declare_fn("leaky_relu", vec![any(), any()],   Type::Float);
-        tc.declare_fn("tanh_act",   vec![any()],          Type::Float);
-        tc.declare_fn("elu",        vec![any(), any()],   Type::Float);
-        tc.declare_fn("gelu",       vec![any()],          Type::Float);
-        tc.declare_fn("swish",      vec![any()],          Type::Float);
+        // json
+        tc.declare_fn("json_encode", vec![any()],     Type::Str);
+        tc.declare_fn("json_decode", vec![Type::Str], any());
 
-        // ── ai — vector operations ────────────────────────────────────────
-        tc.declare_fn("dot",       vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("norm",      vec![Type::List],             Type::Float);
-        tc.declare_fn("vec_add",   vec![Type::List, Type::List], Type::List);
-        tc.declare_fn("vec_sub",   vec![Type::List, Type::List], Type::List);
-        tc.declare_fn("vec_mul",   vec![Type::List, Type::List], Type::List);
-        tc.declare_fn("vec_scale", vec![Type::List, any()],      Type::List);
-        tc.declare_fn("vec_sum",   vec![Type::List],             Type::Float);
+        // fs
+        tc.declare_fn("read_file",        vec![Type::Str],            Type::Str);
+        tc.declare_fn("write_file",       vec![Type::Str, Type::Str], Type::Bool);
+        tc.declare_fn("append_file",      vec![Type::Str, Type::Str], Type::Bool);
+        tc.declare_fn("file_exists",      vec![Type::Str],            Type::Bool);
+        tc.declare_fn("read_json",        vec![Type::Str],            any());
+        tc.declare_fn("write_json",       vec![Type::Str, any()],     Type::Bool);
+        tc.declare_fn("append_json_line", vec![Type::Str, any()],     Type::Bool);
 
-        // ── ai — classification ───────────────────────────────────────────
-        tc.declare_fn("softmax", vec![Type::List], Type::List);
-        tc.declare_fn("argmax",  vec![Type::List], Type::Int);
+        // net
+        tc.declare_fn("tcp_connect",   vec![Type::Str, Type::Int],            Type::Int);
+        tc.declare_fn("tcp_send",      vec![Type::Int, Type::Str],            Type::Bool);
+        tc.declare_fn("tcp_recv",      vec![Type::Int],                       Type::Str);
+        tc.declare_fn("tcp_recv_all",  vec![Type::Int],                       Type::Str);
+        tc.declare_fn("tcp_close",     vec![Type::Int],                       Type::Bool);
+        tc.declare_fn("udp_send",      vec![Type::Str, Type::Int, Type::Str], Type::Bool);
+        tc.declare_fn("tcp_send_json", vec![Type::Int, any()],                Type::Bool);
+        tc.declare_fn("tcp_recv_json", vec![Type::Int],                       any());
 
-        // ── ai — matrix operations ────────────────────────────────────────
-        tc.declare_fn("matrix_new", vec![any(), any(), any()],                    Type::List);
-        tc.declare_fn("matrix_mul", vec![Type::List, Type::List, any(), any(), any()], Type::List);
-        tc.declare_fn("matrix_add", vec![Type::List, Type::List],                 Type::List);
-        tc.declare_fn("transpose",  vec![Type::List, any(), any()],               Type::List);
-
-        // ── ai — data preprocessing ───────────────────────────────────────
-        tc.declare_fn("normalize",   vec![Type::List],           Type::List);
-        tc.declare_fn("standardize", vec![Type::List],           Type::List);
-        tc.declare_fn("clip",        vec![Type::List, any(), any()], Type::List);
-        tc.declare_fn("linspace",    vec![any(), any(), any()],  Type::List);
-        tc.declare_fn("arange",      vec![any(), any(), any()],  Type::List);
-
-        // ── ai — loss functions ───────────────────────────────────────────
-        tc.declare_fn("mse",                  vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("mae",                  vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("cross_entropy",        vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("binary_cross_entropy", vec![Type::List, Type::List], Type::Float);
-
-        // ── ai — random ───────────────────────────────────────────────────
-        tc.declare_fn("seed",         vec![any()],              Type::Null);
-        tc.declare_fn("rand_uniform", vec![any(), any(), any()], Type::List);
-        tc.declare_fn("rand_normal",  vec![any(), any(), any()], Type::List);
-        tc.declare_fn("rand_int",     vec![any(), any()],       Type::Int);
-        tc.declare_fn("shuffle",      vec![Type::List],         Type::List);
-
-        // ── ai — gradients and optimization ──────────────────────────────
-        tc.declare_fn("gradient_clip", vec![Type::List, any()],          Type::List);
-        tc.declare_fn("sgd_update",    vec![Type::List, Type::List, any()], Type::List);
-        tc.declare_fn("adam_update",   vec![
-            Type::List, Type::List, Type::List, Type::List,
-            any(), any(), any(), any(), any(),
-        ], Type::List);
-
-        // ── ai — classification metrics ───────────────────────────────────
-        tc.declare_fn("accuracy",  vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("precision", vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("recall",    vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("f1_score",  vec![Type::List, Type::List], Type::Float);
-
-        // ── ai — distance functions ───────────────────────────────────────
-        tc.declare_fn("cosine_similarity", vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("euclidean_dist",    vec![Type::List, Type::List], Type::Float);
-        tc.declare_fn("manhattan_dist",    vec![Type::List, Type::List], Type::Float);
-
-        // ── net ───────────────────────────────────────────────────────────
-        tc.declare_fn("tcp_connect", vec![Type::Str, Type::Int],            Type::Int);
-        tc.declare_fn("tcp_send",    vec![Type::Int, Type::Str],            Type::Bool);
-        tc.declare_fn("tcp_recv",    vec![Type::Int],                       Type::Str);
-        tc.declare_fn("tcp_close",   vec![Type::Int],                       Type::Bool);
-        tc.declare_fn("udp_send",    vec![Type::Str, Type::Int, Type::Str], Type::Bool);
-
-        // ── http server ───────────────────────────────────────────────────
+        // http server
         tc.declare_fn("http_listen",       vec![Type::Int],            Type::Bool);
         tc.declare_fn("http_accept",       vec![],                     Type::Bool);
         tc.declare_fn("http_method",       vec![],                     Type::Str);
@@ -238,7 +158,7 @@ impl TypeChecker {
         tc.declare_fn("http_respond",      vec![Type::Int, Type::Str], Type::Bool);
         tc.declare_fn("http_respond_json", vec![Type::Int, Type::Str], Type::Bool);
 
-        // ── http client ───────────────────────────────────────────────────
+        // http client
         tc.declare_fn("http_get",    vec![Type::Str],            Type::Str);
         tc.declare_fn("http_post",   vec![Type::Str, Type::Str], Type::Str);
         tc.declare_fn("http_put",    vec![Type::Str, Type::Str], Type::Str);
@@ -246,47 +166,16 @@ impl TypeChecker {
         tc.declare_fn("http_delete", vec![Type::Str],            Type::Str);
         tc.declare_fn("http_status", vec![],                     Type::Int);
 
-        // ── ws ────────────────────────────────────────────────────────────
-        tc.declare_fn("ws_listen",    vec![Type::Int],            Type::Bool);
-        tc.declare_fn("ws_accept",    vec![],                     Type::Int);
-        tc.declare_fn("ws_clients",   vec![],                     Type::List);
-        tc.declare_fn("ws_send",      vec![Type::Int, Type::Str], Type::Bool);
-        tc.declare_fn("ws_recv",      vec![Type::Int],            Type::Str);
-        tc.declare_fn("ws_broadcast", vec![Type::Str],            Type::Bool);
-        tc.declare_fn("ws_close",     vec![Type::Int],            Type::Bool);
-
-        // ── json ──────────────────────────────────────────────────────────
-        tc.declare_fn("json_encode", vec![any()],                Type::Str);
-        tc.declare_fn("json_decode", vec![Type::Str], any());
-        tc.declare_fn("json_get",    vec![Type::Str, Type::Str], Type::Str);
-        tc.declare_fn("json_has",    vec![Type::Str, Type::Str], Type::Bool);
-
-        // ── db — sqlite ───────────────────────────────────────────────────
-        tc.declare_fn("db_open",        vec![Type::Str],            Type::Int);
-        tc.declare_fn("db_open_memory", vec![],                     Type::Int);
-        tc.declare_fn("db_close",       vec![Type::Int],            Type::Bool);
-        tc.declare_fn("db_exec",        vec![Type::Int, Type::Str], Type::Int);
-        tc.declare_fn("db_query",       vec![Type::Int, Type::Str], Type::List);
-        tc.declare_fn("db_query_rows",  vec![Type::Int, Type::Str], Type::List);
-        tc.declare_fn("db_last_id",     vec![Type::Int],            Type::Int);
-        tc.declare_fn("db_begin",       vec![Type::Int],            Type::Bool);
-        tc.declare_fn("db_commit",      vec![Type::Int],            Type::Bool);
-        tc.declare_fn("db_rollback",    vec![Type::Int],            Type::Bool);
-        tc.declare_fn("db_error",       vec![Type::Int],            Type::Str);
-        tc.declare_fn("db_tables",      vec![Type::Int],            Type::List);
-        tc.declare_fn("db_columns",     vec![Type::Int, Type::Str], Type::List);
-
-        // ── db — postgresql ───────────────────────────────────────────────
-        tc.declare_fn("pg_connect",  vec![Type::Str, Type::Int, Type::Str, Type::Str, Type::Str], Type::Int);
-        tc.declare_fn("pg_exec",     vec![Type::Int, Type::Str], Type::Int);
-        tc.declare_fn("pg_query",    vec![Type::Int, Type::Str], Type::List);
-        tc.declare_fn("pg_query_rows", vec![Type::Int, Type::Str], Type::List);
-        tc.declare_fn("pg_last_id",  vec![Type::Int],            Type::Int);
-        tc.declare_fn("pg_begin",    vec![Type::Int],            Type::Bool);
-        tc.declare_fn("pg_commit",   vec![Type::Int],            Type::Bool);
-        tc.declare_fn("pg_rollback", vec![Type::Int],            Type::Bool);
-        tc.declare_fn("pg_close",    vec![Type::Int],            Type::Bool);
-        tc.declare_fn("pg_error",    vec![Type::Int],            Type::Str);
+        // ws
+        tc.declare_fn("ws_listen",         vec![Type::Int],            Type::Bool);
+        tc.declare_fn("ws_accept",         vec![],                     Type::Int);
+        tc.declare_fn("ws_clients",        vec![],                     Type::List);
+        tc.declare_fn("ws_send",           vec![Type::Int, Type::Str], Type::Bool);
+        tc.declare_fn("ws_recv",           vec![Type::Int],            Type::Str);
+        tc.declare_fn("ws_broadcast",      vec![Type::Str],            Type::Bool);
+        tc.declare_fn("ws_close",          vec![Type::Int],            Type::Bool);
+        tc.declare_fn("ws_send_json",      vec![Type::Int, any()],     Type::Bool);
+        tc.declare_fn("ws_broadcast_json", vec![any()],                Type::Bool);
 
         tc
     }

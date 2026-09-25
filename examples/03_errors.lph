@@ -1,0 +1,28 @@
+# 03_errors.lph — runtime errors and try/catch.
+#
+# Natives report bad input as runtime errors; try/catch turns them into
+# values. The caught value is the error message (str).
+
+fn safe_div(a: int, b: int) -> int:
+    try:
+        return a / b
+    catch e:
+        print("caught:", e)
+        return 0
+
+print(safe_div(10, 2))
+print(safe_div(1, 0))
+
+# int and float never mix implicitly: use to_float / to_int.
+var total: float = to_float(3) + 0.5
+print(total)
+
+try:
+    print(json_decode("{not json}"))
+catch e:
+    print("bad json:", e)
+
+try:
+    print(min(1, 2.0))
+catch e:
+    print("mixed types:", e)

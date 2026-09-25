@@ -1,0 +1,20 @@
+# 06_json_files.lph — files and JSON.
+#
+# Writes example_data.json and example_log.jsonl in the current directory.
+
+var config: map = {"name": "demo", "version": 1, "tags": ["a", "b"], "ratio": 0.5}
+write_json("example_data.json", config)
+
+var loaded: map = read_json("example_data.json")
+print(loaded["name"], loaded["tags"], loaded["ratio"])
+
+# JSON Lines: one document per line, good for append-only logs.
+append_json_line("example_log.jsonl", {"event": "start"})
+append_json_line("example_log.jsonl", {"event": "stop"})
+print(read_file("example_log.jsonl"))
+
+# Plain text files.
+write_file("example_notes.txt", "first line\n")
+append_file("example_notes.txt", "second line\n")
+print(split(trim(read_file("example_notes.txt")), "\n"))
+print(file_exists("example_notes.txt"), file_exists("missing.txt"))

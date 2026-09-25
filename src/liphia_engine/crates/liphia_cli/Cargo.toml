@@ -9,4 +9,3 @@ liphia_compiler        = { path = "../liphia_compiler" }
 liphia_virtual_machine = { path = "../liphia_virtual_machine" }
 liphia_bytecode        = { path = "../liphia_bytecode" }
 liphia_core_native     = { path = "../liphia_core_native" }
-liphia_stdlib_native   = { path = "../../../stdlib/native" }

@@ -1,43 +1,42 @@
 // liphia_virtual_machine/src/external.rs
 //
-// External native modules — dynamic loading of stdlib driver crates that
-// are NOT compiled into the liphia_cli / liphia_cli_gui binary.
+// Native packages: dynamic loading of prebuilt libraries that are NOT
+// compiled into the liphia_cli / liphia_cli_gui binary.
 //
-// Why: some stdlib modules (e.g. "db", which pulls in rusqlite and a
-// hand-rolled Postgres wire-protocol client) are heavy and only needed by
-// some projects. Instead of baking every driver into every binary via
-// `liphia_stdlib_native::register_all`, a module can ship as a prebuilt
-// shared library (.so / .dylib / .dll) that the VM loads on demand.
+// Everything outside liphia_core_native is a package (src/packages/<name>/).
+// Pure packages are only .lph files; native packages (db, num, stats,
+// learn) also ship a shared library (.so / .dylib / .dll) that this loader
+// dlopens when the package is installed.
 //
-// A module opts into this by shipping an `index.lph` manifest next to its
-// `<name>.lph` docs file, inside the module's directory:
+// A native package opts in by shipping an `index.lph` manifest in its
+// directory, next to its `<name>.lph` entry file:
 //
-//   stdlib/modules/db/
-//     db.lph          — Liphia-facing docs / composed layer (as before)
-//     module.toml     — metadata
-//     index.lph        <- NEW: external-load manifest, read by the VM
+//   liphia_modules/db/
+//     db.lph          Liphia-facing entry (docs + composed functions)
+//     module.toml     metadata
+//     index.lph       load manifest, read by this loader
 //     lib/
-//       liblip hia_module_db.so   <- NEW: prebuilt native library
+//       liphia_package_db.dll   (or libliphia_package_db.so / .dylib)
 //
-// index.lph is not compiled or executed like a normal .lph source file —
-// it is a small line-oriented manifest read directly by this loader:
+// index.lph is not compiled or executed like a normal .lph source file.
+// It is a small line-oriented manifest:
 //
 //   # comments start with '#', blank lines are ignored
-//   external "liphia_module_db"
+//   external "liphia_package_db"
 //
-// Each `external "<name>"` line names a native library (no prefix/suffix)
-// that lives under `<module_dir>/lib/`. The loader resolves the
-// platform-appropriate file name (`lib<name>.so`, `<name>.dll`,
-// `lib<name>.dylib`) via `std::env::consts::{DLL_PREFIX, DLL_SUFFIX}`,
-// dlopens it, and calls its `liphia_register_module` entry point — a
-// `#[no_mangle] extern "C" fn(*mut VM)` that registers the module's native
-// functions with `VM::register_native`, exactly like a statically-linked
-// module would in its own `register(vm: &mut VM)`.
+// Each `external "<n>"` line names a library (no prefix/suffix) under
+// `<package_dir>/lib/`. The loader resolves the platform file name
+// (`lib<n>.so`, `<n>.dll`, `lib<n>.dylib`) via
+// `std::env::consts::{DLL_PREFIX, DLL_SUFFIX}`, dlopens it, and calls its
+// `liphia_register_module` entry point, a `#[no_mangle] extern "C"
+// fn(*mut VM)` that registers the package's natives with
+// `VM::register_native`.
 //
-// The dynamic library MUST be built against the same `liphia_virtual_machine`
-// version (and ideally the same rustc toolchain) as the host binary: Rust
-// has no stable ABI across compiler versions, so this is an accepted
-// constraint of the plugin architecture, not a guarantee of the language.
+// The library MUST be built against the same `liphia_virtual_machine`
+// version and the same rustc toolchain as the host binary: Rust has no
+// stable ABI, so a mismatched build is undefined behavior. This is why the
+// package crates live in the same Cargo workspace (src/packages/*/native).
+// A C ABI ("c-1") will lift this constraint later.
 
 use std::fs;
 use std::path::{Path, PathBuf};

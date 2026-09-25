@@ -1,0 +1,20 @@
+# 12_stats.lph — hypothesis tests.
+#
+#   liphia install stats     (pulls num in as a dependency)
+#   liphia 12_stats.lph
+
+import from "stats"
+
+var control: list = [5.1, 4.9, 5.3, 5.0, 5.2, 4.8, 5.1, 5.0, 4.9, 5.2]
+var treated: list = [5.6, 5.4, 5.9, 5.5, 5.7, 5.3, 5.8, 5.6, 5.5, 5.9]
+
+print("shapiro control", shapiro_wilk_w(control))
+print("welch t", t_stat_independent(control, treated), "df", t_degrees_of_freedom(control, treated))
+print("p (welch)", p_value_t_ind(control, treated))
+
+# compare_groups picks the test from the normality check.
+print(compare_groups(control, treated, false))
+
+var before: list = [72.0, 75.0, 71.0, 80.0, 77.0, 74.0, 79.0, 73.0]
+var after: list = [70.0, 72.0, 70.5, 76.0, 75.5, 71.0, 77.0, 72.5]
+print(compare_groups(before, after, true))

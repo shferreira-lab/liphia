@@ -1,0 +1,19 @@
+# 05_math_random.lph — scalar math, aggregation and random numbers.
+#
+# All of this is core: no import needed.
+
+print(sqrt(2), pow(2, 8), abs(-3), round(2.6), floor(-1.5))
+print(sin(pi() / 2.0), log2(1024), hypot(3, 4))
+print(min(3, 7), max(2.5, 1.5), clamp(12, 0, 10))
+print(gcd(84, 36), lcm(4, 10), factorial(10))
+
+# Lists must be all int or all float.
+var scores: list = [72, 91, 85, 60]
+print("sum", sum(scores), "mean", mean(scores), "min", min_list(scores), "max", max_list(scores))
+
+# Seeded runs are reproducible; without seed() every run differs.
+seed(2026)
+print("dice:", rand_int(1, 7), rand_int(1, 7), rand_int(1, 7))
+print("uniform:", rand_uniform(3, 0.0, 1.0))
+print("normal:", rand_normal(3, 100.0, 15.0))
+print("shuffled:", shuffle(["x", "y", "z"]))

@@ -1,0 +1,69 @@
+# packages/num/num.lph
+#
+# num — vectors, matrices and descriptive statistics over lists.
+#
+# Install:  liphia install num
+# Usage:    import from "num"
+#
+# The natives below come from lib/ (loaded by the VM once the package is
+# installed). sum, mean, min_list and max_list are core natives and need
+# no package.
+#
+# ── Vectors ───────────────────────────────────────────────────────────────────
+#
+# dot(a: list, b: list) -> float            same length required
+# norm(v: list) -> float                    Euclidean (L2) norm
+# vec_add(a: list, b: list) -> list         element-wise a + b
+# vec_sub(a: list, b: list) -> list         element-wise a - b
+# vec_mul(a: list, b: list) -> list         element-wise a * b
+# vec_scale(v: list, k: float) -> list      every element times k
+# argmax(v: list) -> int                    index of the largest element
+#
+# ── Matrices (flat row-major lists, shape passed explicitly) ─────────────────
+#
+# matrix_new(rows: int, cols: int, fill: float) -> list
+# matrix_mul(a: list, b: list, rows: int, inner: int, cols: int) -> list
+#   a is rows x inner, b is inner x cols, result is rows x cols
+# matrix_add(a: list, b: list) -> list
+# transpose(m: list, rows: int, cols: int) -> list
+#
+# ── Generation and scaling ────────────────────────────────────────────────────
+#
+# linspace(start: float, end: float, n: int) -> list   n points, end included
+# arange(start: float, end: float, step: float) -> list end excluded
+# normalize(v: list) -> list      min-max scaling to [0, 1]
+# standardize(v: list) -> list    population z-scores (divides by n)
+# zscore(v: list) -> list         sample z-scores (divides by n - 1)
+# clip(v: list, min: float, max: float) -> list
+#
+# ── Distances ─────────────────────────────────────────────────────────────────
+#
+# cosine_similarity(a: list, b: list) -> float
+# euclidean_dist(a: list, b: list) -> float
+# manhattan_dist(a: list, b: list) -> float
+#
+# ── Descriptive statistics ────────────────────────────────────────────────────
+#
+# median(v: list) -> float
+# variance(v: list) -> float          population (divides by n)
+# stdev(v: list) -> float             population
+# variance_sample(v: list) -> float   sample (divides by n - 1)
+# stdev_sample(v: list) -> float      sample
+# percentile(v: list, p: float) -> float   linear interpolation, p in [0, 100]
+# iqr(v: list) -> float               Q3 - Q1
+# mode(v: list) -> float              most frequent value
+# range_stat(v: list) -> float        max - min
+# covariance(x: list, y: list) -> float    sample covariance
+#
+# ── Correlation ───────────────────────────────────────────────────────────────
+#
+# pearson_r(x: list, y: list) -> float     linear
+# spearman_r(x: list, y: list) -> float    rank-based
+# kendall_tau(x: list, y: list) -> float   rank concordance
+#
+# ── Composed (composed/describe.lph) ──────────────────────────────────────────
+#
+# describe(data: list) -> map
+#   n, mean, median, stdev (sample), min, max, q1, q3, iqr in one map.
+
+import "composed/describe.lph"

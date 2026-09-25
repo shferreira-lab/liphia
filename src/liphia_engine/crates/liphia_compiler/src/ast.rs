@@ -17,8 +17,11 @@ pub enum Type {
 impl Type {
     pub fn is_compatible(&self, other: &Type) -> bool {
         if self == other { return true; }
-        if let Type::Named(n) = self  { if n == "any" { return true; } }
-        if let Type::Named(n) = other { if n == "any" { return true; } }
+        // "any" accepts everything. "unknown" is the type of a call to a
+        // function the checker has no signature for (a package native
+        // resolved by the VM at runtime), so it is not rejected either.
+        let open = |t: &Type| matches!(t, Type::Named(n) if n == "any" || n == "unknown");
+        if open(self) || open(other) { return true; }
         if let Type::Optional(_) = self {
             if other == &Type::Null { return true; }
         }

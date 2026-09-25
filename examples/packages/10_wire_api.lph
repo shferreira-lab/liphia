@@ -1,0 +1,46 @@
+# 10_wire_api.lph — JSON API with the wire package.
+#
+#   liphia install wire
+#   liphia 10_wire_api.lph
+#   curl localhost:8081/users/1
+#   curl -X POST localhost:8081/users -d '{"name": "bia"}'
+
+import from "wire"
+
+var users: list = [{"id": 1, "name": "ana"}]
+
+fn find_user(id: int) -> any:
+    for i from 0 to len(users):
+        if users[i]["id"] == id:
+            return users[i]
+    return null
+
+fn route(method: str, path: str) -> void:
+    if method == "GET" and starts_with(path, "/users/"):
+        var id: int = to_int(replace(path, "/users/", ""))
+        var user = find_user(id)
+        if user == null:
+            not_found_json("user " + to_str(id) + " not found")
+        else:
+            ok_json(user)
+    elif method == "POST" and path == "/users":
+        try:
+            var body: map = json_decode(http_body())
+            if not map_has(body, "name"):
+                bad_request_json("field 'name' is required")
+                return
+            var user: map = {"id": len(users) + 1, "name": body["name"]}
+            append(users, user)
+            created_json(user)
+        catch e:
+            bad_request_json(e)
+    else:
+        not_found_json("no route for " + method + " " + path)
+
+async fn serve(port: int) -> void:
+    http_listen(port)
+    while true:
+        await http_accept()
+        route(http_method(), http_path())
+
+spawn serve(8081)

@@ -1,0 +1,22 @@
+[package]
+name    = "liphia_cli_gui"
+version = "1.0.0"
+edition = "2021"
+
+# Desktop-only GUI host. Not a default-member: build explicitly with
+#   cargo build -p liphia_cli_gui --release
+[[bin]]
+name = "liphia_cli_gui"
+path = "src/main.rs"
+
+[dependencies]
+eframe   = "0.34.3"
+pollster = "0.3"
+rfd      = { version = "0.15", default-features = false, features = ["async-std", "gtk3"] }
+
+liphia_compiler        = { path = "../liphia_compiler" }
+liphia_pipeline        = { path = "../liphia_pipeline" }
+liphia_virtual_machine = { path = "../liphia_virtual_machine" }
+liphia_gui_native      = { path = "../liphia_gui_native" }
+liphia_core_native     = { path = "../liphia_core_native" }
+liphia_stdlib_native   = { path = "../../../stdlib/native" }

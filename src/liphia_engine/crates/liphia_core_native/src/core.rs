@@ -18,12 +18,18 @@
 //   append(list, value)           → null     add element to end of list (in-place)
 //   pop(list)                     → any      remove and return last element
 //   keys(list)                    → list     returns list of integer indices [0, 1, 2, ...]
+//   map_keys(map)                 → list     keys in insertion order
+//   map_values(map)               → list     values in insertion order
+//   map_has(map, key)             → bool
+//   map_remove(map, key)          → null     no-op when the key is absent
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use liphia_virtual_machine::value::Value;
 use liphia_virtual_machine::vm::{VmError, VmResult, VM};
+
+use crate::util::expect_args;
 
 pub fn register(vm: &mut VM) {
     vm.register_native("len",         native_len);
@@ -262,17 +268,5 @@ fn native_keys(args: Vec<Value>) -> VmResult<Value> {
             Ok(Value::List(Rc::new(RefCell::new(indices))))
         }
         _ => Err(VmError::new("keys() requires a list")),
-    }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-fn expect_args(name: &str, args: &[Value], expected: usize) -> VmResult<()> {
-    if args.len() != expected {
-        Err(VmError::new(format!(
-            "{}() expects {} argument(s), got {}", name, expected, args.len()
-        )))
-    } else {
-        Ok(())
     }
 }

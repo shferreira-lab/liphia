@@ -1,0 +1,5 @@
+# spawn passes arguments in declaration order, like a normal call.
+async fn show(name: str, n: int) -> void:
+    print(name, n)
+
+spawn show("a", 2)

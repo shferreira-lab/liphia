@@ -95,12 +95,13 @@ struct Task {
 }
 
 impl Task {
+    // `args` arrives in call order (first argument first), which is the
+    // same layout Call leaves on the stack: the function prologue pops the
+    // last parameter first. Reversing here would swap the arguments.
     fn new(pc: usize, args: Vec<Value>) -> Self {
-        let mut stack = args;
-        stack.reverse();
         Self {
             pc,
-            stack,
+            stack: args,
             locals: vec![],
             frames: vec![],
             handlers: vec![],
@@ -455,7 +456,7 @@ impl VM {
                     task.stack.push(result);
                 } else {
                     return Err(VmError::new(format!(
-                        "unresolved call to '{}' — not defined and not in stdlib",
+                        "unresolved call to '{}' — not defined, not a core native, and no loaded package provides it",
                         name
                     )));
                 }

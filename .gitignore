@@ -21,10 +21,9 @@ target/
 
 
 
-# exception - binaries 
-!src/stdlib/modules/**/lib/*.dll
-!src/stdlib/modules/**/lib/*.so
-!src/stdlib/modules/**/lib/*.dylib
+# exception - binaries
+!src/packages/*/lib/** 
+
 
 # Build artifacts
 dist/
@@ -62,15 +61,6 @@ desktop.ini
 .env.local
 
 # 
-/notas
-/examples_me
-notes/
-
-# python
-
-.venv/
+/notes
 
 
-# Android release signing — never commit
-*.jks
-*.keystore

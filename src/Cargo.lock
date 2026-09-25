@@ -1936,7 +1936,6 @@ dependencies = [
  "liphia_compiler",
  "liphia_core_native",
  "liphia_pipeline",
- "liphia_stdlib_native",
  "liphia_virtual_machine",
 ]
 
@@ -1949,7 +1948,6 @@ dependencies = [
  "liphia_core_native",
  "liphia_gui_native",
  "liphia_pipeline",
- "liphia_stdlib_native",
  "liphia_virtual_machine",
  "pollster 0.3.0",
  "rfd",
@@ -1977,8 +1975,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "liphia_module_db"
-version = "1.1.0"
+name = "liphia_package_db"
+version = "2.0.0"
 dependencies = [
  "liphia_virtual_machine",
  "md-5",
@@ -1986,17 +1984,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "liphia_pipeline"
+name = "liphia_package_learn"
 version = "1.0.0"
 dependencies = [
- "liphia_compiler",
  "liphia_virtual_machine",
 ]
 
 [[package]]
-name = "liphia_stdlib_native"
+name = "liphia_package_num"
 version = "1.0.0"
 dependencies = [
+ "liphia_virtual_machine",
+]
+
+[[package]]
+name = "liphia_package_stats"
+version = "1.0.0"
+dependencies = [
+ "liphia_virtual_machine",
+]
+
+[[package]]
+name = "liphia_pipeline"
+version = "1.0.0"
+dependencies = [
+ "liphia_compiler",
  "liphia_virtual_machine",
 ]
 

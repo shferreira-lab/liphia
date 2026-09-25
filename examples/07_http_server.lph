@@ -1,0 +1,28 @@
+# 07_http_server.lph — HTTP server with core natives only.
+#
+#   liphia 07_http_server.lph
+#   curl localhost:8080/hello
+#   curl -X POST localhost:8080/echo -d '{"x": 1}'
+#
+# http_accept() is non-blocking; `await` suspends the task until a request
+# is queued, so other spawned tasks keep running meanwhile.
+
+fn route(method: str, path: str) -> void:
+    if method == "GET" and path == "/hello":
+        http_respond_json(200, json_encode({"message": "hello from liphia"}))
+    elif method == "POST" and path == "/echo":
+        try:
+            var body = json_decode(http_body())
+            http_respond_json(200, json_encode({"received": body}))
+        catch e:
+            http_respond_json(400, json_encode({"error": e}))
+    else:
+        http_respond_json(404, json_encode({"error": "not found: " + path}))
+
+async fn serve(port: int) -> void:
+    http_listen(port)
+    while true:
+        await http_accept()
+        route(http_method(), http_path())
+
+spawn serve(8080)

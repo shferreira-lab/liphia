@@ -1,0 +1,26 @@
+# packages/wire/wire.lph
+#
+# wire — application layer over the core http and ws natives.
+#
+# Install:  liphia install wire
+# Usage:    import from "wire"
+#
+# The transport (http_listen, http_accept, http_respond_json, ws_*) is core
+# and needs no import. wire adds conventions on top of it: response shapes
+# today; request parsing, routing, a JSON client (wire:client) and
+# realtime rooms (wire:realtime) are planned.
+#
+# ── Responses (respond.lph) ───────────────────────────────────────────────────
+#
+# Every helper encodes `data` with json_encode and answers the current
+# request (the one returned by the last http_accept). Errors use the shape
+# {"error": message}.
+#
+# ok_json(data: any) -> bool                  200
+# created_json(data: any) -> bool             201
+# no_content() -> bool                        204, no body
+# bad_request_json(message: str) -> bool      400
+# not_found_json(message: str) -> bool        404
+# error_json(status: int, message: str) -> bool   any status
+
+import "respond.lph"

@@ -1,0 +1,7 @@
+# packages/num/composed/describe.lph
+#
+# Summary of a dataset in one map. Uses core natives (len, mean, min_list,
+# max_list) plus num natives, so the list must be all int or all float.
+
+fn describe(data: list) -> map:
+    return {"n": len(data), "mean": mean(data), "median": median(data), "stdev": stdev_sample(data), "min": min_list(data), "max": max_list(data), "q1": percentile(data, 25.0), "q3": percentile(data, 75.0), "iqr": iqr(data)}

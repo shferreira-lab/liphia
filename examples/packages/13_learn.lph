@@ -1,0 +1,33 @@
+# 13_learn.lph — a tiny logistic regression trained with SGD.
+#
+#   liphia install learn     (pulls num in as a dependency)
+#   liphia 13_learn.lph
+#
+# One feature plus a bias; the label is 1 when x > 2.5.
+
+import from "num"
+import from "learn"
+
+var xs: list = [0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 4.5]
+var ys: list = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+
+var weights: list = [0.0, 0.0]
+
+fn predict(w: list, x: float) -> float:
+    return sigmoid(w[0] * x + w[1])
+
+for epoch from 0 to 300:
+    var grads: list = [0.0, 0.0]
+    for i from 0 to len(xs):
+        var error: float = predict(weights, xs[i]) - ys[i]
+        grads = vec_add(grads, [error * xs[i], error])
+    grads = vec_scale(grads, 1.0 / to_float(len(xs)))
+    weights = sgd_update(weights, grads, 0.5)
+
+var preds: list = []
+for i from 0 to len(xs):
+    append(preds, predict(weights, xs[i]))
+
+print("weights", weights)
+print("loss", binary_cross_entropy(preds, ys))
+print(classification_report(preds, ys))

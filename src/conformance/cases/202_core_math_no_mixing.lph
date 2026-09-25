@@ -1,0 +1,2 @@
+# min, max and clamp never promote int to float.
+print(min(1, 2.0))
