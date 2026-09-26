@@ -1,8 +1,8 @@
-# Liphia Language Reference — Engine 1.0.0
+# Liphia Language Reference — Engine 2.0.0
 
-Full syntax reference for the Liphia language. For build/run instructions and
-project setup, see the [root README](../../README.md). For the standard
-library, see [`docs/stdlib/`](../stdlib/README.md).
+Full syntax reference for the Liphia language. For installation and project
+setup, see the [root README](../../README.md). For the built-in functions,
+see [`docs/spec/core.md`](../spec/core.md).
 
 ---
 
@@ -23,7 +23,7 @@ library, see [`docs/stdlib/`](../stdlib/README.md).
 - [String interpolation — f-strings](#string-interpolation--f-strings)
 - [Async and concurrency](#async-and-concurrency)
 - [File imports](#file-imports)
-- [Stdlib modules](#stdlib-modules)
+- [Core and packages](#core-and-packages)
 - [Known limitations](#known-limitations)
 
 ---
@@ -39,16 +39,16 @@ print("Hello, world!")
 
 ## Primitive types
 
-| Type    | Description                             |
+| Type    | Description                              |
 |---------|------------------------------------------|
-| `int`   | 64-bit integer                          |
-| `float` | 64-bit floating-point                   |
-| `str`   | UTF-8 string                            |
-| `bool`  | Boolean: `true` or `false`              |
-| `list`  | Dynamic list                            |
-| `map`   | Associative key → value collection      |
-| `void`  | Return type for functions with no value |
-| `null`  | Null literal                            |
+| `int`   | 64-bit signed integer                    |
+| `float` | 64-bit floating-point                    |
+| `str`   | UTF-8 string                             |
+| `bool`  | Boolean: `true` or `false`               |
+| `list`  | Dynamic list                             |
+| `map`   | Associative key → value collection       |
+| `void`  | Return type for functions with no value  |
+| `null`  | Null literal                             |
 
 ---
 
@@ -56,8 +56,9 @@ print("Hello, world!")
 
 ```lph
 name: type = value      # typed declaration
+var name: type = value  # same, with var
 var name = value        # inferred declaration
-const NAME = value      # constant
+const NAME: type = value
 ```
 
 ```lph
@@ -96,9 +97,24 @@ print("Double:", n * 2)
 
 ## Operators
 
-**Arithmetic:** `+` (also string concat), `-`, `*`, `/`
+**Arithmetic:** `+` (also string concatenation), `-`, `*`, `/`
 **Comparison:** `==`, `!=`, `>`, `<`, `>=`, `<=`
-**Logical:** `and`, `or`, `not`
+**Logical:** `and`, `or`, `not` — `and` and `or` short-circuit: the right
+side is evaluated only when it can change the result.
+
+Arithmetic rules:
+
+- **`int` and `float` never mix implicitly.** `1 + 2.0` is a type error;
+  convert one side with `to_float()` or `to_int()`.
+- **`/` between two ints is integer division**, truncating toward zero:
+  `7 / 2` is `3`, `-7 / 2` is `-3`. Use floats for a fractional result.
+- **Integer overflow is an error**, never a wrap-around: `9223372036854775807 + 1`
+  stops with `integer overflow`.
+- **Division by zero is an error**, for ints and floats alike. Infinity and
+  NaN only exist through `inf()` and `nan()`.
+
+`%` and `**` are not available yet; use `pow()` and integer arithmetic
+until they arrive (see [Known limitations](#known-limitations)).
 
 ---
 
@@ -135,13 +151,13 @@ while i < 5:
     i = i + 1
 ```
 
-**For (range):**
+**For (range)** — the end value is excluded:
 ```lph
 for i from 0 to 5:
-    print(i)
+    print(i)            # 0 1 2 3 4
 
 for i from 0 to 10 step 2:
-    print(i)
+    print(i)            # 0 2 4 6 8
 ```
 
 **Break / continue:**
@@ -191,6 +207,15 @@ var last = pop(values)
 print("length:", len(values))
 ```
 
+Long literals can span several lines, with an optional trailing comma:
+
+```lph
+var matrix: list = [
+    [1, 2, 3],
+    [4, 5, 6],
+]
+```
+
 For key → value data, use [`map`](#maps) instead of a flat list.
 
 ---
@@ -209,15 +234,16 @@ print(map_has(user, "city"))
 map_remove(user, "city")
 ```
 
-Maps can hold any value type, including nested maps and lists:
+Maps keep insertion order and can hold any value type, including nested
+maps and lists:
 
 ```lph
-var config: map = {"debug": true, "limits": {"max_users": 100, "timeout": 30}}
+var config: map = {
+    "debug": true,
+    "limits": {"max_users": 100, "timeout": 30},
+}
 print(config["limits"]["max_users"])
 ```
-
-> Map/list literals must be written on a single line — see
-> [Known limitations](#known-limitations).
 
 ---
 
@@ -239,18 +265,20 @@ if d == Direction.North:
 
 ## Error handling — try/catch
 
-Any runtime error — including from stdlib calls — can be caught instead of
-crashing the whole program. The caught value is always a `str` with the
-error message.
+Any runtime error — including errors raised by natives — can be caught
+instead of stopping the program. The caught value is always a `str` with
+the error message.
 
 ```lph
-fn risky() -> void:
+fn safe_div(a: int, b: int) -> int:
     try:
-        var conn: int = db_open("some/invalid/path.sqlite")
-        db_exec(conn, "INSERT INTO x VALUES (1)")
+        return a / b
     catch e:
         print("caught:", e)
-    print("execution continues normally")
+        return 0
+
+print(safe_div(10, 2))   # 5
+print(safe_div(1, 0))    # caught: division by zero, then 0
 ```
 
 > `break`/`continue` directly inside a `try` block inside a loop can leave a
@@ -273,37 +301,44 @@ print(f"math: {1 + 2 * 3}")
 Any expression works inside `{}`, converted with the same rules as
 `to_str()`. Use `{{`/`}}` for a literal brace.
 
-> An interpolated expression containing a string literal with `"` (e.g.
-> `f"{some_fn(\"x\")}"`) doesn't parse correctly yet — avoid nested string
-> literals inside `{}`.
-
 ---
 
 ## Async and concurrency
 
-Functions can be declared `async` and awaited inside other async functions.
-The VM runs tasks cooperatively in a single-threaded event loop.
+Functions can be declared `async`; the VM runs tasks cooperatively on a
+single thread, in round-robin.
+
+`spawn` starts a task and returns immediately:
 
 ```lph
-async fn fetch(url: str) -> str:
-    var result = await http_get(url)
-    return result
+async fn worker(name: str, steps: int) -> void:
+    var i: int = 0
+    while i < steps:
+        print(name, "step", i)
+        i = i + 1
+
+spawn worker("a", 2)
+spawn worker("b", 3)
 ```
 
-`spawn` launches a task concurrently (fire-and-forget):
+`await` suspends the current task until a value is ready. On a polling
+native — one that returns `false` or `null` while nothing is available,
+such as `http_accept()` or `gui_next_frame()` — the task is parked and
+polled again on the next scheduler tick, so other tasks keep running:
 
 ```lph
-async fn worker(id: int) -> void:
-    print("worker", id, "running")
+async fn serve(port: int) -> void:
+    http_listen(port)
+    while true:
+        await http_accept()
+        http_respond_json(200, json_encode({"path": http_path()}))
 
-spawn worker(1)
-spawn worker(2)
+spawn serve(8080)
 ```
 
-`await` on a native function (e.g. `http_accept()`, `gui_next_frame()`)
-polls it once per scheduler tick until it signals ready. `await` on a
-user-defined `async fn` runs it to completion synchronously within the
-same tick — either way, the pattern reads the same from script.
+`await` on a user-defined `async fn` runs it to completion within the same
+tick. Blocking natives (`http_get`, `tcp_recv`, `read_file`...) block the
+whole VM while they run; `await` does not make them asynchronous.
 
 ---
 
@@ -337,32 +372,52 @@ overwriting one.
 
 ---
 
-## Stdlib modules
+## Core and packages
+
+The **core** is built into the `liphia` executable and needs no import:
+strings, lists, maps, conversions, math, random, `sum`/`mean`, JSON, files,
+TCP/UDP, HTTP and WebSocket. The complete list, with signatures, is in
+[`docs/spec/core.md`](../spec/core.md).
+
+```lph
+print(sqrt(16), round(2.5), mean([1, 2, 3]))
+write_json("data.json", {"ok": true})
+```
+
+Everything else is a **package**, installed per project and imported by
+name:
 
 ```bash
-liphia install math
+liphia install num
 ```
 ```lph
-import from "math"
-print(sqrt(16.0))
+import from "num"
+print(dot([1.0, 2.0], [3.0, 4.0]))
 ```
 
-See [`docs/stdlib/README.md`](../stdlib/README.md) for the module list and
-[`docs/stdlib/REFERENCE.md`](../stdlib/REFERENCE.md) for the full function
-reference.
+Official packages: `num`, `stats`, `learn`, `db`, `wire`. See the
+[root README](../../README.md#projects-and-packages) for installing,
+versions and `liphia.lock`.
 
 ---
 
 ## Known limitations
 
-- **Map/list literals must be single-line.** The lexer doesn't yet suppress
-  layout tokens (`Newline`/`Indent`/`Dedent`) inside `{}`/`[]` the way it
-  already does inside `()` — a multi-line map/list literal fails to parse.
+- **`%` and `**` operators** are not implemented yet; they arrive with the
+  next bytecode format (LBC v5). Use `pow()` meanwhile.
 - **`try` + `break`/`continue`** in the same block, inside a loop, can leave
   a stale error handler active until the enclosing function returns.
-- **Nested string literals inside f-string interpolation** don't parse
-  correctly (`f"{fn(\"x\")}"`).
-- **`ws_on_connect`/`ws_on_message`/`ws_on_disconnect`** (event-callback
-  registration for the `ws` module) are planned but not implemented — they
-  need native-side dispatch into a Liphia function, which a composed `.lph`
-  layer can't provide.
+- **Functions are not values.** They cannot be stored in variables or passed
+  as arguments, which also rules out callbacks such as
+  `ws_on_message(handler)` and routers that receive handlers.
+- **No `sleep` or clock in the core yet**, so polling loops (like a
+  WebSocket server) keep a CPU core busy.
+- **Floats with no fractional part display without `.0`**: `print(4.0)`,
+  `to_str(4.0)` and f-strings show `4`. `json_encode` keeps the type and
+  writes `4.0`.
+- **The HTTP client supports `http://` only**, not `https://`.
+- **Package natives are global and unchecked by the compiler.** Once a
+  package is installed its functions can be called even without `import`,
+  and their arguments are validated at runtime only.
+- **Reference cycles are not collected** (reference counting); see
+  [`docs/spec/VM.md`](../spec/VM.md).

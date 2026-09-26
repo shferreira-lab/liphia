@@ -7,6 +7,105 @@ entry-by-entry.
 
 ---
 
+## [2.0.0] — 2026-09-26
+
+The standard library is replaced by a **core** built into the executable
+plus independently versioned **packages**, with a versioned package
+manager and installers for Windows, Linux and macOS. This release breaks
+programs written for 1.0.0; see "Migrating from 1.0.0" below.
+
+### Added
+
+- **Core natives** (`liphia_core_native`), available without import:
+  strings, lists, maps, scalar math, random, aggregation, JSON, files,
+  TCP/UDP, HTTP server and client, WebSocket server. Reference:
+  `docs/spec/core.md`.
+- New core natives that replace the old composed `.lph` layers:
+  `read_json`, `write_json`, `append_json_line`, `tcp_recv_all`,
+  `tcp_send_json`, `tcp_recv_json`, `ws_send_json`, `ws_broadcast_json`.
+- **Official packages**, each with its own version: `num` 1.0.0 (vectors,
+  matrices, descriptive statistics), `stats` 1.0.0 (hypothesis tests),
+  `learn` 1.0.0 (machine learning primitives), `db` 2.0.0 (SQLite and
+  PostgreSQL), `wire` 1.0.0 (JSON responses for HTTP APIs).
+- `p_value_wilcoxon` in `stats`; `compare_groups(a, b, paired)` now covers
+  paired samples (paired t-test or Wilcoxon).
+- **Versioned package manager**: `install` with npm-style requirements
+  (`num@1.2.9`, `^`, `~`, `@latest`), transitive dependencies, `liphia.lock`,
+  `install --frozen`, `update`, `remove`, `list`, a per-machine download
+  cache, and `LIPHIA_REGISTRY` for installing from a local folder.
+- **`liphia_manifest` crate** for `liphia.toml`, `liphia.lock`,
+  `package.toml` and the package index.
+- **Native package ABI check**: package libraries carry an ABI tag (engine
+  version + rustc) and the VM refuses a mismatched library with an error
+  instead of loading it.
+- **Installers**: Inno Setup installer for Windows (per-user or all users,
+  optional GUI, PATH, `.lph` icon), `install.ps1` and `install.sh`.
+- **Release automation**: tags `vX.Y.Z` publish the engine, tags
+  `<package>-vX.Y.Z` publish a package, both built for Windows, Linux and
+  macOS; `THIRD_PARTY_LICENSES.txt` is generated with cargo-about.
+- `liphia version` (engine version and ABI tag) and `liphia help`.
+- Conformance cases 201–212 for the core natives.
+- New `examples/` folder covering the core and every package.
+
+### Changed
+
+- The executables are now named **`liphia`** and **`liphia-gui`**.
+- All engine crates share one version (2.0.0); the Rust toolchain is
+  pinned in `src/rust-toolchain.toml`.
+- `min`, `max`, `clamp`, `sum`, `min_list` and `max_list` no longer mix int
+  and float, and keep the argument type (`sum([1, 2])` is the int `3`).
+- `json_decode` is strict (trailing content is an error, duplicated keys
+  keep the last value); `json_encode` always writes floats with `.0` or an
+  exponent, so they decode back as floats.
+- Random numbers use SplitMix64 seeded from the clock; `seed(n)` makes a
+  run reproducible; `rand_int` has no modulo bias; `shuffle` accepts any
+  element type and returns a new list.
+- HTTP server parses each connection on its own thread and rejects bodies
+  over 10 MB; the HTTP client sends HTTP/1.0 and rejects `https://`.
+- Integer results that do not fit in `int` are errors in `abs`, `gcd`,
+  `lcm`, `factorial` and `sum`; `floor`, `ceil` and `round` reject NaN and
+  infinity; ports outside 1–65535 are rejected.
+- Packages use `package.toml` (replaces `module.toml`) and are downloaded
+  from GitHub Releases instead of being committed to the repository.
+- The type checker only declares core natives; calls to package natives
+  type-check as `unknown`.
+
+### Fixed
+
+- `spawn f(a, b)` passed its arguments in reverse order.
+- WebSocket server on Windows: accepted sockets inherited non-blocking mode,
+  so every handshake failed; handshakes now run on their own thread, so a
+  silent pre-opened browser socket no longer blocks real connections.
+- WebSocket frames: no more lost bytes on partial reads; ping is answered,
+  close and disconnects remove the client, oversized frames are refused.
+- `clamp` with `lo > hi` and `json_decode` of truncated input crashed the VM.
+- `json_decode` of surrogate pairs (escaped emoji such as `\ud83d\ude00`) produced `?`.
+
+### Removed
+
+- The `stdlib` (modules `ai`, `fs`, `http`, `json`, `math`, `net`, `stats`,
+  `ws`) and its `import from "..."` names: their functions are core
+  natives or package functions now.
+- Natives `count` (use `len`), `json_get` and `json_has` (use
+  `json_decode` + `map_has`), `vec_sum` (use `sum`), `is_better` (use
+  `compare_groups(a, b, true)`).
+- The Android APK build.
+
+### Migrating from 1.0.0
+
+- Delete `import from "http"`, `"json"`, `"fs"`, `"net"`, `"ws"` and
+  `"math"`: those functions need no import now.
+- `import from "ai"` becomes `import from "learn"` (plus `"num"` for vector
+  and matrix functions); `liphia install learn`.
+- Descriptive statistics (`median`, `stdev`, `percentile`, correlation)
+  moved from `stats` to `num`.
+- Add `to_float()` / `to_int()` where `min`, `max` or `sum` mixed int and
+  float.
+- Reinstall packages with the 2.0.0 `liphia` (`liphia install`); libraries
+  built for 1.0.0 are refused by the ABI check.
+
+---
+
 ## [1.0.0] — 2026-08-01
 
 First stable release. Engine crates, the standard library, and the VS Code
