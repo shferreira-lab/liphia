@@ -24,7 +24,7 @@ fn normalize(text: &str) -> String {
 
 // Outcome of one case: None if it passed, Some(reason) if it failed.
 fn run_case(source: &Path) -> Option<String> {
-    let output = Command::new(env!("CARGO_BIN_EXE_liphia_cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liphia"))
         .arg(source)
         .arg("--no-cache")
         .stdin(Stdio::null())

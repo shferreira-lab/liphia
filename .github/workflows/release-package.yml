@@ -1,0 +1,144 @@
+# .github/workflows/release-package.yml
+#
+# Publishes one package when a tag <name>-vX.Y.Z is pushed (num-v1.0.0,
+# db-v2.0.0, wire-v1.0.0, ...):
+#   1. checks that the tag matches `version` in src/packages/<name>/package.toml,
+#      that the version is listed in src/packages/index.toml, and, for native
+#      packages, that `engine` pins the engine version of this commit exactly
+#      (Rust ABI: the library only loads in that engine)
+#   2. archives the package's Liphia files (everything except native/ and lib/)
+#   3. native packages only: builds the library per platform with the
+#      toolchain pinned in src/rust-toolchain.toml
+#   4. creates the GitHub Release "<name> X.Y.Z"; `liphia install` downloads
+#      the libraries from its assets
+#
+#   git tag num-v1.0.0
+#   git push origin num-v1.0.0
+
+name: release-package
+
+on:
+  push:
+    tags: ["*-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.meta.outputs.name }}
+      version: ${{ steps.meta.outputs.version }}
+      native: ${{ steps.meta.outputs.native }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        shell: bash
+        run: |
+          name="${GITHUB_REF_NAME%%-v*}"
+          version="${GITHUB_REF_NAME#*-v}"
+          toml="src/packages/$name/package.toml"
+          if [ ! -f "$toml" ]; then
+            echo "no package '$name' (missing $toml)"
+            exit 1
+          fi
+
+          declared=$(grep -m1 '^version' "$toml" | tr -d '\r' | cut -d'"' -f2)
+          if [ "$declared" != "$version" ]; then
+            echo "tag version $version does not match $toml version $declared"
+            exit 1
+          fi
+
+          listed=$(awk -v pkg="[$name]" '$0 == pkg {f=1; next} /^\[/ {f=0} f && /^versions/' src/packages/index.toml)
+          if ! echo "$listed" | grep -q "\"$version\""; then
+            echo "version $version of $name is not listed in src/packages/index.toml"
+            exit 1
+          fi
+
+          native=false
+          if grep -q '^\[native\]' "$toml"; then
+            native=true
+            engine=$(grep -m1 '^engine' "$toml" | tr -d '\r' | cut -d'"' -f2)
+            ws=$(awk '/^\[package\]/{f=1; next} /^\[/{f=0} f && /^version/{gsub(/"/, "", $3); print $3}' src/liphia_engine/crates/liphia_virtual_machine/Cargo.toml | tr -d '\r')
+            if [ "$engine" != "=$ws" ]; then
+              echo "native package must declare engine = \"=$ws\" (found \"$engine\")"
+              exit 1
+            fi
+          fi
+
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "native=$native" >> "$GITHUB_OUTPUT"
+
+  source:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive Liphia files
+        shell: bash
+        run: |
+          name="${{ needs.check.outputs.name }}"
+          mkdir -p dist
+          cd src/packages
+          zip -r "../../dist/$name-${{ needs.check.outputs.version }}.zip" "$name" -x "$name/native/*" "$name/lib/*"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source
+          path: dist/*.zip
+
+  native:
+    needs: check
+    if: needs.check.outputs.native == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, platform: windows-x86_64, file: "liphia_package_NAME.dll" }
+          - { os: ubuntu-latest,  platform: linux-x86_64,   file: "libliphia_package_NAME.so" }
+          - { os: macos-latest,   platform: macos-aarch64,  file: "libliphia_package_NAME.dylib" }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        working-directory: src
+        run: rustup show
+
+      - name: Build library
+        working-directory: src
+        run: cargo build --release -p liphia_package_${{ needs.check.outputs.name }}
+
+      # Asset names carry the platform so all libraries fit in one release:
+      # liphia_package_num-windows-x86_64.dll, ...-linux-x86_64.so, ...
+      - name: Rename
+        shell: bash
+        run: |
+          name="${{ needs.check.outputs.name }}"
+          file="${{ matrix.file }}"
+          file="${file/NAME/$name}"
+          ext="${file##*.}"
+          mkdir -p dist
+          cp "src/target/release/$file" "dist/liphia_package_$name-${{ matrix.platform }}.$ext"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform }}
+          path: dist/*
+
+  release:
+    needs: [check, source, native]
+    # Runs for pure packages too, where the native job is skipped.
+    if: always() && needs.source.result == 'success' && (needs.native.result == 'success' || needs.native.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ needs.check.outputs.name }} ${{ needs.check.outputs.version }}
+          files: dist/*
+          generate_release_notes: false

@@ -52,6 +52,10 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+// ABI tag checked by the VM loader before liphia_register_module is
+// called; it embeds the VM version and rustc this library was built with.
+liphia_virtual_machine::export_package_abi!();
+
 // ── External-module entry point ────────────────────────────────────────────────
 //
 // Called by liphia_virtual_machine::external::VM::load_external_library after

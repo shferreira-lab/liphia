@@ -1923,25 +1923,26 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "liphia_bytecode"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_cli"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_bytecode",
  "liphia_compiler",
  "liphia_core_native",
+ "liphia_manifest",
  "liphia_pipeline",
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_cli_gui"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "eframe",
  "liphia_compiler",
@@ -1955,23 +1956,32 @@ dependencies = [
 
 [[package]]
 name = "liphia_compiler"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_core_native"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_gui_native"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_virtual_machine",
+]
+
+[[package]]
+name = "liphia_manifest"
+version = "2.0.0"
+dependencies = [
+ "semver",
+ "serde",
+ "toml",
 ]
 
 [[package]]
@@ -2006,7 +2016,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_pipeline"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "liphia_compiler",
  "liphia_virtual_machine",
@@ -2014,7 +2024,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_virtual_machine"
-version = "1.0.0"
+version = "2.0.0"
 dependencies = [
  "libloading",
 ]
@@ -3514,6 +3524,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime 0.6.11",
+ "toml_write",
  "winnow 0.7.15",
 ]
 
@@ -3537,6 +3548,12 @@ checksum = "1d38ac1cf9b95face32296c0a3ede1fdc270627c9d9c02a7274dd6d960dc4d56"
 dependencies = [
  "winnow 1.0.4",
 ]
+
+[[package]]
+name = "toml_write"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "tracing"

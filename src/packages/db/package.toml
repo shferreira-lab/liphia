@@ -1,0 +1,24 @@
+# packages/db/package.toml
+#
+# `engine` is checked by `liphia install` against the running engine.
+# Native packages pin the exact engine: their library uses the Rust ABI.
+
+[package]
+name        = "db"
+version     = "2.0.0"
+description = "SQLite (embedded) and PostgreSQL (pure TCP wire protocol)"
+engine      = "=2.0.0"
+entry       = "db.lph"
+files       = ["db.lph", "index.lph"]
+
+[native]
+abi = "rust-1"
+lib = "liphia_package_db"
+
+[dependencies]
+
+[subpackages.sqlite]
+files = ["sqlite/sqlite.lph"]
+
+[subpackages.postgres]
+files = ["postgres/postgres.lph"]

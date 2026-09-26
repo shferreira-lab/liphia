@@ -1,0 +1,30 @@
+# packages/index.toml
+#
+# Published versions of every official package. `liphia install` reads this
+# file from the main branch to resolve version requirements.
+#
+# Releasing a package version:
+#   1. bump `version` in packages/<name>/package.toml
+#   2. add the version below and commit
+#   3. push the tag <name>-v<version>; the release-package workflow builds
+#      and publishes it
+
+[db]
+description = "SQLite (embedded) and PostgreSQL (pure TCP wire protocol)"
+versions    = ["2.0.0"]
+
+[num]
+description = "Vectors, matrices and descriptive statistics over lists"
+versions    = ["1.0.0"]
+
+[stats]
+description = "Inferential statistics: hypothesis tests, p-values, distributions"
+versions    = ["1.0.0"]
+
+[learn]
+description = "Machine learning primitives: activations, losses, optimizers, metrics"
+versions    = ["1.0.0"]
+
+[wire]
+description = "Application layer over the core http and ws natives: JSON responses"
+versions    = ["1.0.0"]

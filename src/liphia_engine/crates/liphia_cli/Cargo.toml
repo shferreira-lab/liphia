@@ -1,7 +1,12 @@
 [package]
 name    = "liphia_cli"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2021"
+
+# The executable is `liphia` (liphia.exe on Windows); the crate keeps its name.
+[[bin]]
+name = "liphia"
+path = "src/main.rs"
 
 [dependencies]
 liphia_pipeline        = { path = "../liphia_pipeline" }
@@ -9,3 +14,4 @@ liphia_compiler        = { path = "../liphia_compiler" }
 liphia_virtual_machine = { path = "../liphia_virtual_machine" }
 liphia_bytecode        = { path = "../liphia_bytecode" }
 liphia_core_native     = { path = "../liphia_core_native" }
+liphia_manifest        = { path = "../liphia_manifest" }

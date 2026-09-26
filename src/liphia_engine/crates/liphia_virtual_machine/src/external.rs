@@ -48,6 +48,47 @@ use crate::vm::{VmError, VmResult, VM};
 /// Symbol every external module library must export.
 const ENTRY_SYMBOL: &[u8] = b"liphia_register_module";
 
+/// Symbol returning the library's ABI tag (see `ABI_TAG`).
+const ABI_SYMBOL: &[u8] = b"liphia_package_abi";
+
+/// Identifies the binary interface between the VM and native packages:
+/// calling convention, VM version and the exact rustc that compiled it.
+/// A package library embeds the tag of the VM crate it was compiled
+/// against (through `export_package_abi!`), and the loader refuses any
+/// library whose tag differs from its own. With the Rust ABI there is no
+/// layout guarantee across compilers or VM versions, so equality is the
+/// only safe rule.
+pub const ABI_TAG: &str = concat!(
+    "rust-1;vm=",
+    env!("CARGO_PKG_VERSION"),
+    ";",
+    env!("LIPHIA_RUSTC_VERSION"),
+    "\0"
+);
+
+/// Returns `ABI_TAG` without its trailing NUL, for messages.
+pub fn abi_tag() -> &'static str {
+    ABI_TAG.trim_end_matches('\0')
+}
+
+/// Exports `liphia_package_abi` from a native package library. Every
+/// package crate calls this once at its root:
+///
+/// ```ignore
+/// liphia_virtual_machine::export_package_abi!();
+/// ```
+#[macro_export]
+macro_rules! export_package_abi {
+    () => {
+        #[no_mangle]
+        pub extern "C" fn liphia_package_abi() -> *const ::std::os::raw::c_char {
+            $crate::external::ABI_TAG.as_ptr() as *const ::std::os::raw::c_char
+        }
+    };
+}
+
+type AbiFn = unsafe extern "C" fn() -> *const std::os::raw::c_char;
+
 /// Signature of the entry point exported by an external module library.
 type RegisterFn = unsafe extern "C" fn(*mut VM);
 
@@ -144,6 +185,8 @@ impl VM {
             ))
         })?;
 
+        check_abi(&lib, lib_path)?;
+
         // SAFETY: symbol type asserted to match RegisterFn's declared ABI.
         let register: Symbol<RegisterFn> = unsafe { lib.get(ENTRY_SYMBOL) }.map_err(|e| {
             VmError::new(format!(
@@ -165,6 +208,36 @@ impl VM {
 
         Ok(())
     }
+}
+
+/// Reads the library's ABI tag and compares it with this VM's. Runs before
+/// any other function of the library is called, so a mismatched build is
+/// reported as an error instead of causing undefined behavior.
+fn check_abi(lib: &Library, lib_path: &Path) -> VmResult<()> {
+    // SAFETY: `liphia_package_abi` takes no arguments and returns a pointer
+    // to a NUL-terminated static string (see export_package_abi!).
+    let abi: Symbol<AbiFn> = unsafe { lib.get(ABI_SYMBOL) }.map_err(|_| {
+        VmError::new(format!(
+            "{} was built for an older engine (no ABI tag); reinstall the package \
+             for this engine ({})",
+            lib_path.display(),
+            abi_tag()
+        ))
+    })?;
+    // SAFETY: see above; the pointer is valid for the library's lifetime.
+    let theirs = unsafe { std::ffi::CStr::from_ptr(abi()) }
+        .to_string_lossy()
+        .to_string();
+    if theirs != abi_tag() {
+        return Err(VmError::new(format!(
+            "{} was built for a different engine\n  package: {}\n  engine:  {}\n  \
+             reinstall a package version built for this engine",
+            lib_path.display(),
+            theirs,
+            abi_tag()
+        )));
+    }
+    Ok(())
 }
 
 /// Parses `external "<name>"` instructions out of an index.lph manifest.

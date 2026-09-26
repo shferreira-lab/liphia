@@ -1,0 +1,19 @@
+# packages/stats/package.toml
+#
+# `engine` is checked by `liphia install` against the running engine.
+# Native packages pin the exact engine: their library uses the Rust ABI.
+
+[package]
+name        = "stats"
+version     = "1.0.0"
+description = "Inferential statistics: hypothesis tests, p-values, distributions"
+engine      = "=2.0.0"
+entry       = "stats.lph"
+files       = ["stats.lph", "composed/compare.lph", "index.lph"]
+
+[native]
+abi = "rust-1"
+lib = "liphia_package_stats"
+
+[dependencies]
+num = "^1.0.0"

@@ -1,9 +1,8 @@
 # Liphia packages
 
-Everything Liphia offers outside the core natives (see `docs/core.md`)
+Everything Liphia offers outside the core natives (see `docs/spec/core.md`)
 is a package. Packages live here, in the same repository and Cargo
-workspace as the engine, and `liphia install` downloads them from this
-folder into a project's `liphia_modules/`.
+workspace as the engine.
 
 | Package | Kind | Depends on | Contents |
 |---------|------|------------|----------|
@@ -14,54 +13,71 @@ folder into a project's `liphia_modules/`.
 | `wire` | pure | — | JSON response helpers over the core http natives |
 
 ```bash
-liphia install num
-liphia install stats        # also installs num
-liphia install db:postgres  # db plus the postgres helper subpackage
-```
-
-```lph
-import from "stats"
+liphia install stats          # latest version, saved as "^1.0.0"; installs num too
+liphia install num@1.2.9      # exactly 1.2.9
+liphia install db:sqlite      # db plus its sqlite subpackage
+liphia update                 # newest versions allowed by liphia.toml
+liphia install --frozen       # exactly liphia.lock (CI)
 ```
 
 ## Layout
 
 ```
-packages/<name>/
-  <name>.lph      entry file: documentation + imports of composed files
-  module.toml     metadata, file list, [dependencies], [external.libs]
-  composed/       functions written in Liphia on top of the natives
-  index.lph       native packages only: load manifest for the VM
-  lib/            native packages only: prebuilt libraries (committed)
-  native/         native packages only: Rust source (never downloaded)
+packages/
+  index.toml        published versions of every package
+  <name>/
+    package.toml    version, engine requirement, files, dependencies, [native]
+    <name>.lph      entry file: documentation + imports of composed files
+    composed/       functions written in Liphia on top of the natives
+    index.lph       native packages only: load manifest read by the VM
+    native/         native packages only: Rust source of the library
+    lib/            local builds only (ignored by git)
 ```
 
-A pure package is only `.lph` files. A native package also has a cdylib
-built from `native/`, loaded by `liphia_virtual_machine::external` when the
-package is installed.
+## Versions and releases
 
-## Building native packages
+Each package has its own version, independent of the engine. A release is a
+git tag `<name>-v<version>`; the `release-package` workflow builds the native
+library for Windows, Linux and macOS and attaches it to the GitHub Release.
+`liphia install` reads the package files at that tag and downloads the
+library from that release, so every published version stays installable.
 
-The libraries use the Rust ABI, so they must be built with the same rustc
-and the same `liphia_virtual_machine` as the `liphia` binary. After any
-change to the VM or to a package, rebuild and commit the libraries:
+To publish a version:
+
+1. bump `version` in `<name>/package.toml`
+2. add the version to `index.toml` and commit
+3. `git tag <name>-v<version>` and `git push origin <name>-v<version>`
+
+## Engine compatibility
+
+`engine` in `package.toml` is checked by `liphia install`. Pure packages
+accept a range (`"^2.0.0"`). Native packages pin one engine exactly
+(`"=2.0.0"`): their library uses the Rust ABI, and the VM refuses a library
+whose ABI tag (engine version + rustc) differs from its own. Every engine
+release therefore needs a rebuild of the native packages, published as a
+new patch version. A C ABI (`c-1`) will remove this constraint.
+
+## Testing packages locally
+
+Build the native libraries into `packages/<name>/lib/` and point the
+installer at this folder instead of GitHub:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File src\packages\build.ps1
+$env:LIPHIA_REGISTRY = "C:\Dev\liphia\src\packages"
+liphia install stats
 ```
 
 ```bash
 sh src/packages/build.sh
+LIPHIA_REGISTRY=$PWD/src/packages liphia install stats
 ```
-
-Both build every native package in release mode and copy the library into
-`packages/<name>/lib/`.
 
 ## Known limits
 
 - Natives are global: once a package is loaded its functions are callable
   even without `import`. Import it anyway; a later version will enforce it.
-- The VM currently loads every installed native package at startup, not
-  only the imported ones.
+- The VM loads every installed native package at startup, not only the
+  imported ones.
 - Package signatures are not known to the type checker: calls to package
-  natives type-check as `unknown` (accepted anywhere) and are validated
-  by the native at runtime.
+  natives type-check as `unknown` and are validated by the native at runtime.

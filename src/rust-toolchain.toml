@@ -1,0 +1,14 @@
+# src/rust-toolchain.toml
+#
+# Pins the Rust toolchain for the whole workspace. Native packages use the
+# Rust ABI, so the engine and every package library must be built by the
+# same rustc; rustup reads this file and installs/selects that exact
+# version automatically, locally and in CI.
+#
+# Replace the version below with the output of `rustc --version` on the
+# machine where you build today (e.g. "1.90.0"), and bump it on purpose,
+# never implicitly: a new rustc means rebuilding every native package.
+
+[toolchain]
+channel = "1.98.1"
+profile = "minimal"

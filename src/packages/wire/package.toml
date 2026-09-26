@@ -1,0 +1,14 @@
+# packages/wire/package.toml
+#
+# `engine` is checked by `liphia install` against the running engine.
+# Pure packages accept any compatible engine.
+
+[package]
+name        = "wire"
+version     = "1.0.0"
+description = "Application layer over the core http and ws natives: JSON responses"
+engine      = "^2.0.0"
+entry       = "wire.lph"
+files       = ["wire.lph", "respond.lph"]
+
+[dependencies]

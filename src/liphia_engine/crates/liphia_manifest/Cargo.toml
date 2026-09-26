@@ -1,0 +1,12 @@
+[package]
+name    = "liphia_manifest"
+version = "2.0.0"
+edition = "2021"
+
+# Reads and writes the TOML files of the Liphia toolchain: a project's
+# liphia.toml and liphia.lock, a package's package.toml, and the package
+# index. Pure data: no network and no VM.
+[dependencies]
+serde  = { version = "1", features = ["derive"] }
+toml   = "0.8"
+semver = "1"

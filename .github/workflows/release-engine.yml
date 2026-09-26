@@ -1,0 +1,115 @@
+# .github/workflows/release-engine.yml
+#
+# Publishes the Liphia engine when a tag vX.Y.Z is pushed:
+#   1. checks that the tag matches the engine version (the `version` of
+#      liphia_virtual_machine, which every engine crate shares)
+#   2. runs the workspace tests (including the conformance suite)
+#   3. builds `liphia` (and `liphia-gui` on Windows/macOS) per platform
+#   4. creates the GitHub Release "Liphia X.Y.Z" with one archive per platform
+#
+#   git tag v2.0.0
+#   git push origin v2.0.0
+
+name: release-engine
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          ws=$(awk '/^\[package\]/{f=1; next} /^\[/{f=0} f && /^version/{gsub(/"/, "", $3); print $3}' src/liphia_engine/crates/liphia_virtual_machine/Cargo.toml | tr -d '\r')
+          if [ "$tag" != "$ws" ]; then
+            echo "tag v$tag does not match engine version $ws"
+            exit 1
+          fi
+          echo "version=$ws" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup show
+      - run: cargo test --workspace --exclude liphia_cli_gui --exclude liphia_gui_native
+
+  build:
+    needs: [check, test]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, platform: windows-x86_64, exe: ".exe", gui: true }
+          - { os: ubuntu-latest,  platform: linux-x86_64,   exe: "",     gui: false }
+          - { os: macos-latest,   platform: macos-aarch64,  exe: "",     gui: true }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        working-directory: src
+        run: rustup show
+
+      - name: Build CLI
+        working-directory: src
+        run: cargo build --release -p liphia_cli
+
+      - name: Build GUI
+        if: matrix.gui
+        working-directory: src
+        run: cargo build --release -p liphia_cli_gui
+
+      # One folder per platform with the binaries, licenses and README,
+      # archived as .zip on Windows and .tar.gz elsewhere.
+      - name: Package
+        shell: bash
+        run: |
+          name="liphia-${{ needs.check.outputs.version }}-${{ matrix.platform }}"
+          mkdir -p "dist/$name"
+          cp "src/target/release/liphia${{ matrix.exe }}" "dist/$name/"
+          if [ "${{ matrix.gui }}" = "true" ]; then
+            cp "src/target/release/liphia-gui${{ matrix.exe }}" "dist/$name/"
+          fi
+          cp -r licenses README.md "dist/$name/"
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a "$name.zip" "$name" > /dev/null
+          else
+            tar czf "$name.tar.gz" "$name"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-${{ matrix.platform }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+
+  release:
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Liphia ${{ needs.check.outputs.version }}
+          files: dist/*
+          generate_release_notes: true

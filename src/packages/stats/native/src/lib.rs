@@ -22,6 +22,10 @@ mod cdf;
 use liphia_virtual_machine::value::Value;
 use liphia_virtual_machine::vm::{VmError, VmResult, VM};
 
+// ABI tag checked by the VM loader before liphia_register_module is
+// called; it embeds the VM version and rustc this library was built with.
+liphia_virtual_machine::export_package_abi!();
+
 // Entry point called by the loader right after dlopen. The signature must
 // match liphia_virtual_machine::external's RegisterFn exactly.
 #[no_mangle]

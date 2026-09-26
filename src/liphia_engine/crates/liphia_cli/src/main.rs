@@ -13,24 +13,47 @@ use liphia_virtual_machine::vm::VM;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    let names = |from: usize| -> Vec<&str> {
+        args.iter()
+            .skip(from)
+            .map(|s| s.as_str())
+            .filter(|s| !s.starts_with('-'))
+            .collect()
+    };
+    let flag = |f: &str| args.iter().any(|a| a == f);
+
     match args.get(1).map(|s| s.as_str()) {
         Some("init") => {
             installer::init_project();
             return;
         }
         Some("install") => {
-            let modules: Vec<&str> = args[2..]
-                .iter()
-                .map(|s| s.as_str())
-                .filter(|s| !s.starts_with('-'))
-                .collect();
-            if args.contains(&"--list".to_string()) {
-                installer::list_modules();
-            } else if modules.is_empty() {
-                installer::install_from_manifest();
+            if flag("--list") {
+                installer::list_packages();
             } else {
-                installer::install_modules(&modules);
+                installer::install(&names(2), flag("--frozen"));
             }
+            return;
+        }
+        Some("list") => {
+            installer::list_packages();
+            return;
+        }
+        Some("update") => {
+            installer::update(&names(2));
+            return;
+        }
+        Some("remove") => {
+            installer::remove(&names(2));
+            return;
+        }
+        Some("version") | Some("--version") | Some("-V") => {
+            println!("liphia {}", env!("CARGO_PKG_VERSION"));
+            println!("abi    {}", liphia_virtual_machine::external::abi_tag());
+            return;
+        }
+        Some("help") | Some("--help") | Some("-h") => {
+            print_help();
             return;
         }
         None | Some("--repl") => {
@@ -94,4 +117,33 @@ fn main() {
         eprintln!("\n{}\n", e);
         process::exit(1);
     }
+}
+
+fn print_help() {
+    println!(
+        "liphia {} — Liphia language runtime
+
+usage:
+  liphia <file.lph> [--no-cache]   compile (cached) and run a program
+  liphia                           interactive REPL (also: liphia --repl)
+
+packages:
+  liphia init                      create liphia.toml in this folder
+  liphia install                   install everything in liphia.toml (uses liphia.lock)
+  liphia install --frozen          install exactly liphia.lock, never change it (CI)
+  liphia install <pkg>[@req]       add a package: num, num@1.2.9, num@^1.2, num@latest
+  liphia install <pkg>:<sub>       add a package with a subpackage: db:sqlite
+  liphia update [pkg ...]          move packages to the newest version their requirement allows
+  liphia remove <pkg> [pkg ...]    drop packages from liphia.toml and liphia_modules/
+  liphia list                      published packages and installed versions
+
+other:
+  liphia version                   engine version and native ABI tag
+  liphia help                      this message
+
+environment:
+  LIPHIA_HOME       cache and global files (default: ~/.liphia)
+  LIPHIA_REGISTRY   install from a local packages folder instead of GitHub",
+        env!("CARGO_PKG_VERSION")
+    );
 }

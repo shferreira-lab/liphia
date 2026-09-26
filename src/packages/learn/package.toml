@@ -1,0 +1,19 @@
+# packages/learn/package.toml
+#
+# `engine` is checked by `liphia install` against the running engine.
+# Native packages pin the exact engine: their library uses the Rust ABI.
+
+[package]
+name        = "learn"
+version     = "1.0.0"
+description = "Machine learning primitives: activations, losses, optimizers, metrics"
+engine      = "=2.0.0"
+entry       = "learn.lph"
+files       = ["learn.lph", "composed/eval.lph", "index.lph"]
+
+[native]
+abi = "rust-1"
+lib = "liphia_package_learn"
+
+[dependencies]
+num = "^1.0.0"

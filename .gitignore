@@ -1,15 +1,19 @@
 # Liphia
-
 liphia_cache/
 liphia_modules/
 
+# Package libraries built locally by packages/build.ps1 or build.sh;
+# published libraries come from GitHub Releases
+src/packages/*/lib/
 
+# Project files created while trying the examples
+examples/**/liphia.toml
+examples/**/liphia.lock
 
 # Rust / Cargo
 target/
 
-
-# Compilers and bin
+# Compilers and binaries
 *.exe
 *.dll
 *.so
@@ -19,23 +23,15 @@ target/
 *.o
 *.pdb
 
-
-
-# exception - binaries
-!src/packages/*/lib/** 
-
-
-
-
 # Build artifacts
 dist/
 build/
 out/
 
-Extension:
+# VS Code extension packages
 *.vsix
 
-# Makefile 
+# Makefile
 Makefile
 *.mk
 
@@ -58,11 +54,9 @@ desktop.ini
 *.tmp
 *.temp
 
-# env var
+# Environment variables
 .env
 .env.local
 
-# 
+# Personal notes
 /notes
-
-
