@@ -4,8 +4,11 @@
 #   1. checks that the tag matches the engine version (the `version` of
 #      liphia_virtual_machine, which every engine crate shares)
 #   2. runs the workspace tests (including the conformance suite)
-#   3. builds `liphia` (and `liphia-gui` on Windows/macOS) per platform
-#   4. creates the GitHub Release "Liphia X.Y.Z" with one archive per platform
+#   3. generates THIRD_PARTY_LICENSES.txt with cargo-about (src/about.toml)
+#   4. builds `liphia` (and `liphia-gui` on Windows/macOS) per platform and
+#      archives each with LICENSE.txt, THIRD_PARTY_LICENSES.txt and README.md
+#   5. Windows only: builds the Inno Setup installer (installer/windows/liphia.iss)
+#   6. creates the GitHub Release "Liphia X.Y.Z", marked as the latest release
 #
 #   git tag v2.0.0
 #   git push origin v2.0.0
@@ -48,8 +51,24 @@ jobs:
       - run: rustup show
       - run: cargo test --workspace --exclude liphia_cli_gui --exclude liphia_gui_native
 
+  licenses:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-about
+      - name: Generate THIRD_PARTY_LICENSES.txt
+        working-directory: src
+        run: cargo about generate --workspace -o ../THIRD_PARTY_LICENSES.txt about.hbs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: third-party-licenses
+          path: THIRD_PARTY_LICENSES.txt
+
   build:
-    needs: [check, test]
+    needs: [check, test, licenses]
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +79,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: third-party-licenses
+          path: notices
 
       - name: Toolchain
         working-directory: src
@@ -74,7 +98,7 @@ jobs:
         working-directory: src
         run: cargo build --release -p liphia_cli_gui
 
-      # One folder per platform with the binaries, licenses and README,
+      # One folder per platform with the executables, licenses and README,
       # archived as .zip on Windows and .tar.gz elsewhere.
       - name: Package
         shell: bash
@@ -85,13 +109,27 @@ jobs:
           if [ "${{ matrix.gui }}" = "true" ]; then
             cp "src/target/release/liphia-gui${{ matrix.exe }}" "dist/$name/"
           fi
-          cp -r licenses README.md "dist/$name/"
+          cp installer/LICENSE.txt notices/THIRD_PARTY_LICENSES.txt README.md "dist/$name/"
           cd dist
           if [ "$RUNNER_OS" = "Windows" ]; then
             7z a "$name.zip" "$name" > /dev/null
           else
             tar czf "$name.tar.gz" "$name"
           fi
+          staging="$PWD/$name"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            staging=$(cygpath -w "$staging")
+          fi
+          echo "STAGING=$staging" >> "$GITHUB_ENV"
+
+      - name: Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVersion=${{ needs.check.outputs.version }}" "/DStageDir=$env:STAGING" installer\windows\liphia.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,6 +137,7 @@ jobs:
           path: |
             dist/*.zip
             dist/*.tar.gz
+            dist/*-setup.exe
 
   release:
     needs: [check, build]
@@ -107,9 +146,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: engine-*
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
           name: Liphia ${{ needs.check.outputs.version }}
           files: dist/*
           generate_release_notes: true
+          make_latest: "true"

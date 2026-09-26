@@ -1,0 +1,27 @@
+THIRD-PARTY SOFTWARE NOTICES AND LICENSES
+
+Liphia includes the third-party components listed below. Each component is
+licensed under the terms shown with it; those terms apply to the component
+only, not to Liphia itself (see LICENSE.txt).
+
+==============================================================================
+Overview
+==============================================================================
+{{#each overview}}
+  {{name}}: {{count}} crate(s)
+{{/each}}
+
+==============================================================================
+License texts
+==============================================================================
+{{#each licenses}}
+
+------------------------------------------------------------------------------
+{{name}}
+Used by:
+{{#each used_by}}  - {{crate.name}} {{crate.version}}
+{{/each}}
+------------------------------------------------------------------------------
+
+{{text}}
+{{/each}}

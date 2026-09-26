@@ -2,6 +2,8 @@
 name    = "liphia_cli_gui"
 version = "2.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
 
 # Desktop-only GUI host. Not a default-member: build explicitly with
 #   cargo build -p liphia_cli_gui --release

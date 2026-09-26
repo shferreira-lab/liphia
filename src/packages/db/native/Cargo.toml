@@ -2,6 +2,8 @@
 name    = "liphia_package_db"
 version = "2.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
 
 # Native library of the `db` package. Built as a cdylib and copied to
 # packages/db/lib/ by packages/build.ps1 (or build.sh). Not a default

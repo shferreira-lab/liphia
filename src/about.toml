@@ -1,0 +1,42 @@
+# src/about.toml
+#
+# cargo-about configuration: generates THIRD_PARTY_LICENSES.txt, the list of
+# every crate compiled into the Liphia binaries with its license text. The
+# release-engine workflow runs it for each release:
+#
+#   cargo about generate --workspace -o THIRD_PARTY_LICENSES.txt about.hbs
+#
+# `accepted` is the allowlist. A dependency whose license is not listed
+# makes generation fail, so a new license never ships unnoticed: review it,
+# then add it here if it is acceptable.
+
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "CC0-1.0",
+    "Unlicense",
+    "Unicode-3.0",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+]
+
+# Platforms the release is built for; dependencies used only elsewhere
+# (Android, wasm, Redox...) are left out.
+targets = [
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-apple-darwin",
+]
+
+# Liphia's own crates are covered by LICENSE.txt, not listed as third party.
+private = { ignore = true }
+
+ignore-build-dependencies = false
+ignore-dev-dependencies = true

@@ -142,3 +142,6 @@ jobs:
           name: ${{ needs.check.outputs.name }} ${{ needs.check.outputs.version }}
           files: dist/*
           generate_release_notes: false
+          # The engine release stays "latest": install scripts and the
+          # releases page point to it, not to a package.
+          make_latest: "false"

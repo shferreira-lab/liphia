@@ -2,6 +2,8 @@
 name    = "liphia_package_learn"
 version = "1.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
 
 # Native library of the `learn` package. Built as a cdylib and copied to
 # packages/learn/lib/ by packages/build.ps1 (or build.sh). Not a default

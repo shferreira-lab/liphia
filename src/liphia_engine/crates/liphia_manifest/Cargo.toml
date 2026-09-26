@@ -2,6 +2,8 @@
 name    = "liphia_manifest"
 version = "2.0.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
 
 # Reads and writes the TOML files of the Liphia toolchain: a project's
 # liphia.toml and liphia.lock, a package's package.toml, and the package
