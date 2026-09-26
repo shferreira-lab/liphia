@@ -244,8 +244,11 @@ impl VM {
                 return Ok(StepResult::Halt);
             }
 
-            let op = program[task.pc].clone();
-            match self.exec_instruction(&op, task, queue) {
+            // Borrowed, not cloned: cloning copied every instruction and
+            // allocated for the ones that carry a String (LoadGlobal,
+            // CallNamed, PushString), on every single step.
+            let op = &program[task.pc];
+            match self.exec_instruction(op, task, queue) {
                 Ok(InstrFlow::Next) => {
                     task.pc += 1;
                 }

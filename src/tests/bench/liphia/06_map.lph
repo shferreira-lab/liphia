@@ -1,0 +1,29 @@
+# 06_map.lph
+#
+# Liphia benchmark workload. Prints one checksum line; the runner times the
+# whole process externally and checks the checksum against the other languages.
+#
+# Word counting: 1000 distinct string keys x 200 rounds in a map.
+
+fn word_count(keys: int, rounds: int) -> int:
+    var counts: map = {}
+    var r: int = 0
+    while r < rounds:
+        var k: int = 0
+        while k < keys:
+            var word: str = "w" + to_str(k)
+            if map_has(counts, word):
+                counts[word] = counts[word] + 1
+            else:
+                counts[word] = 1
+            k = k + 1
+        r = r + 1
+    var total: int = 0
+    var names: list = map_keys(counts)
+    var i: int = 0
+    while i < len(names):
+        total = total + counts[names[i]] * len(names[i])
+        i = i + 1
+    return total
+
+print("map", word_count(1000, 200))

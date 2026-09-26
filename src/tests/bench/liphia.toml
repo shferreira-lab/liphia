@@ -1,6 +1,0 @@
-[package]
-name    = "bench"
-version = "0.1.0"
-
-[dependencies]
-# liphia install <module> adds entries here automatically

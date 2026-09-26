@@ -1,0 +1,19 @@
+# 02_loops.lph
+#
+# Liphia benchmark workload. Prints one checksum line; the runner times the
+# whole process externally and checks the checksum against the other languages.
+#
+# Nested while loops, 3000 x 3000 = 9M iterations of int multiply-add.
+
+fn nested_sum(n: int) -> int:
+    var total: int = 0
+    var i: int = 0
+    while i < n:
+        var j: int = 0
+        while j < n:
+            total = total + i * j
+            j = j + 1
+        i = i + 1
+    return total
+
+print("loops", nested_sum(3000))

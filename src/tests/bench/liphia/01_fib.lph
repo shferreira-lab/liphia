@@ -1,0 +1,13 @@
+# 01_fib.lph
+#
+# Liphia benchmark workload. Prints one checksum line; the runner times the
+# whole process externally and checks the checksum against the other languages.
+#
+# Recursive Fibonacci fib(32): function calls, int arithmetic, branches.
+
+fn fib(n: int) -> int:
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print("fib", fib(32))

@@ -1,0 +1,8 @@
+# 00_startup.lph
+#
+# Liphia benchmark workload. Prints one checksum line; the runner times the
+# whole process externally and checks the checksum against the other languages.
+#
+# Baseline: process start + compile + print, no work.
+
+print("startup")

@@ -1,0 +1,30 @@
+# 03_mandelbrot.lph
+#
+# Liphia benchmark workload. Prints one checksum line; the runner times the
+# whole process externally and checks the checksum against the other languages.
+#
+# Mandelbrot set on a 300 x 300 grid, up to 100 iterations: float arithmetic.
+
+fn mandelbrot(size: int, max_iter: int) -> int:
+    var inside: int = 0
+    var y: int = 0
+    while y < size:
+        var ci: float = to_float(y) * 2.0 / to_float(size) - 1.0
+        var x: int = 0
+        while x < size:
+            var cr: float = to_float(x) * 3.0 / to_float(size) - 2.0
+            var zr: float = 0.0
+            var zi: float = 0.0
+            var k: int = 0
+            while k < max_iter and zr * zr + zi * zi <= 4.0:
+                var t: float = zr * zr - zi * zi + cr
+                zi = 2.0 * zr * zi + ci
+                zr = t
+                k = k + 1
+            if k == max_iter:
+                inside = inside + 1
+            x = x + 1
+        y = y + 1
+    return inside
+
+print("mandelbrot", mandelbrot(300, 100))
