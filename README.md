@@ -3,9 +3,9 @@
 > A statically typed, indentation-based programming language powered by a Rust bytecode VM.
 > Created by Sergio H. Ferreira — started in late 2025.
 
-[![Engine](https://img.shields.io/badge/engine-2.0.0-blueviolet)](https://github.com/shferreira-lab/liphia/releases)
+[![Engine](https://img.shields.io/badge/engine-2.1.0-blueviolet)](https://github.com/shferreira-lab/liphia/releases)
 [![Language](https://img.shields.io/badge/rust-core%20engine-orange)](https://www.rust-lang.org/)
-[![Status](https://img.shields.io/badge/status-2.0.0%20release-brightgreen)](https://github.com/shferreira-lab/liphia/releases)
+[![Status](https://img.shields.io/badge/status-2.1.0%20release-brightgreen)](https://github.com/shferreira-lab/liphia/releases)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](./licenses)
 
 Liphia is a general-purpose programming language with indentation-based syntax
@@ -30,6 +30,7 @@ Two executables:
 ## Table of Contents
 
 - [Install](#install)
+- [Editor support](#editor-support)
 - [Quick start](#quick-start)
 - [Projects and packages](#projects-and-packages)
 - [What comes with Liphia](#what-comes-with-liphia)
@@ -48,7 +49,7 @@ it works from any terminal or editor. Nothing needs to be compiled: the
 engine is prebuilt, and packages are downloaded prebuilt for your platform
 when you install them.
 
-**Windows** — download `liphia-2.0.0-windows-x86_64-setup.exe` from the
+**Windows** — download `liphia-2.1.0-windows-x86_64-setup.exe` from the
 [latest release](https://github.com/shferreira-lab/liphia/releases/latest)
 and run it. It installs for your user without admin rights (or for all
 users, if you choose), lets you include or skip the GUI runtime, and adds
@@ -83,6 +84,25 @@ archives if you prefer to place the executables yourself.
 
 ---
 
+## Editor support
+
+The VS Code extension adds syntax highlighting and snippets for `.lph`
+files. It is released together with the engine and carries the same
+version.
+
+Download `liphia-vscode-2.1.0.vsix` from the
+[latest release](https://github.com/shferreira-lab/liphia/releases/latest)
+and install it:
+
+```bash
+code --install-extension liphia-vscode-2.1.0.vsix
+```
+
+or, inside VS Code: **Extensions → `…` → Install from VSIX...**. The same
+`.vsix` works in VSCodium, Cursor and other editors based on VS Code.
+
+---
+
 ## Quick start
 
 ```lph
@@ -114,8 +134,8 @@ every part of the language and the standard packages.
 ```bash
 mkdir my_app && cd my_app
 liphia init                     # creates liphia.toml
-liphia install stats            # latest version, saved as "^1.0.0" (installs num too)
-liphia install num@1.2.9        # an exact version
+liphia install stats            # latest version, saved as "^1.0.1" (installs num too)
+liphia install num@1.0.1        # an exact version
 liphia install db:sqlite        # a package plus one of its subpackages
 liphia update                   # newest versions allowed by liphia.toml
 liphia remove stats
@@ -139,6 +159,13 @@ Packages are installed into `liphia_modules/` in the project and cached per
 machine in `~/.liphia/cache`. Every published version stays available, so an
 older project keeps installing the versions it locked.
 
+Native packages (`num`, `stats`, `learn`, `db`) are built for one exact
+engine version. Each release of the engine comes with a new patch release
+of every native package (for example `num` 1.0.0 for engine 2.0.0 and
+1.0.1 for engine 2.1.0), even when the package itself did not change. If a
+locked version was built for a different engine, `liphia install` reports
+it instead of installing a library that would not load.
+
 Inside a project, a program imports only the packages its `liphia.toml`
 declares, and the VM loads only the native libraries those packages need.
 
@@ -154,7 +181,7 @@ folders and a catalog of shared requirements:
 members = ["app", "libs/*"]
 
 [workspace.dependencies]
-num    = "^1.0.0"
+num    = "^1.0.1"
 report = { path = "libs/report" }
 ```
 
@@ -176,8 +203,8 @@ package. `liphia install <pkg>` and `liphia remove <pkg>` edit the
 `liphia.toml` of the member you are in. A `*` segment in `members` matches
 every subfolder at that level, so `"apps/*/api"` picks each app's API and
 skips folders without a `liphia.toml` (a TypeScript `web/` next to it, for
-example). Each member sees only what its own
-`liphia.toml` declares, not what its dependencies declare.
+example). Each member sees only what its own `liphia.toml` declares, not
+what its dependencies declare.
 
 ```bash
 liphia init --workspace          # a root liphia.toml
@@ -265,13 +292,21 @@ A native package library only loads in an engine built with the same Rust
 version from the same engine version; rebuild the packages after changing
 the VM or the toolchain.
 
+The VS Code extension is packaged with [`vsce`](https://github.com/microsoft/vscode-vsce)
+(requires Node.js):
+
+```bash
+cd src/tools/liphia-vscode
+npx @vscode/vsce package          # liphia-vscode-<version>.vsix
+```
+
 ---
 
 ## Repository layout
 
 ```
 liphia/
-├── .github/workflows/      CI and release automation (engine and packages)
+├── .github/workflows/      CI and release automation (engine, packages, VS Code extension)
 ├── docs/
 │   ├── language/           language reference and changelog
 │   └── spec/               core natives, VM semantics, bytecode format
@@ -302,26 +337,30 @@ liphia/
 
 ## Versions
 
-**Engine: 2.0.0.** Every engine crate shares this version; it is the
+**Engine: 2.1.0.** Every engine crate shares this version; it is the
 version `liphia version` reports and the one releases are tagged with
-(`v2.0.0`).
+(`v2.1.0`).
 
 **Packages** have their own versions, released independently with tags
-`<name>-v<version>`:
+`<name>-v<version>`. Native packages pin the exact engine they were built
+for:
 
-| Package | Version |
-|---------|---------|
-| `num`   | 1.0.0 |
-| `stats` | 1.0.0 |
-| `learn` | 1.0.0 |
-| `db`    | 2.0.0 |
-| `wire`  | 1.0.0 |
+| Package | Version | Kind | Engine |
+|---------|---------|------|--------|
+| `num`   | 1.0.1 | native | 2.1.0 |
+| `stats` | 1.0.1 | native | 2.1.0 |
+| `learn` | 1.0.1 | native | 2.1.0 |
+| `db`    | 2.0.1 | native | 2.1.0 |
+| `wire`  | 1.0.0 | pure   | any   |
+
+The previous native versions (`num`, `stats`, `learn` 1.0.0 and `db` 2.0.0)
+remain published for engine 2.0.0.
 
 **Tooling:**
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| VS Code extension | 1.0.0 | syntax highlighting and snippets; an update for 2.0.0 is planned |
+| VS Code extension | 2.1.0 | syntax highlighting and snippets; released with the engine as a `.vsix` |
 | REPL | — | part of `liphia`; still developer-facing |
 
 All versions follow [Semantic Versioning](https://semver.org/). See the

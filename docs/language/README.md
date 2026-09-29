@@ -1,4 +1,4 @@
-# Liphia Language Reference — Engine 2.0.0
+# Liphia Language Reference — Engine 2.1.0
 
 Full syntax reference for the Liphia language. For installation and project
 setup, see the [root README](../../README.md). For the built-in functions,
