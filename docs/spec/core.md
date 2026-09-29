@@ -145,7 +145,17 @@ Blocking I/O. Connections are int handles. Ports must be in 1..65535.
 its own thread and queued. `http_accept` is non-blocking, so the usual loop
 is `await http_accept()` inside an `async fn`. Bodies over 10 MB are
 rejected. Every response carries permissive CORS headers
-(`Access-Control-Allow-Origin: *`).
+(`Access-Control-Allow-Origin: *` and the allowed methods and headers)
+unless the program sets the same header with `http_set_header`. Cookies
+sent across subdomains need that: browsers refuse credentialed requests
+when the allowed origin is `*`, so set a specific origin plus
+`Access-Control-Allow-Credentials: true`.
+
+`http_set_header` applies to the response of the current request and is
+written by the next `http_respond`/`http_respond_json`. Setting a header
+again replaces it, except `Set-Cookie`, which may repeat. Names must be
+HTTP tokens and values must not contain line breaks (header injection is
+an error); `Content-Length` and `Connection` are always set by the server.
 
 | Signature | Notes |
 |-----------|-------|
@@ -156,6 +166,8 @@ rejected. Every response carries permissive CORS headers
 | `http_query() -> str` | text after `?` |
 | `http_body() -> str` | |
 | `http_header(name: str) -> str` | case-insensitive; `""` when absent |
+| `http_cookie(name: str) -> str` | from the `Cookie` header; case-sensitive; `""` when absent |
+| `http_set_header(name: str, value: str) -> bool` | adds a response header (see above) |
 | `http_respond(status: int, body: str) -> bool` | text/plain, closes the request |
 | `http_respond_json(status: int, body: str) -> bool` | application/json, closes the request |
 

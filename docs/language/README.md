@@ -355,6 +355,10 @@ Import cycles are detected and skipped automatically.
 ```lph
 import { format_name } from "./utils.lph"
 ```
+The listed functions can still call the module's other functions, consts
+and enums; those stay private to the module. Listing a name the module
+does not declare is an error. Selecting the same name from the same file
+in several places of one program brings it in once.
 
 **Qualified import** — everything is imported, but only reachable through an
 alias, avoiding name collisions:
@@ -365,6 +369,10 @@ import routes from "./routes.lph"
 var conn: int = database.connect()
 print(routes.get_users(conn))
 ```
+Inside the module, its functions keep calling each other (and reading its
+consts and enums) by their plain names. A qualified or selective module
+gets its own copy of the files it imports, so it works the same whatever
+the importing file imported before it.
 
 If two imported files declare the same symbol without one of them being
 qualified, compilation fails with a collision error instead of silently

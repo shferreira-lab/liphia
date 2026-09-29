@@ -1,0 +1,6 @@
+# A selective import brings in only the named function, but that function
+# can still call the module's other functions.
+
+import { describe } from "modules/shapes.lph"
+
+print(describe(3, 4))

@@ -3,10 +3,19 @@
 // Package manager: `liphia init | install | update | remove | list`.
 //
 // Files involved (see liphia_manifest for their formats):
-//   liphia.toml    the project's direct dependencies and their requirements
+//   liphia.toml    a project's or member's direct dependencies; a workspace
+//                  root also lists members and [workspace.dependencies]
 //   liphia.lock    exact versions installed, transitive ones included
 //   index.toml     published versions of every package (from the registry)
 //   package.toml   one package's files, dependencies and engine requirement
+//
+// Every command works on the workspace that contains the current folder
+// (a single project is a workspace of one). liphia.lock and liphia_modules/
+// live only at the workspace root, and all members are resolved together:
+// one version of each package for the whole workspace, since natives are
+// global inside the VM and two versions of one package could not coexist.
+// `install <pkg>` and `remove <pkg>` edit the liphia.toml of the member the
+// current folder belongs to.
 //
 // Where packages come from (the "registry"):
 //   - default: the GitHub repo. Package files are read at the package's
@@ -18,9 +27,8 @@
 //     holds.
 //
 // Downloads are cached per machine in <LIPHIA_HOME>/cache/<name>/<version>/
-// (LIPHIA_HOME defaults to ~/.liphia) and copied into ./liphia_modules/.
-// Only one version of each package is installed per project; conflicting
-// requirements are an error that names who asked for what.
+// (LIPHIA_HOME defaults to ~/.liphia) and copied into <root>/liphia_modules/.
+// Conflicting requirements are an error that names who asked for what.
 
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
@@ -29,11 +37,11 @@ use std::process;
 
 use liphia_manifest::{
     highest_matching, lib_asset_name, lib_file_name, parse_req, Dependency, Index, LockedPackage,
-    Lockfile, PackageManifest, ProjectManifest, Version, LOCK_FILE, PACKAGE_FILE, PROJECT_FILE,
+    Lockfile, PackageManifest, ProjectManifest, RunPlan, Version, Workspace, MODULES_DIR,
+    PACKAGE_FILE, PROJECT_FILE,
 };
 use liphia_virtual_machine::vm::VM;
 
-const MODULES_DIR: &str = "liphia_modules";
 const REPO: &str = "shferreira-lab/liphia";
 const ENGINE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -103,27 +111,49 @@ impl Registry {
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
-pub fn init_project() {
+pub fn init_project(workspace: bool) {
     let path = Path::new(PROJECT_FILE);
     if path.exists() {
         println!("[liphia] {} already exists.", PROJECT_FILE);
         return;
     }
-    let name = std::env::current_dir()
-        .ok()
-        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
-        .unwrap_or_else(|| "my_project".to_string());
-    if let Err(e) = ProjectManifest::new(&name).save(path) {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let manifest = if workspace {
+        ProjectManifest::new_workspace()
+    } else {
+        let name = cwd
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_else(|| "my_project".to_string());
+        ProjectManifest::new(&name)
+    };
+    if let Err(e) = manifest.save(path) {
         fail(&format!("failed to create {}: {}", PROJECT_FILE, e));
     }
     println!("[liphia] created {}", PROJECT_FILE);
+    if workspace {
+        println!("[liphia] list member folders in [workspace] members, e.g. members = [\"app\", \"libs/*\"].");
+        return;
+    }
+    // A new project under a workspace root still has to be listed there.
+    if let Some(root) = cwd.parent().and_then(enclosing_workspace_root) {
+        println!(
+            "[liphia] this folder is inside the workspace at {}; add it to [workspace] members there.",
+            root.display()
+        );
+    }
     println!("[liphia] run 'liphia install <package>' to add dependencies.");
 }
 
 pub fn list_packages() {
     let registry = Registry::from_env();
     let index = registry.index().unwrap_or_else(|e| fail(&e));
-    let lock = Lockfile::load(Path::new(LOCK_FILE)).ok().flatten();
+    let lock_path = std::env::current_dir()
+        .ok()
+        .and_then(|cwd| Workspace::discover(&cwd).ok().flatten())
+        .map(|ws| ws.lock_path())
+        .unwrap_or_else(|| PathBuf::from(liphia_manifest::LOCK_FILE));
+    let lock = Lockfile::load(&lock_path).ok().flatten();
     println!("[liphia] packages in {}:", registry.describe());
     for (name, entry) in &index.packages {
         let latest = index.latest(name).map(|v| v.to_string()).unwrap_or_default();
@@ -136,9 +166,33 @@ pub fn list_packages() {
     }
 }
 
-// `liphia install` with no names installs liphia.toml as locked;
+// `liphia members`: the workspace layout, for checking what discovery found.
+pub fn list_members() {
+    let ws = load_workspace();
+    let kind = if ws.is_workspace { "workspace" } else { "project" };
+    println!("[liphia] {} at {}", kind, ws.root.display());
+    for m in &ws.members {
+        let deps: Vec<String> = m
+            .deps
+            .iter()
+            .map(|(name, dep)| match dep {
+                liphia_manifest::MemberDep::Registry { req, .. } => format!("{} {}", name, req),
+                liphia_manifest::MemberDep::Local(_) => format!("{} (member)", name),
+            })
+            .collect();
+        println!(
+            "  {:<12} {:<8} {:<20} {}",
+            m.name,
+            m.version,
+            m.rel,
+            if deps.is_empty() { "-".to_string() } else { deps.join(", ") }
+        );
+    }
+}
+
+// `liphia install` with no names installs the whole workspace as locked;
 // `--frozen` additionally refuses to change the lock (for CI).
-// With names, each spec is added to liphia.toml first:
+// With names, each spec is added to the current member's liphia.toml first:
 //   num            latest version, saved as "^<latest>"
 //   num@1.2.9      exactly 1.2.9 (npm semantics)
 //   num@^1.2       any compatible version
@@ -146,34 +200,53 @@ pub fn list_packages() {
 //   db:sqlite      the db package plus its sqlite subpackage
 pub fn install(specs: &[&str], frozen: bool) {
     let registry = Registry::from_env();
-    let mut project = load_project();
+    let mut ws = load_workspace();
     let mut unlocked: HashSet<String> = HashSet::new();
+    let mut edited: Option<usize> = None;
 
     if !specs.is_empty() {
         if frozen {
             fail("--frozen installs exactly liphia.lock; it cannot add packages");
         }
+        let target = current_member(&ws, "add packages to");
+        let mut manifest = ws.members[target].manifest.clone();
         let index = registry.index().unwrap_or_else(|e| fail(&e));
         for spec in specs {
             let (name, req, subpackages) = parse_spec(spec, &index);
-            let mut merged: Vec<String> = project
-                .dependencies
-                .get(&name)
-                .map(|d| d.subpackages().to_vec())
-                .unwrap_or_default();
+            if ws.member_by_name(&name).is_some() {
+                fail(&format!(
+                    "'{}' is a workspace member; depend on it with {{ path = \"...\" }} in {}",
+                    name,
+                    ws.members[target].label()
+                ));
+            }
+            let mut merged: Vec<String> = vec![];
+            match manifest.dependencies.get(&name) {
+                Some(dep) if !dep.is_registry() => fail(&format!(
+                    "'{}' in {} is a path or workspace dependency; change it there by hand \
+                     (shared requirements live in [workspace.dependencies] of the root {})",
+                    name,
+                    ws.members[target].label(),
+                    PROJECT_FILE
+                )),
+                Some(dep) => merged.extend(dep.subpackages().iter().cloned()),
+                None => {}
+            }
             merged.extend(subpackages);
-            project.dependencies.insert(name.clone(), Dependency::new(req, merged));
+            manifest.dependencies.insert(name.clone(), Dependency::new(req, merged));
             // A package named on the command line is re-resolved, so
             // `install num@latest` or a changed requirement takes effect.
             unlocked.insert(name);
         }
+        ws.set_member_manifest(target, manifest).unwrap_or_else(|e| fail(&e));
+        edited = Some(target);
     }
 
-    // liphia.toml is only rewritten once the new set installed cleanly, so
-    // a failed install leaves the project exactly as it was.
-    run(&registry, &project, Unlock::Some(unlocked), frozen).unwrap_or_else(|e| fail(&e));
-    if !specs.is_empty() {
-        save_project(&project);
+    // The member's liphia.toml is only rewritten once the new set installed
+    // cleanly, so a failed install leaves the project exactly as it was.
+    run(&registry, &ws, Unlock::Some(unlocked), frozen).unwrap_or_else(|e| fail(&e));
+    if let Some(i) = edited {
+        save_member(&ws, i);
     }
 }
 
@@ -181,13 +254,13 @@ pub fn install(specs: &[&str], frozen: bool) {
 // `liphia update num` only num (and whatever num's new version needs).
 pub fn update(names: &[&str]) {
     let registry = Registry::from_env();
-    let project = load_project();
+    let ws = load_workspace();
     let unlock = if names.is_empty() {
         Unlock::All
     } else {
         Unlock::Some(names.iter().map(|s| s.to_string()).collect())
     };
-    run(&registry, &project, unlock, false).unwrap_or_else(|e| fail(&e));
+    run(&registry, &ws, unlock, false).unwrap_or_else(|e| fail(&e));
 }
 
 pub fn remove(names: &[&str]) {
@@ -195,14 +268,21 @@ pub fn remove(names: &[&str]) {
         fail("usage: liphia remove <package> [package ...]");
     }
     let registry = Registry::from_env();
-    let mut project = load_project();
+    let mut ws = load_workspace();
+    let target = current_member(&ws, "remove packages from");
+    let mut manifest = ws.members[target].manifest.clone();
     for name in names {
-        if project.dependencies.remove(*name).is_none() {
-            eprintln!("[liphia] '{}' is not a dependency in {}", name, PROJECT_FILE);
+        if manifest.dependencies.remove(*name).is_none() {
+            eprintln!(
+                "[liphia] '{}' is not a dependency in {}",
+                name,
+                ws.members[target].label()
+            );
         }
     }
-    run(&registry, &project, Unlock::Some(HashSet::new()), false).unwrap_or_else(|e| fail(&e));
-    save_project(&project);
+    ws.set_member_manifest(target, manifest).unwrap_or_else(|e| fail(&e));
+    run(&registry, &ws, Unlock::Some(HashSet::new()), false).unwrap_or_else(|e| fail(&e));
+    save_member(&ws, target);
 }
 
 // ── Resolution ────────────────────────────────────────────────────────────────
@@ -237,25 +317,23 @@ struct Wanted {
 
 // Resolves, installs and writes liphia.lock. Resolution happens before
 // anything is touched, so an unsatisfiable request changes nothing.
-fn run(
-    registry: &Registry,
-    project: &ProjectManifest,
-    unlock: Unlock,
-    frozen: bool,
-) -> Result<(), String> {
-    let lock = Lockfile::load(Path::new(LOCK_FILE))?;
+fn run(registry: &Registry, ws: &Workspace, unlock: Unlock, frozen: bool) -> Result<(), String> {
+    let lock_path = ws.lock_path();
+    let modules_dir = ws.modules_dir();
+    let lock = Lockfile::load(&lock_path)?;
     if frozen && lock.is_none() {
         return Err("--frozen requires liphia.lock".to_string());
     }
-    if project.dependencies.is_empty() {
-        println!("[liphia] no dependencies in {}.", PROJECT_FILE);
+    let requirements = ws.registry_requirements();
+    if requirements.is_empty() {
+        println!("[liphia] no registry dependencies in {}.", describe_workspace(ws));
     }
 
-    let resolved = resolve(registry, project, lock.as_ref(), &unlock, frozen)?;
+    let resolved = resolve(registry, &requirements, lock.as_ref(), &unlock, frozen)?;
 
     let mut failed = 0;
     for (name, pkg) in &resolved {
-        match install_one(registry, name, pkg) {
+        match install_one(registry, &modules_dir, name, pkg) {
             Ok(n) => println!("  {} {}  ({} file(s))", name, pkg.version, n),
             Err(e) => {
                 eprintln!("  {} {}  FAILED\n    {}", name, pkg.version, e);
@@ -263,7 +341,7 @@ fn run(
             }
         }
     }
-    prune(&resolved);
+    prune(&modules_dir, &resolved);
 
     if failed > 0 {
         return Err(format!("{} package(s) failed; liphia.lock was not updated", failed));
@@ -282,9 +360,14 @@ fn run(
             .collect(),
     };
     if !frozen {
-        new_lock.save(Path::new(LOCK_FILE))?;
+        new_lock.save(&lock_path)?;
     }
-    println!("[liphia] {} package(s) ready ({}).", resolved.len(), registry.describe());
+    println!(
+        "[liphia] {} package(s) ready in {} ({}).",
+        resolved.len(),
+        describe_workspace(ws),
+        registry.describe()
+    );
     Ok(())
 }
 
@@ -293,7 +376,7 @@ fn run(
 // indexed version its requirement allows.
 fn resolve(
     registry: &Registry,
-    project: &ProjectManifest,
+    requirements: &[liphia_manifest::Requirement],
     lock: Option<&Lockfile>,
     unlock: &Unlock,
     frozen: bool,
@@ -301,14 +384,15 @@ fn resolve(
     let index = registry.index()?;
     let engine = Version::parse(ENGINE_VERSION).expect("engine version is valid semver");
     let mut chosen: BTreeMap<String, Resolved> = BTreeMap::new();
-    let mut queue: Vec<Wanted> = project
-        .dependencies
+    // Popped from the end, so reversed to handle members in listing order.
+    let mut queue: Vec<Wanted> = requirements
         .iter()
-        .map(|(name, dep)| Wanted {
-            name: name.clone(),
-            req: dep.req().to_string(),
-            subpackages: dep.subpackages().to_vec(),
-            by: PROJECT_FILE.to_string(),
+        .rev()
+        .map(|r| Wanted {
+            name: r.name.clone(),
+            req: r.req.clone(),
+            subpackages: r.subpackages.clone(),
+            by: r.by.clone(),
         })
         .collect();
 
@@ -399,8 +483,8 @@ fn resolve(
 
 // Fills the cache for this exact version (skipped for a local registry,
 // whose content can change without a version bump), then replaces
-// liphia_modules/<name> with a copy of it.
-fn install_one(registry: &Registry, name: &str, pkg: &Resolved) -> Result<usize, String> {
+// <root>/liphia_modules/<name> with a copy of it.
+fn install_one(registry: &Registry, modules_dir: &Path, name: &str, pkg: &Resolved) -> Result<usize, String> {
     let mut files: Vec<String> = vec![PACKAGE_FILE.to_string()];
     files.extend(pkg.manifest.package.files.iter().cloned());
     for sub in &pkg.subpackages {
@@ -431,7 +515,7 @@ fn install_one(registry: &Registry, name: &str, pkg: &Resolved) -> Result<usize,
         dir
     };
 
-    let dest = PathBuf::from(MODULES_DIR).join(name);
+    let dest = modules_dir.join(name);
     let _ = fs::remove_dir_all(&dest);
     copy_dir(&source, &dest)?;
     let _ = fs::remove_file(dest.join(".complete"));
@@ -458,8 +542,8 @@ fn fill(
 
 // Removes installed packages the resolution no longer includes. Only
 // folders holding a package.toml are touched.
-fn prune(resolved: &BTreeMap<String, Resolved>) {
-    let Ok(entries) = fs::read_dir(MODULES_DIR) else {
+fn prune(modules_dir: &Path, resolved: &BTreeMap<String, Resolved>) {
+    let Ok(entries) = fs::read_dir(modules_dir) else {
         return;
     };
     for entry in entries.flatten() {
@@ -476,15 +560,46 @@ fn prune(resolved: &BTreeMap<String, Resolved>) {
 // ── Loading installed native packages ─────────────────────────────────────────
 //
 // Native packages ship prebuilt libraries (see liphia_virtual_machine::
-// external). This loads every installed package under liphia_modules/ that
-// has an index.lph. Failures are warnings, not fatal: a project that never
-// calls a package's natives should not be blocked by it failing to load.
-pub fn load_installed_packages(vm: &mut VM) {
-    for (name, err) in vm.load_installed_external_modules(MODULES_DIR) {
-        eprintln!(
-            "[liphia] warning: failed to load package '{}': {}",
-            name, err.message
-        );
+// external). Inside a project only the packages in the running member's
+// dependency closure are loaded (RunPlan::native_dirs); outside any project
+// every package in ./liphia_modules/ is, as before workspaces. Failures are
+// warnings, not fatal: a program that never calls a package's natives
+// should not be blocked by it failing to load.
+pub fn load_native_packages(vm: &mut VM, plan: Option<&RunPlan>) {
+    match plan {
+        Some(plan) => {
+            for dir in &plan.native_dirs {
+                if let Err(e) = vm.load_external_module(dir) {
+                    let name = dir.file_name().unwrap_or_default().to_string_lossy();
+                    eprintln!("[liphia] warning: failed to load package '{}': {}", name, e.message);
+                }
+            }
+        }
+        None => {
+            for (name, err) in vm.load_installed_external_modules(MODULES_DIR) {
+                eprintln!(
+                    "[liphia] warning: failed to load package '{}': {}",
+                    name, err.message
+                );
+            }
+        }
+    }
+}
+
+// Plan for the REPL: the member the current folder belongs to, or the whole
+// workspace from its root; None outside any project.
+pub fn plan_for_current_dir() -> Option<RunPlan> {
+    let cwd = std::env::current_dir().ok()?;
+    match Workspace::discover(&cwd) {
+        Ok(Some(ws)) => {
+            let member = ws.member_at(&cwd);
+            Some(ws.run_plan(member))
+        }
+        Ok(None) => None,
+        Err(e) => {
+            eprintln!("[liphia] warning: {}", e);
+            None
+        }
     }
 }
 
@@ -516,18 +631,54 @@ fn parse_spec(spec: &str, index: &Index) -> (String, String, Vec<String>) {
     }
 }
 
-fn load_project() -> ProjectManifest {
-    let path = Path::new(PROJECT_FILE);
-    if !path.exists() {
-        fail("no liphia.toml here; run 'liphia init' first");
-    }
-    ProjectManifest::load(path).unwrap_or_else(|e| fail(&e))
+fn load_workspace() -> Workspace {
+    let cwd = std::env::current_dir().unwrap_or_else(|e| fail(&e.to_string()));
+    Workspace::discover(&cwd)
+        .unwrap_or_else(|e| fail(&e))
+        .unwrap_or_else(|| fail("no liphia.toml here or in any parent folder; run 'liphia init' first"))
 }
 
-fn save_project(project: &ProjectManifest) {
-    project
-        .save(Path::new(PROJECT_FILE))
+// The member whose liphia.toml a command edits: the one the current folder
+// belongs to. A virtual workspace root (no [package]) has none.
+fn current_member(ws: &Workspace, action: &str) -> usize {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    ws.member_at(&cwd).unwrap_or_else(|| {
+        let names: Vec<String> = ws.members.iter().map(|m| m.rel.clone()).collect();
+        fail(&format!(
+            "the workspace root has no [package] to {}; cd into a member ({}) \
+             or edit [workspace.dependencies] in the root {}",
+            action,
+            names.join(", "),
+            PROJECT_FILE
+        ))
+    })
+}
+
+fn save_member(ws: &Workspace, index: usize) {
+    let member = &ws.members[index];
+    member
+        .manifest
+        .save(&member.manifest_path())
         .unwrap_or_else(|e| fail(&e));
+}
+
+fn describe_workspace(ws: &Workspace) -> String {
+    if ws.is_workspace {
+        format!("workspace {} ({} member(s))", ws.root.display(), ws.members.len())
+    } else {
+        ws.root.display().to_string()
+    }
+}
+
+// Nearest ancestor of `dir` (inclusive) whose liphia.toml has [workspace].
+fn enclosing_workspace_root(dir: &Path) -> Option<PathBuf> {
+    dir.ancestors()
+        .find(|d| {
+            ProjectManifest::load(&d.join(PROJECT_FILE))
+                .map(|m| m.workspace.is_some())
+                .unwrap_or(false)
+        })
+        .map(|d| d.to_path_buf())
 }
 
 fn liphia_home() -> PathBuf {

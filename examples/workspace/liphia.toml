@@ -1,0 +1,15 @@
+# examples/workspace/liphia.toml
+#
+# Workspace root: lists the members and the requirements they share.
+# `liphia install` here installs every member's packages into the single
+# liphia_modules/ and liphia.lock next to this file.
+
+[workspace]
+members = ["app", "libs/*"]
+
+# A catalog: a member uses an entry with `name = { workspace = true }`.
+# Entries no member uses are not installed.
+[workspace.dependencies]
+num    = "^1.0.0"
+greet  = { path = "libs/greet" }
+report = { path = "libs/report" }

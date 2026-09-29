@@ -1,0 +1,13 @@
+# app/main.lph — the runnable member of the example workspace.
+#
+# greet and report are workspace members, imported by name exactly like
+# registry packages. report depends on num, which is installed once at
+# the workspace root.
+
+import from "greet"
+import from "report"
+
+print(greeting("workspace"))
+
+var latencies: list = [12.0, 15.0, 11.0, 30.0, 14.0, 13.0]
+print(summary("latency ms", latencies))

@@ -1,0 +1,4 @@
+# libs/greet/greet.lph — a pure member with no dependencies.
+
+fn greeting(name: str) -> str:
+    return "hello from " + name

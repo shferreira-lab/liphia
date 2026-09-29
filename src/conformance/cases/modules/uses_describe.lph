@@ -1,0 +1,6 @@
+# Helper module for the import cases: selects a name the importer selects too.
+
+import { describe } from "shapes.lph"
+
+fn twice_described() -> str:
+    return describe(2, 2) + " / " + describe(2, 3)

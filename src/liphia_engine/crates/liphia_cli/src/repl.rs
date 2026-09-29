@@ -26,7 +26,7 @@ impl ReplState {
 pub fn start() {
     let mut vm = VM::new();
     liphia_core_native::register(&mut vm);
-    installer::load_installed_packages(&mut vm);
+    installer::load_native_packages(&mut vm, installer::plan_for_current_dir().as_ref());
 
     // Accumulated source of declarations only (fn, enum, var, const)
     // so that previously defined functions are visible in future compilations
@@ -37,7 +37,7 @@ pub fn start() {
 
     let mut buffer = String::new();
 
-    println!("Welcome to the Liphia Interactive Shell! V.0.4.0");
+    println!("Welcome to the Liphia Interactive Shell! V.2.1.0");
     println!("Type 'help' for commands. Ctrl+C or 'exit' to quit.");
     println!("Multi-line input (fn, if, while, try...) accumulates until you type 'run'.\n");
 

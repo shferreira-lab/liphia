@@ -1,0 +1,10 @@
+# A qualified import keeps the module's internal calls, consts and enums
+# working, and its own imports do not depend on what the importer imported.
+
+import shapes from "modules/shapes.lph"
+import "modules/util.lph"
+
+print(shapes.area(2, 3))
+print(shapes.describe(2, 2))
+print(shapes.shadow(1))
+print(double(5))

@@ -1,0 +1,6 @@
+# Names not listed in a selective import stay private to the module.
+
+import { area } from "modules/shapes.lph"
+
+print(area(1, 1))
+print(scaled(1))

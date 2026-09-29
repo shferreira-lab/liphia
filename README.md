@@ -139,6 +139,54 @@ Packages are installed into `liphia_modules/` in the project and cached per
 machine in `~/.liphia/cache`. Every published version stays available, so an
 older project keeps installing the versions it locked.
 
+Inside a project, a program imports only the packages its `liphia.toml`
+declares, and the VM loads only the native libraries those packages need.
+
+### Workspaces
+
+A workspace groups several projects (members) under one root, like a Cargo
+workspace or npm workspaces. The root `liphia.toml` lists the member
+folders and a catalog of shared requirements:
+
+```toml
+# liphia.toml (root)
+[workspace]
+members = ["app", "libs/*"]
+
+[workspace.dependencies]
+num    = "^1.0.0"
+report = { path = "libs/report" }
+```
+
+```toml
+# app/liphia.toml
+[package]
+name  = "app"
+entry = "main.lph"
+
+[dependencies]
+report = { workspace = true }      # or { path = "../libs/report" }
+```
+
+Members import each other by name (`import from "report"`), exactly like
+registry packages. The workspace has **one `liphia.lock` and one
+`liphia_modules/`, at the root**: `liphia install` from any folder resolves
+every member together, so the whole workspace uses one version of each
+package. `liphia install <pkg>` and `liphia remove <pkg>` edit the
+`liphia.toml` of the member you are in. A `*` segment in `members` matches
+every subfolder at that level, so `"apps/*/api"` picks each app's API and
+skips folders without a `liphia.toml` (a TypeScript `web/` next to it, for
+example). Each member sees only what its own
+`liphia.toml` declares, not what its dependencies declare.
+
+```bash
+liphia init --workspace          # a root liphia.toml
+liphia members                   # members and their dependencies
+liphia run app                   # run a member's entry (or `liphia run` inside it)
+```
+
+A complete example is in [`examples/workspace/`](./examples/workspace/).
+
 ---
 
 ## What comes with Liphia

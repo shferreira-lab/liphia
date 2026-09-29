@@ -11,7 +11,8 @@ use std::rc::Rc;
 use eframe::egui;
 use liphia_compiler::ast::Type;
 use liphia_gui_native::GuiCommand;
-use liphia_pipeline::{compile_with_externals, resolve_project};
+use liphia_manifest::RunPlan;
+use liphia_pipeline::{compile_with_externals, resolve_project_with, PackageRoots, Visibility};
 use liphia_virtual_machine::vm::{VmSession, VM};
 
 use crate::console::{self, Console};
@@ -25,6 +26,21 @@ fn gui_externals() -> Vec<(&'static str, Vec<Type>, Type)> {
         ("gui_button", vec![Type::Str, Type::Str], Type::Bool),
         ("gui_next_frame", vec![], Type::Bool),
     ]
+}
+
+// The pipeline's view of a run plan: importable packages plus per-folder
+// visibility (same conversion as the CLI's).
+fn package_roots(plan: &RunPlan) -> PackageRoots {
+    let visibility = plan
+        .scopes
+        .iter()
+        .map(|s| Visibility {
+            dir: s.dir.clone(),
+            label: s.label.clone(),
+            allowed: s.allowed.iter().cloned().collect(),
+        })
+        .collect();
+    PackageRoots::scoped(plan.scope.clone(), plan.packages.clone()).with_visibility(visibility)
 }
 
 /// Holds the compiled program + running VM state, only present once a
@@ -74,9 +90,21 @@ impl GuiApp {
             }
         };
 
+        // A file inside a project or workspace imports only what its member
+        // declares and loads only those natives; a picked file with no path
+        // (or outside any project) keeps the older global lookup.
+        let plan = match RunPlan::for_file(&resolved_path) {
+            Ok(plan) => plan,
+            Err(e) => {
+                self.console.error(e);
+                return;
+            }
+        };
+        let roots = plan.as_ref().map(package_roots).unwrap_or_default();
+
         let mut visited = HashSet::new();
 
-        let stmts = match resolve_project(&resolved_path, &resolved_path, &mut visited) {
+        let stmts = match resolve_project_with(&resolved_path, &resolved_path, &mut visited, &roots) {
             Ok(s) => s,
             Err(e) => {
                 self.console.error(e);
@@ -98,8 +126,20 @@ impl GuiApp {
         // Native packages (db, num, stats, learn) ship as prebuilt libraries
         // under liphia_modules/<name>/lib/, loaded through
         // liphia_virtual_machine::external. Harmless no-op if none installed.
-        for (name, err) in vm.load_installed_external_modules("liphia_modules") {
-            self.console.error(format!("failed to load package '{}': {}", name, err.message));
+        match &plan {
+            Some(plan) => {
+                for dir in &plan.native_dirs {
+                    if let Err(e) = vm.load_external_module(dir) {
+                        let name = dir.file_name().unwrap_or_default().to_string_lossy().to_string();
+                        self.console.error(format!("failed to load package '{}': {}", name, e.message));
+                    }
+                }
+            }
+            None => {
+                for (name, err) in vm.load_installed_external_modules("liphia_modules") {
+                    self.console.error(format!("failed to load package '{}': {}", name, err.message));
+                }
+            }
         }
 
         // Route print() into the in-app console instead of stdout.

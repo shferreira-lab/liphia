@@ -1,0 +1,7 @@
+# libs/report/report.lph — a member that uses a registry package (num).
+
+import from "num"
+
+# One line with the median and sample standard deviation of `values`.
+fn summary(label: str, values: list) -> str:
+    return label + ": median " + to_str(median(values)) + ", stdev " + to_str(stdev_sample(values))

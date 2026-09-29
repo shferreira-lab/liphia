@@ -1923,14 +1923,14 @@ checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "liphia_bytecode"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_cli"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_bytecode",
  "liphia_compiler",
@@ -1942,12 +1942,13 @@ dependencies = [
 
 [[package]]
 name = "liphia_cli_gui"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "eframe",
  "liphia_compiler",
  "liphia_core_native",
  "liphia_gui_native",
+ "liphia_manifest",
  "liphia_pipeline",
  "liphia_virtual_machine",
  "pollster 0.3.0",
@@ -1956,28 +1957,28 @@ dependencies = [
 
 [[package]]
 name = "liphia_compiler"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_core_native"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_gui_native"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_manifest"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "semver",
  "serde",
@@ -2016,7 +2017,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_pipeline"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "liphia_compiler",
  "liphia_virtual_machine",
@@ -2024,7 +2025,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_virtual_machine"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "libloading",
 ]

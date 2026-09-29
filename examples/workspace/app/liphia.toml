@@ -1,0 +1,8 @@
+[package]
+name    = "app"
+version = "0.1.0"
+entry   = "main.lph"
+
+[dependencies]
+greet  = { workspace = true }
+report = { workspace = true }

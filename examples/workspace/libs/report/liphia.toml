@@ -1,0 +1,7 @@
+[package]
+name    = "report"
+version = "0.1.0"
+entry   = "report.lph"
+
+[dependencies]
+num = { workspace = true }

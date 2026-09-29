@@ -27,3 +27,7 @@ The files in `packages/` need the package installed first
 | `packages/12_stats.lph` | stats — hypothesis tests, compare_groups |
 | `packages/13_learn.lph` | learn — logistic regression trained with SGD |
 | `packages/14_db_sqlite.lph` | db — SQLite in memory |
+
+`workspace/` is a small workspace (a root and three members) showing
+member-to-member imports and a single `liphia.lock` and `liphia_modules/`
+at the root; see [`workspace/README.md`](./workspace/README.md).

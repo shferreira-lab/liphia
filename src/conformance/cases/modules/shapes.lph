@@ -1,0 +1,31 @@
+# Helper module for the import cases. Its functions call each other and use
+# its own const, enum and a bare import, which must keep working when the
+# module is imported qualified or selectively.
+
+import "util.lph"
+
+const SCALE: int = 10
+
+enum Kind:
+    Square
+    Rect
+
+fn kind_name(k: Kind) -> str:
+    if k == Kind.Square:
+        return "square"
+    return "rect"
+
+fn scaled(x: int) -> int:
+    return double(x) * SCALE
+
+fn area(w: int, h: int) -> int:
+    return scaled(w * h)
+
+# A parameter named like the module's const shadows it.
+fn shadow(SCALE: int) -> int:
+    return SCALE + 1
+
+fn describe(w: int, h: int) -> str:
+    if w == h:
+        return kind_name(Kind.Square) + " " + to_str(area(w, h))
+    return kind_name(Kind.Rect) + " " + to_str(area(w, h))

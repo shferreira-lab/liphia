@@ -1,0 +1,7 @@
+# Two files selecting the same name from the same module get one copy.
+
+import { describe } from "modules/shapes.lph"
+import "modules/uses_describe.lph"
+
+print(describe(1, 1))
+print(twice_described())

@@ -10,6 +10,9 @@ src/packages/*/lib/
 examples/**/liphia.toml
 examples/**/liphia.lock
 
+# ...except the workspace example, whose liphia.toml files are the example
+!examples/workspace/**/liphia.toml
+
 # Rust / Cargo
 target/
 

@@ -1,0 +1,5 @@
+# Helper module for the import cases (not a case itself: the runner only
+# reads cases/*.lph).
+
+fn double(x: int) -> int:
+    return x * 2

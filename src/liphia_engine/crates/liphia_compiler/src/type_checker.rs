@@ -155,6 +155,8 @@ impl TypeChecker {
         tc.declare_fn("http_query",        vec![],                     Type::Str);
         tc.declare_fn("http_body",         vec![],                     Type::Str);
         tc.declare_fn("http_header",       vec![Type::Str],            Type::Str);
+        tc.declare_fn("http_cookie",       vec![Type::Str],            Type::Str);
+        tc.declare_fn("http_set_header",   vec![Type::Str, Type::Str], Type::Bool);
         tc.declare_fn("http_respond",      vec![Type::Int, Type::Str], Type::Bool);
         tc.declare_fn("http_respond_json", vec![Type::Int, Type::Str], Type::Bool);
 

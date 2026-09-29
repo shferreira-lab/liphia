@@ -230,7 +230,7 @@
       "patterns": [
         {
           "name": "support.function.stdlib.http.liphia",
-          "match": "\\b(http_listen|http_accept|http_method|http_path|http_query|http_body|http_header|http_respond|http_respond_json|http_get|http_post|http_put|http_patch|http_delete|http_status)\\b"
+          "match": "\\b(http_listen|http_accept|http_method|http_path|http_query|http_body|http_header|http_cookie|http_set_header|http_respond|http_respond_json|http_get|http_post|http_put|http_patch|http_delete|http_status)\\b"
         }
       ]
     },

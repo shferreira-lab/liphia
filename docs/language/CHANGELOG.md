@@ -7,6 +7,67 @@ entry-by-entry.
 
 ---
 
+## [Unreleased] — 2.1.0
+
+### Added
+
+- **Workspaces.** A root `liphia.toml` with `[workspace]` lists member
+  folders (`members = ["app", "libs/*"]`) and a catalog of shared
+  requirements in `[workspace.dependencies]`. Members depend on each other
+  with `{ path = "..." }` or `{ workspace = true }` and import each other by
+  name. The workspace has a single `liphia.lock` and `liphia_modules/` at
+  the root; `liphia install` resolves all members together. Path
+  dependencies must be members; cycles between members are rejected.
+- `liphia run [member]`: runs a project's or member's `entry`.
+- `liphia members`: lists the workspace's members and their dependencies.
+- `liphia init --workspace`: creates a workspace root `liphia.toml`.
+- `examples/workspace/`: a root with three members.
+- `members` patterns accept `*` as any whole path segment
+  (`"apps/*/api"`, `"packages/*"`); folders a wildcard reaches without a
+  `liphia.toml` are skipped, so Liphia members can live beside other
+  languages' folders in one monorepo.
+- Core natives `http_set_header(name, value)` (response headers, repeated
+  `Set-Cookie`, overriding the default CORS headers) and
+  `http_cookie(name)` (read one cookie). Header names and values are
+  validated against header injection.
+- HTTP status reasons for 301, 302, 303, 304, 307 and 308.
+- Conformance cases `014`–`016` (qualified and selective imports) and
+  `105` (names outside a selective import stay private).
+
+### Changed
+
+- Inside a project or workspace, `import from "<name>"` resolves only to
+  packages the importing member declares (its own `liphia.toml`, not its
+  dependencies'); an undeclared package is an error that names the member.
+  Loose files outside any project keep the previous lookup.
+- The VM loads only the native packages in the running member's dependency
+  closure instead of every installed package.
+- `liphia install`, `update`, `remove` and `list` find the project by
+  walking up from the current folder, so they work from any subfolder.
+- `liphia_manifest`: `Dependency` gains the `Path` and `Workspace` forms and
+  rejects unknown keys; `Dependency::req()` returns `Option<&str>`;
+  `ProjectManifest::package` is optional (a workspace root may have none).
+  New `Workspace`, `Member`, `RunPlan` types.
+- `liphia_pipeline`: new `resolve_project_with` taking `PackageRoots`;
+  `resolve_project` keeps its behavior.
+- Selective imports that name something the module does not declare are an
+  error instead of being ignored.
+
+### Fixed
+
+- Qualified imports (`import m from "x"`): the module's functions renamed to
+  `m::name` but calls between them, const reads and enum uses inside the
+  module kept the old names, failing at runtime with "unresolved call".
+  Every reference inside the module is now renamed with its declaration.
+- Selective imports (`import { a } from "x"`) dropped the module's other
+  functions, so `a` failed if it called a helper. The helpers are now
+  included under a private prefix.
+- A qualified or selective module could miss a file it imports when the
+  importer had already imported that file; such modules now resolve their
+  imports independently.
+
+---
+
 ## [2.0.0] — 2026-09-26
 
 The standard library is replaced by a **core** built into the executable

@@ -77,7 +77,9 @@ LIPHIA_REGISTRY=$PWD/src/packages liphia install stats
 
 - Natives are global: once a package is loaded its functions are callable
   even without `import`. Import it anyway; a later version will enforce it.
-- The VM loads every installed native package at startup, not only the
-  imported ones.
+- Inside a project the VM loads only the native packages in the running
+  member's dependency closure (declared packages and their dependencies).
+  A file outside any project still loads every package in
+  `./liphia_modules/`.
 - Package signatures are not known to the type checker: calls to package
   natives type-check as `unknown` and are validated by the native at runtime.
