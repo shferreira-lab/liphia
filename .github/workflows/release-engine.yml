@@ -3,7 +3,7 @@
 # Publishes the Liphia engine when a tag vX.Y.Z is pushed:
 #   1. checks that the tag matches the engine version (the `version` of
 #      liphia_virtual_machine, which every engine crate shares) and the
-#      version of the VS Code extension (tools/liphia-vscode/package.json)
+#      version of the VS Code extension (src/tools/liphia-vscode/package.json)
 #   2. runs the workspace tests (including the conformance suite)
 #   3. generates THIRD_PARTY_LICENSES.txt with cargo-about (src/about.toml)
 #   4. builds `liphia` (and `liphia-gui` on Windows/macOS) per platform and
@@ -44,9 +44,9 @@ jobs:
           fi
 
           # The extension ships with the engine, so it carries the same version
-          ext=$(jq -r .version tools/liphia-vscode/package.json)
+          ext=$(jq -r .version src/tools/liphia-vscode/package.json)
           if [ "$tag" != "$ext" ]; then
-            echo "tag v$tag does not match tools/liphia-vscode/package.json version $ext"
+            echo "tag v$tag does not match src/tools/liphia-vscode/package.json version $ext"
             exit 1
           fi
 
@@ -152,14 +152,15 @@ jobs:
             dist/*-setup.exe
 
   # The artifact is named engine-vscode so the release job picks it up with
-  # the same engine-* pattern as the platform archives.
+  # the same engine-* pattern as the platform archives. The .vsix is written
+  # to dist/ at the repo root (three levels up from the extension folder).
   vscode:
     needs: check
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
-        working-directory: tools/liphia-vscode
+        working-directory: src/tools/liphia-vscode
     steps:
       - uses: actions/checkout@v4
 
@@ -176,10 +177,10 @@ jobs:
       - name: Package extension
         run: |
           if ! ls LICENSE* > /dev/null 2>&1; then
-            cp ../../installer/LICENSE.txt LICENSE.txt
+            cp ../../../installer/LICENSE.txt LICENSE.txt
           fi
-          mkdir -p ../../dist
-          npx --yes @vscode/vsce package --out "../../dist/liphia-vscode-${{ needs.check.outputs.version }}.vsix"
+          mkdir -p ../../../dist
+          npx --yes @vscode/vsce package --out "../../../dist/liphia-vscode-${{ needs.check.outputs.version }}.vsix"
 
       - uses: actions/upload-artifact@v4
         with:

@@ -39,7 +39,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: tools/liphia-vscode
+        working-directory: src/tools/liphia-vscode
     steps:
       - uses: actions/checkout@v4
 
@@ -51,9 +51,11 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+      # vsce refuses to package without a license file; reuse the repo one
+      # when the extension folder has none.
       - name: Package extension
         run: |
           if ! ls LICENSE* > /dev/null 2>&1; then
-            cp ../../installer/LICENSE.txt LICENSE.txt
+            cp ../../../installer/LICENSE.txt LICENSE.txt
           fi
           npx --yes @vscode/vsce package --out /tmp/liphia-vscode-ci.vsix
