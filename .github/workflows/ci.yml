@@ -31,3 +31,29 @@ jobs:
       - name: Test (core workspace)
         working-directory: src
         run: cargo test --workspace --exclude liphia_cli_gui --exclude liphia_gui_native
+
+  # Packages the VS Code extension so a broken manifest or grammar fails the
+  # PR instead of the release tag. The .vsix is discarded.
+  vscode-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/liphia-vscode
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Package extension
+        run: |
+          if ! ls LICENSE* > /dev/null 2>&1; then
+            cp ../../installer/LICENSE.txt LICENSE.txt
+          fi
+          npx --yes @vscode/vsce package --out /tmp/liphia-vscode-ci.vsix

@@ -2,13 +2,13 @@
   "name": "liphia",
   "displayName": "Liphia Language",
   "description": "Syntax highlighting for the Liphia programming language (.lph)",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "publisher": "liphia",
   "license": "MIT - Apache 2.0",
   "icon": "icone.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/shferreira-lab/liphia-vscode"
+    "url": "https://github.com/shferreira-lab/src/tools/liphia-vscode"
   },
   "engines": { "vscode": "^1.80.0" },
   "categories": ["Programming Languages"],

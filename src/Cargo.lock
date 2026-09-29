@@ -1987,7 +1987,7 @@ dependencies = [
 
 [[package]]
 name = "liphia_package_db"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "liphia_virtual_machine",
  "md-5",
@@ -1996,21 +1996,21 @@ dependencies = [
 
 [[package]]
 name = "liphia_package_learn"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_package_num"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "liphia_virtual_machine",
 ]
 
 [[package]]
 name = "liphia_package_stats"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "liphia_virtual_machine",
 ]

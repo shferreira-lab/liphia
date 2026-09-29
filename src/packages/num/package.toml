@@ -5,9 +5,9 @@
 
 [package]
 name        = "num"
-version     = "1.0.0"
+version     = "1.0.1"
 description = "Vectors, matrices and descriptive statistics over lists"
-engine      = "=2.0.0"
+engine      = "=2.1.0"
 entry       = "num.lph"
 files       = ["num.lph", "composed/describe.lph", "index.lph"]
 

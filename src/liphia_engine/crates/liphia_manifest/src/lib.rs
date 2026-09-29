@@ -1099,14 +1099,14 @@ wire = { workspace = true }
 [package]
 name = "num"
 version = "1.0.0"
-engine = "=2.1.0"
+engine = "=2.0.0"
 entry = "num.lph"
 files = ["num.lph"]
 
 [native]
 abi = "rust-1"
 lib = "liphia_package_num"
-"#,
+"#, 
         )
         .unwrap();
         assert!(pkg.is_native());

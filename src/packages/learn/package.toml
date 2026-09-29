@@ -5,9 +5,9 @@
 
 [package]
 name        = "learn"
-version     = "1.0.0"
+version     = "1.0.1"
 description = "Machine learning primitives: activations, losses, optimizers, metrics"
-engine      = "=2.0.0"
+engine      = "=2.1.0"
 entry       = "learn.lph"
 files       = ["learn.lph", "composed/eval.lph", "index.lph"]
 

@@ -2,16 +2,20 @@
 #
 # Publishes the Liphia engine when a tag vX.Y.Z is pushed:
 #   1. checks that the tag matches the engine version (the `version` of
-#      liphia_virtual_machine, which every engine crate shares)
+#      liphia_virtual_machine, which every engine crate shares) and the
+#      version of the VS Code extension (tools/liphia-vscode/package.json)
 #   2. runs the workspace tests (including the conformance suite)
 #   3. generates THIRD_PARTY_LICENSES.txt with cargo-about (src/about.toml)
 #   4. builds `liphia` (and `liphia-gui` on Windows/macOS) per platform and
 #      archives each with LICENSE.txt, THIRD_PARTY_LICENSES.txt and README.md
 #   5. Windows only: builds the Inno Setup installer (installer/windows/liphia.iss)
-#   6. creates the GitHub Release "Liphia X.Y.Z", marked as the latest release
+#   6. packages the VS Code extension as liphia-vscode-X.Y.Z.vsix
+#   7. creates the GitHub Release "Liphia X.Y.Z", marked as the latest release
+#   8. publishes the extension to the VS Code Marketplace and Open VSX, each
+#      only when its secret (VSCE_PAT / OVSX_PAT) is configured
 #
-#   git tag v2.0.0
-#   git push origin v2.0.0
+#   git tag v2.1.0
+#   git push origin v2.1.0
 
 name: release-engine
 
@@ -38,6 +42,14 @@ jobs:
             echo "tag v$tag does not match engine version $ws"
             exit 1
           fi
+
+          # The extension ships with the engine, so it carries the same version
+          ext=$(jq -r .version tools/liphia-vscode/package.json)
+          if [ "$tag" != "$ext" ]; then
+            echo "tag v$tag does not match tools/liphia-vscode/package.json version $ext"
+            exit 1
+          fi
+
           echo "version=$ws" >> "$GITHUB_OUTPUT"
 
   test:
@@ -139,8 +151,43 @@ jobs:
             dist/*.tar.gz
             dist/*-setup.exe
 
+  # The artifact is named engine-vscode so the release job picks it up with
+  # the same engine-* pattern as the platform archives.
+  vscode:
+    needs: check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/liphia-vscode
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      # vsce refuses to package without a license file; reuse the repo one
+      # when the extension folder has none. vscode:prepublish (if any) runs here.
+      - name: Package extension
+        run: |
+          if ! ls LICENSE* > /dev/null 2>&1; then
+            cp ../../installer/LICENSE.txt LICENSE.txt
+          fi
+          mkdir -p ../../dist
+          npx --yes @vscode/vsce package --out "../../dist/liphia-vscode-${{ needs.check.outputs.version }}.vsix"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: engine-vscode
+          path: dist/*.vsix
+
   release:
-    needs: [check, build]
+    needs: [check, build, vscode]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -154,3 +201,30 @@ jobs:
           files: dist/*
           generate_release_notes: true
           make_latest: "true"
+
+  # Stores are updated only after the GitHub Release exists. Each step is
+  # skipped when its secret is missing; vsce reads VSCE_PAT and ovsx reads
+  # OVSX_PAT from the environment.
+  vscode-publish:
+    needs: [check, release]
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: engine-vscode
+          path: dist
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx --yes @vscode/vsce publish --packagePath "dist/liphia-vscode-${{ needs.check.outputs.version }}.vsix"
+
+      - name: Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx --yes ovsx publish "dist/liphia-vscode-${{ needs.check.outputs.version }}.vsix"
