@@ -1,0 +1,6 @@
+# The text form hashes the UTF-8 bytes of the string, not code points.
+print(crypto_sha1("ação €"))
+print(crypto_sha256("ação €"))
+print(crypto_sha512("ação €"))
+print(crypto_sha3_256("ação €"))
+print(crypto_blake3("ação €"))

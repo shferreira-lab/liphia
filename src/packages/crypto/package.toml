@@ -1,0 +1,18 @@
+# packages/crypto/package.toml
+#
+# `engine` is checked by `liphia install` against the running engine.
+# Native packages pin the exact engine: their library uses the Rust ABI.
+
+[package]
+name        = "crypto"
+version     = "0.1.0"
+description = "Cryptographic hashing: SHA-1, SHA-256, SHA-512, SHA3-256 and BLAKE3"
+engine      = "=2.1.0"
+entry       = "crypto.lph"
+files       = ["crypto.lph", "index.lph"]
+
+[native]
+abi = "rust-1"
+lib = "liphia_package_crypto"
+
+[dependencies]

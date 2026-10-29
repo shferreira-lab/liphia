@@ -1,0 +1,2 @@
+# Only hex digits are accepted: no prefix, no separators, no whitespace.
+print(crypto_sha3_256_hex("12 34"))

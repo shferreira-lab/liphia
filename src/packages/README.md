@@ -11,6 +11,7 @@ workspace as the engine.
 | `learn` | native | num | activations, losses, optimizers, classification metrics |
 | `db` | native | — | SQLite (embedded) and PostgreSQL (TCP wire protocol) |
 | `wire` | pure | — | JSON response helpers over the core http natives |
+| `crypto` | native | — | hashing: SHA-1, SHA-256, SHA-512, SHA3-256, BLAKE3 (more primitives planned) |
 
 ```bash
 liphia install stats          # latest version, saved as "^1.0.0"; installs num too
@@ -33,6 +34,26 @@ packages/
     native/         native packages only: Rust source of the library
     lib/            local builds only (ignored by git)
 ```
+
+## Tests
+
+Each official package has its conformance cases in
+`conformance/cases/<name>/`: `.lph` programs with an `.out` (expected
+stdout) or `.err` (expected error text) beside them. Run them with:
+
+```bash
+cargo test -p liphia_cli --test packages
+```
+
+The test builds each package's library, installs it into a scratch folder
+the way `liphia install` does, and runs the cases there. A package whose
+folder is missing from `conformance/cases/` is simply not covered yet.
+
+## Naming
+
+Package natives share one global namespace with the core natives and with
+each other, so the functions of a package carry a prefix of its name
+(`db_*`, `pg_*`, `crypto_*`). Pick a prefix that no other package uses.
 
 ## Versions and releases
 

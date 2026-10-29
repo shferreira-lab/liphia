@@ -1,0 +1,4 @@
+# Multi-block messages from the NIST examples, without any import: package
+# natives are global once the package is installed.
+print(crypto_sha256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"))
+print(crypto_sha512("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"))

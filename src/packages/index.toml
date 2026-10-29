@@ -28,3 +28,7 @@ versions    = ["1.0.1"]
 [wire]
 description = "Application layer over the core http and ws natives: JSON responses"
 versions    = ["1.0.0"]
+
+[crypto]
+description = "Cryptographic hashing: SHA-1, SHA-256, SHA-512, SHA3-256 and BLAKE3"
+versions    = ["0.1.0"]

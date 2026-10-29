@@ -1,0 +1,20 @@
+# The _hex form hashes the bytes a hex string encodes. "616263" is "abc", so
+# both forms must agree for every algorithm.
+print(crypto_sha1_hex("616263") == crypto_sha1("abc"))
+print(crypto_sha256_hex("616263") == crypto_sha256("abc"))
+print(crypto_sha512_hex("616263") == crypto_sha512("abc"))
+print(crypto_sha3_256_hex("616263") == crypto_sha3_256("abc"))
+print(crypto_blake3_hex("616263") == crypto_blake3("abc"))
+
+# Binary input that is not valid UTF-8 text: the three bytes ab cd ef.
+print(crypto_sha256_hex("abcdef"))
+
+# Hex digits are accepted in either case and give the same bytes.
+print(crypto_sha256_hex("ABCDEF") == crypto_sha256_hex("abcdef"))
+
+# Empty hex is the empty message.
+print(crypto_sha256_hex("") == crypto_sha256(""))
+
+# Chaining: sha256(sha256("hello")) hashes the first digest as bytes.
+print(crypto_sha256_hex(crypto_sha256("hello")))
+print(crypto_sha256_hex(crypto_sha256("hello")) == crypto_sha256("hello"))

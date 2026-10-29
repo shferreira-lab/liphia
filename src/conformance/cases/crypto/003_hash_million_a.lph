@@ -1,0 +1,17 @@
+# One million 'a', the classic long-message vector. The string is built by
+# doubling (20 steps) and appending the powers of two that add up to
+# 1,000,000 = 2^19 + 2^18 + 2^17 + 2^16 + 2^14 + 2^9 + 2^6.
+var unit: str = "a"
+var text: str = ""
+var i: int = 0
+while i < 20:
+    if i == 6 or i == 9 or i == 14 or i == 16 or i == 17 or i == 18 or i == 19:
+        text = text + unit
+    unit = unit + unit
+    i = i + 1
+print(len(text))
+print(crypto_sha1(text))
+print(crypto_sha256(text))
+print(crypto_sha512(text))
+print(crypto_sha3_256(text))
+print(crypto_blake3(text))

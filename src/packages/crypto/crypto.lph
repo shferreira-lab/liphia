@@ -1,0 +1,62 @@
+# packages/crypto/crypto.lph
+#
+# crypto — cryptographic primitives for Liphia.
+#
+# Install:
+#   liphia install crypto
+#
+# Usage:
+#   import from "crypto"
+#
+# The crypto_* functions come from the native library and are available as
+# soon as the package is installed, with or without the import (like every
+# package native).
+#
+# Binary values: the language has no bytes type yet, so every binary value
+# is a lowercase hex string. A function that takes binary input has a _hex
+# variant that decodes hex first; hex input may be upper or lower case, must
+# have an even length and may not contain a prefix, spaces or separators.
+#
+# Every function raises a runtime error (catchable with try/catch) on a
+# wrong argument count, a non-str argument or invalid hex.
+#
+# ── Hashing ───────────────────────────────────────────────────────────────────
+#
+# crypto_sha256(text: str) -> str          crypto_sha256_hex(hex: str) -> str
+#   SHA-256 digest, 64 hex characters. The default choice.
+#
+# crypto_sha512(text: str) -> str          crypto_sha512_hex(hex: str) -> str
+#   SHA-512 digest, 128 hex characters.
+#
+# crypto_sha3_256(text: str) -> str        crypto_sha3_256_hex(hex: str) -> str
+#   SHA3-256 (Keccak) digest, 64 hex characters.
+#
+# crypto_blake3(text: str) -> str          crypto_blake3_hex(hex: str) -> str
+#   BLAKE3 digest, 64 hex characters. Fast; not a NIST standard.
+#
+# crypto_sha1(text: str) -> str            crypto_sha1_hex(hex: str) -> str
+#   SHA-1 digest, 40 hex characters. LEGACY: collisions are practical. Only
+#   for protocols that demand it (WebSocket handshake, git, old MySQL
+#   authentication); never for signatures or integrity checks.
+#
+# The text form hashes the UTF-8 bytes of the string. The _hex form hashes
+# the bytes that the hex string encodes, which is how digests are chained:
+#
+#   var inner: str = crypto_sha256("hello")
+#   var outer: str = crypto_sha256_hex(inner)    # sha256(sha256("hello"))
+#
+# A hash is not a password hash. Do not store crypto_sha256(password): it is
+# fast to brute force and unsalted. A slow salted hash (argon2, bcrypt) is
+# planned for this package.
+#
+# ── Example ───────────────────────────────────────────────────────────────────
+#
+#   import from "crypto"
+#
+#   print(crypto_sha256("abc"))
+#   # ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+#
+#   try:
+#       crypto_sha256_hex("abc")
+#   catch e:
+#       print("caught:", e)

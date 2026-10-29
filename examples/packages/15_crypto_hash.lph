@@ -1,0 +1,32 @@
+# crypto: hashing. Install the package first (in the folder you run this from):
+#   liphia install crypto
+import from "crypto"
+
+# A digest is a lowercase hex string. The same input always gives the same
+# digest, and a different input gives a completely different one.
+var message: str = "Liphia"
+print("sha256  ", crypto_sha256(message))
+print("sha512  ", crypto_sha512(message))
+print("sha3-256", crypto_sha3_256(message))
+print("blake3  ", crypto_blake3(message))
+
+# Fingerprint: compare digests instead of the data to see if it changed.
+fn changed(before: str, after: str) -> bool:
+    return crypto_sha256(before) != crypto_sha256(after)
+
+print(changed("order 42: 3 items", "order 42: 3 items"))
+print(changed("order 42: 3 items", "order 42: 30 items"))
+
+# The _hex form hashes the bytes a hex string encodes, which chains digests:
+# sha256(sha256("hello")), as used by some protocols.
+var inner: str = crypto_sha256("hello")
+print("double  ", crypto_sha256_hex(inner))
+
+# Bad input is a runtime error that try/catch can handle.
+try:
+    crypto_sha256_hex("not hex")
+catch e:
+    print("error:", e)
+
+# Never store crypto_sha256(password): hashes are fast on purpose. Passwords
+# need a slow, salted hash.

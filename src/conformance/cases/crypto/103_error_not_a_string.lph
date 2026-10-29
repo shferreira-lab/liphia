@@ -1,0 +1,2 @@
+# A digest is defined over a string; there is no implicit conversion.
+print(crypto_sha256(42))

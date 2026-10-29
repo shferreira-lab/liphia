@@ -17,3 +17,18 @@ Run against the Rust VM:
 
 To add a case, drop a new `.lph` plus its `.out` or `.err` in `cases/`.
 Every bug fix should come with a case that fails before the fix.
+
+## Package suites
+
+Each official package has its own folder, `cases/<package>/` (for example
+`cases/crypto/`), with cases written exactly like the ones above. Package
+natives only exist once the package is installed, so these folders are run
+by a separate test, not by the language suite, which stays VM-agnostic:
+
+    cargo test -p liphia_cli --test packages
+
+For every folder the test builds the package's native library, installs it
+into a scratch directory the way `liphia install` does, and runs each case
+from there. The numbering is the same: `0xx` features, `1xx` expected errors.
+Expected values should come from published test vectors or from an
+independent implementation, never from the package's own output.

@@ -1,0 +1,6 @@
+# BLAKE3 test_vectors.json: the input is the bytes 0, 1, 2, ... (i % 251),
+# so the 1-byte input is "00" and the 2-byte input is "0001". These need the
+# _hex form because the bytes are not text.
+print(crypto_blake3_hex(""))
+print(crypto_blake3_hex("00"))
+print(crypto_blake3_hex("0001"))

@@ -1,0 +1,14 @@
+# Digests of the empty string and of "abc" for every algorithm (FIPS 180-4,
+# FIPS 202, BLAKE3 reference). Also checks that `import from "crypto"` loads.
+import from "crypto"
+
+print(crypto_sha1(""))
+print(crypto_sha1("abc"))
+print(crypto_sha256(""))
+print(crypto_sha256("abc"))
+print(crypto_sha512(""))
+print(crypto_sha512("abc"))
+print(crypto_sha3_256(""))
+print(crypto_sha3_256("abc"))
+print(crypto_blake3(""))
+print(crypto_blake3("abc"))

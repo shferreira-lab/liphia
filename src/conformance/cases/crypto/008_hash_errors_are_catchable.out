@@ -1,0 +1,6 @@
+caught: crypto_sha256_hex(): odd number of hex digits (3)
+caught: crypto_sha1_hex(): invalid hex character 'z' at position 2
+caught: crypto_sha256(): argument must be str
+caught: crypto_blake3() expects 1 argument(s), got 2
+caught: crypto_sha512_hex(): invalid hex character 'x' at position 1
+after

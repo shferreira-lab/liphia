@@ -1,0 +1,25 @@
+[package]
+name    = "liphia_package_crypto"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+# Native library of the `crypto` package. Built as a cdylib and copied to
+# packages/crypto/lib/ by packages/build.ps1 (or build.sh). Not a default
+# member of the workspace: build it with `cargo build -p liphia_package_crypto --release`.
+[lib]
+name       = "liphia_package_crypto"
+crate-type = ["cdylib"]
+
+# Every dependency is RustCrypto or BLAKE3 and carries a permissive license
+# (MIT, Apache-2.0, BSD or CC0). blake3 keeps its default features: it uses
+# a C compiler for its SIMD code when the machine has one and falls back to
+# portable Rust otherwise. Its "pure" feature would turn off NEON (Apple
+# Silicon) and AVX-512 for nothing.
+[dependencies]
+liphia_virtual_machine = { path = "../../../liphia_engine/crates/liphia_virtual_machine" }
+sha1   = "0.10"
+sha2   = "0.10"
+sha3   = "0.10"
+blake3 = "1"

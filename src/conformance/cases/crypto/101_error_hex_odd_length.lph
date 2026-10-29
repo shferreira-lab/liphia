@@ -1,0 +1,2 @@
+# Odd-length hex cannot encode whole bytes.
+print(crypto_sha256_hex("abc"))

@@ -1,0 +1,2 @@
+# One argument exactly; an extra one is not silently ignored.
+print(crypto_blake3("a", "b"))

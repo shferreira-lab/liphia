@@ -13,6 +13,7 @@ members = [
     "packages/num/native",
     "packages/stats/native",
     "packages/learn/native",
+    "packages/crypto/native",
 ]
 # Not default-members (build explicitly with -p):
 #   liphia_cli_gui    — desktop GUI, pulls eframe/winit (~236 crates)
@@ -36,3 +37,28 @@ resolver = "2"
 strip     = true
 opt-level = "z"
 lto       = true
+
+# Crypto is CPU-bound, so the crates behind the `crypto` package are
+# optimized for speed instead of the workspace-wide "z" (size). Measured on
+# 64 MiB inputs, "z" was 1.1x to 2.5x slower depending on the hash. For the
+# password hashes planned for this package it also matters for security:
+# the cost parameters are tuned to the speed of this code, and an attacker
+# runs optimized code. A package override does not reach its dependencies,
+# hence one entry per crypto crate; add new ones here as they are added.
+[profile.release.package.liphia_package_crypto]
+opt-level = 3
+
+[profile.release.package.sha1]
+opt-level = 3
+
+[profile.release.package.sha2]
+opt-level = 3
+
+[profile.release.package.sha3]
+opt-level = 3
+
+[profile.release.package.keccak]
+opt-level = 3
+
+[profile.release.package.blake3]
+opt-level = 3
